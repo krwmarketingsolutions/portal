@@ -74,6 +74,7 @@ tbody tr:hover td{background:#fafafa;}
 .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;}
 .b-cpa{background:#dcfce7;color:#15803d;}
 .b-no{background:#f3f4f6;color:#6b7280;}
+.b-pending{background:#fef9c3;color:#a16207;}
 .camp-tag{background:#eef2ff;color:#4338ca;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}
 
 /* STATES */
@@ -279,10 +280,15 @@ async function loadCalls(){
     tbody.innerHTML = '';
     d.calls.forEach(function(c){
       var date = (c.call_date||c.received_at||'—').split('T')[0];
-      var pay  = c.payout_amount ? '$'+parseFloat(c.payout_amount).toFixed(2) : '—';
-      var badge= c.billable
-        ? '<span class="badge b-cpa">✓ CPA</span>'
-        : '<span class="badge b-no">Not Converted</span>';
+      var pay  = c.payout_amount
+          ? '$'+parseFloat(c.payout_amount).toFixed(2)
+          : (statusLabel === 'pending' ? '<span style="color:#a16207">Pending</span>' : '—');
+      var statusLabel = c.call_status_label || (c.billable === true ? 'cpa' : c.billable === false ? 'not_converted' : 'pending');
+        var badge = statusLabel === 'cpa'
+          ? '<span class="badge b-cpa">✓ CPA</span>'
+          : statusLabel === 'not_converted'
+          ? '<span class="badge b-no">Not Converted</span>'
+          : '<span class="badge b-pending">⏳ Pending</span>';
       var tr = document.createElement('tr');
       tr.innerHTML =
         '<td>'+date+'</td>'+
