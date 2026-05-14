@@ -5,215 +5,165 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>KRW Publisher Portal</title>
 <style>
-  *{ box-sizing:border-box; margin:0; padding:0; }
-  body{ font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:#f0f2f5; min-height:100vh; color:#1a1a2e; }
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#eef1f6;min-height:100vh;color:#111;}
 
-  /* ── LOGIN ── */
-  .login-wrap{ min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; background:linear-gradient(135deg,#0f1c3f 0%,#1a3a6b 100%); }
-  .login-card{ background:#fff; border-radius:16px; box-shadow:0 20px 60px rgba(0,0,0,.3); padding:44px 40px; width:100%; max-width:420px; }
-  .login-logo{ text-align:center; margin-bottom:32px; }
-  .login-logo .brand{ font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.15em; color:#2563eb; margin-bottom:8px; }
-  .login-logo h1{ font-size:24px; font-weight:700; color:#0f1c3f; }
-  .login-logo p{ font-size:13px; color:#888; margin-top:6px; }
-  .login-divider{ height:1px; background:#eee; margin:24px 0; }
-  .field-label{ font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:#555; margin-bottom:7px; display:block; }
-  .field-input{ width:100%; padding:13px 15px; border:1.5px solid #e5e7eb; border-radius:9px; font-size:15px; outline:none; transition:border .15s,box-shadow .15s; background:#fafafa; }
-  .field-input:focus{ border-color:#2563eb; box-shadow:0 0 0 3px rgba(37,99,235,.1); background:#fff; }
-  .login-btn{ width:100%; padding:14px; background:#0f1c3f; color:#fff; border:none; border-radius:9px; font-size:15px; font-weight:600; cursor:pointer; margin-top:16px; transition:background .15s,transform .1s; letter-spacing:.02em; }
-  .login-btn:hover:not(:disabled){ background:#2563eb; transform:translateY(-1px); }
-  .login-btn:disabled{ background:#aaa; cursor:not-allowed; transform:none; }
-  .login-error{ background:#fef2f2; color:#991b1b; border:1px solid #fecaca; border-radius:8px; padding:11px 14px; font-size:13px; margin-top:14px; display:none; }
-  .login-footer{ text-align:center; font-size:11px; color:#bbb; margin-top:24px; }
+/* LOGIN */
+#login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(135deg,#0f1c3f 0%,#1e3a8a 100%);}
+.login-box{background:#fff;border-radius:16px;padding:44px 40px;width:100%;max-width:400px;box-shadow:0 24px 64px rgba(0,0,0,.35);}
+.login-box .brand{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.15em;color:#2563eb;margin-bottom:10px;}
+.login-box h1{font-size:22px;font-weight:700;color:#0f1c3f;margin-bottom:6px;}
+.login-box p{font-size:13px;color:#9ca3af;margin-bottom:28px;}
+.login-box label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;display:block;margin-bottom:7px;}
+.login-box input{width:100%;padding:13px 14px;border:1.5px solid #e5e7eb;border-radius:9px;font-size:15px;outline:none;transition:border .15s;}
+.login-box input:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.1);}
+.login-box button{width:100%;margin-top:14px;padding:14px;background:#0f1c3f;color:#fff;border:none;border-radius:9px;font-size:15px;font-weight:600;cursor:pointer;transition:background .15s;}
+.login-box button:hover:not(:disabled){background:#2563eb;}
+.login-box button:disabled{background:#9ca3af;cursor:not-allowed;}
+.err-box{margin-top:12px;background:#fef2f2;color:#991b1b;border:1px solid #fecaca;border-radius:8px;padding:11px 14px;font-size:13px;display:none;}
+.login-footer{text-align:center;font-size:11px;color:#d1d5db;margin-top:20px;}
 
-  /* ── PORTAL SHELL ── */
-  .portal{ display:none; min-height:100vh; }
-  .topbar{ background:#0f1c3f; color:#fff; padding:0 28px; height:58px; display:flex; align-items:center; justify-content:space-between; box-shadow:0 2px 8px rgba(0,0,0,.2); }
-  .topbar-left{ display:flex; align-items:center; gap:16px; }
-  .topbar-brand{ font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.12em; color:rgba(255,255,255,.5); }
-  .topbar-sep{ color:rgba(255,255,255,.2); }
-  .topbar-name{ font-size:14px; font-weight:600; color:#fff; }
-  .topbar-right{ display:flex; align-items:center; gap:10px; }
-  .topbar-badge{ background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.15); border-radius:20px; padding:4px 12px; font-size:11px; font-weight:600; color:rgba(255,255,255,.8); }
-  .signout-btn{ background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2); color:#fff; padding:6px 14px; border-radius:7px; font-size:12px; cursor:pointer; font-weight:500; transition:background .15s; }
-  .signout-btn:hover{ background:rgba(255,255,255,.2); }
+/* PORTAL */
+#portal-screen{display:none;}
+.topbar{background:#0f1c3f;color:#fff;height:56px;padding:0 28px;display:flex;align-items:center;justify-content:space-between;}
+.topbar-left{display:flex;align-items:center;gap:12px;}
+.topbar-co{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;opacity:.5;}
+.topbar-pipe{opacity:.2;}
+.topbar-user{font-size:14px;font-weight:600;}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.topbar-tag{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:20px;padding:3px 11px;font-size:11px;font-weight:600;opacity:.85;}
+.signout{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;padding:6px 14px;border-radius:7px;font-size:12px;cursor:pointer;font-weight:500;}
+.signout:hover{background:rgba(255,255,255,.2);}
 
-  /* ── BODY ── */
-  .portal-body{ padding:28px 32px; max-width:1100px; margin:0 auto; }
-  @media(max-width:700px){ .portal-body{ padding:16px; } }
+.body{padding:28px 32px;max-width:1080px;margin:0 auto;}
+@media(max-width:660px){.body{padding:16px;}}
 
-  /* ── WELCOME BANNER ── */
-  .welcome-banner{ background:linear-gradient(135deg,#0f1c3f,#1e40af); border-radius:14px; padding:24px 28px; color:#fff; margin-bottom:24px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; }
-  .welcome-banner h2{ font-size:20px; font-weight:700; margin-bottom:4px; }
-  .welcome-banner p{ font-size:13px; opacity:.75; }
-  .did-chip{ background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.25); border-radius:8px; padding:10px 16px; text-align:center; }
-  .did-chip .did-label{ font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.1em; opacity:.7; margin-bottom:4px; }
-  .did-chip .did-number{ font-size:18px; font-weight:700; font-family:monospace; letter-spacing:.05em; }
+/* BANNER */
+.banner{background:linear-gradient(135deg,#0f1c3f,#1e40af);border-radius:14px;padding:22px 26px;color:#fff;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;margin-bottom:22px;}
+.banner h2{font-size:19px;font-weight:700;margin-bottom:3px;}
+.banner p{font-size:13px;opacity:.7;}
+.did-box{background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.2);border-radius:10px;padding:10px 18px;text-align:center;min-width:160px;}
+.did-box .lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;opacity:.65;margin-bottom:5px;}
+.did-box .num{font-size:17px;font-weight:700;font-family:monospace;letter-spacing:.04em;}
 
-  /* ── KPI STRIP ── */
-  .kpi-strip{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:24px; }
-  @media(max-width:700px){ .kpi-strip{ grid-template-columns:repeat(2,1fr); } }
-  .kpi{ background:#fff; border-radius:12px; padding:18px 20px; box-shadow:0 1px 3px rgba(0,0,0,.07),0 1px 2px rgba(0,0,0,.05); border:1px solid #f0f0f0; }
-  .kpi-label{ font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.09em; color:#9ca3af; margin-bottom:6px; }
-  .kpi-val{ font-size:30px; font-weight:700; line-height:1; }
-  .kpi-val.neutral{ color:#0f1c3f; }
-  .kpi-val.green{ color:#16a34a; }
-  .kpi-val.blue{ color:#2563eb; }
-  .kpi-sub{ font-size:11px; color:#d1d5db; margin-top:5px; }
+/* KPIS */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;}
+@media(max-width:660px){.kpis{grid-template-columns:repeat(2,1fr);}}
+.kpi{background:#fff;border-radius:12px;padding:18px 20px;border:1px solid #e9ecef;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+.kpi .lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:#9ca3af;margin-bottom:7px;}
+.kpi .val{font-size:30px;font-weight:700;line-height:1;}
+.kpi .sub{font-size:11px;color:#d1d5db;margin-top:5px;}
+.v-dark{color:#0f1c3f;} .v-green{color:#15803d;} .v-blue{color:#2563eb;}
 
-  /* ── TABLE CARD ── */
-  .card{ background:#fff; border-radius:12px; box-shadow:0 1px 3px rgba(0,0,0,.07); border:1px solid #f0f0f0; overflow:hidden; margin-bottom:24px; }
-  .card-header{ padding:16px 20px; border-bottom:1px solid #f3f4f6; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; }
-  .card-title{ font-size:14px; font-weight:700; color:#0f1c3f; }
-  .card-sub{ font-size:12px; color:#9ca3af; margin-top:2px; }
-  .card-filters{ display:flex; gap:8px; align-items:center; }
-  .filter-sel{ padding:6px 10px; border:1px solid #e5e7eb; border-radius:7px; font-size:12px; background:#fff; outline:none; color:#374151; }
-  .refresh-btn{ padding:6px 12px; background:#f3f4f6; border:1px solid #e5e7eb; border-radius:7px; font-size:12px; cursor:pointer; font-weight:500; color:#374151; transition:background .15s; }
-  .refresh-btn:hover{ background:#e5e7eb; }
+/* CARD */
+.card{background:#fff;border-radius:12px;border:1px solid #e9ecef;box-shadow:0 1px 3px rgba(0,0,0,.05);overflow:hidden;margin-bottom:22px;}
+.card-hdr{padding:15px 20px;border-bottom:1px solid #f3f4f6;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
+.card-hdr-left .title{font-size:14px;font-weight:700;color:#0f1c3f;}
+.card-hdr-left .sub{font-size:12px;color:#9ca3af;margin-top:2px;}
+.filters{display:flex;gap:8px;}
+.fsel{padding:6px 10px;border:1px solid #e5e7eb;border-radius:7px;font-size:12px;background:#fff;outline:none;color:#374151;}
+.rbtn{padding:6px 12px;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:7px;font-size:12px;cursor:pointer;font-weight:500;color:#374151;}
+.rbtn:hover{background:#e5e7eb;}
 
-  table{ width:100%; border-collapse:collapse; font-size:13px; }
-  thead tr{ background:#f9fafb; }
-  th{ padding:10px 16px; text-align:left; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:#9ca3af; border-bottom:1px solid #f3f4f6; white-space:nowrap; }
-  td{ padding:13px 16px; border-bottom:1px solid #f9fafb; color:#374151; vertical-align:middle; }
-  tbody tr:last-child td{ border-bottom:none; }
-  tbody tr:hover td{ background:#fafafa; }
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead{background:#f9fafb;}
+th{padding:10px 16px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#9ca3af;border-bottom:1px solid #f3f4f6;white-space:nowrap;}
+td{padding:13px 16px;border-bottom:1px solid #f9fafb;color:#374151;vertical-align:middle;}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr:hover td{background:#fafafa;}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;}
+.b-cpa{background:#dcfce7;color:#15803d;}
+.b-no{background:#f3f4f6;color:#6b7280;}
+.camp-tag{background:#eef2ff;color:#4338ca;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}
 
-  /* ── BADGES ── */
-  .badge{ display:inline-flex; align-items:center; gap:4px; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; white-space:nowrap; }
-  .badge-cpa{ background:#dcfce7; color:#15803d; }
-  .badge-no{ background:#f3f4f6; color:#6b7280; }
-  .badge-pending{ background:#fef9c3; color:#a16207; }
-
-  /* ── EMPTY / LOADING ── */
-  .state-box{ padding:52px 24px; text-align:center; }
-  .state-icon{ font-size:40px; margin-bottom:12px; opacity:.4; }
-  .state-title{ font-size:15px; font-weight:600; color:#6b7280; margin-bottom:6px; }
-  .state-sub{ font-size:12px; color:#d1d5db; }
-  .spinner{ width:28px; height:28px; border:3px solid #e5e7eb; border-top-color:#2563eb; border-radius:50%; animation:spin .7s linear infinite; margin:0 auto 12px; }
-  @keyframes spin{ to{ transform:rotate(360deg); } }
+/* STATES */
+.st{padding:50px 20px;text-align:center;}
+.st-ico{font-size:36px;margin-bottom:12px;opacity:.4;}
+.st-t{font-size:14px;font-weight:600;color:#6b7280;margin-bottom:5px;}
+.st-s{font-size:12px;color:#d1d5db;}
+.spin{width:28px;height:28px;border:3px solid #e5e7eb;border-top-color:#2563eb;border-radius:50%;animation:sp .7s linear infinite;margin:0 auto 10px;}
+@keyframes sp{to{transform:rotate(360deg);}}
 </style>
 </head>
 <body>
 
-<!-- ══ LOGIN ══════════════════════════════════════ -->
-<div class="login-wrap" id="login-screen">
-  <div class="login-card">
-    <div class="login-logo">
-      <div class="brand">KRW Marketing Solutions</div>
-      <h1>Publisher Portal</h1>
-      <p>Sign in to view your calls and conversions</p>
-    </div>
-    <div class="login-divider"></div>
-    <label class="field-label" for="pub-id-input">Your Publisher ID</label>
-    <input class="field-input" id="pub-id-input" type="text" placeholder="e.g. KRW-JOHN-2026-X7K" autocomplete="off" spellcheck="false"/>
-    <button class="login-btn" id="login-btn" onclick="doLogin()">Sign In</button>
-    <div class="login-error" id="login-error"></div>
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="brand">KRW Marketing Solutions</div>
+    <h1>Publisher Portal</h1>
+    <p>Sign in to view your calls and conversions</p>
+    <label for="pid">Your Publisher ID</label>
+    <input id="pid" type="text" placeholder="e.g. KRW-JOHN-2026-X7K" autocomplete="off" spellcheck="false"/>
+    <button id="lbtn" onclick="doLogin()">Sign In</button>
+    <div class="err-box" id="err"></div>
     <div class="login-footer">Need access? Contact KRW Marketing Solutions</div>
   </div>
 </div>
 
-<!-- ══ PORTAL ══════════════════════════════════════ -->
-<div class="portal" id="portal-screen">
-
-  <!-- Top bar -->
+<!-- PORTAL -->
+<div id="portal-screen">
   <div class="topbar">
     <div class="topbar-left">
-      <span class="topbar-brand">KRW Marketing</span>
-      <span class="topbar-sep">|</span>
-      <span class="topbar-name" id="tb-name">Publisher Dashboard</span>
+      <span class="topbar-co">KRW Marketing</span>
+      <span class="topbar-pipe">|</span>
+      <span class="topbar-user" id="tb-name">Dashboard</span>
     </div>
     <div class="topbar-right">
-      <span class="topbar-badge" id="tb-campaign">SSDI</span>
-      <button class="signout-btn" onclick="doLogout()">Sign Out</button>
+      <span class="topbar-tag" id="tb-camp">SSDI</span>
+      <button class="signout" onclick="doLogout()">Sign Out</button>
     </div>
   </div>
 
-  <div class="portal-body">
+  <div class="body">
 
-    <!-- Welcome banner -->
-    <div class="welcome-banner">
+    <div class="banner">
       <div>
-        <h2 id="wb-greeting">Welcome back</h2>
-        <p id="wb-sub">Here's your call performance summary</p>
+        <h2 id="wb-name">Welcome back</h2>
+        <p id="wb-id">Publisher Dashboard</p>
       </div>
-      <div class="did-chip" id="did-chip" style="display:none">
-        <div class="did-label">Your Tracking Number</div>
-        <div class="did-number" id="did-display">—</div>
-      </div>
-    </div>
-
-    <!-- KPIs -->
-    <div class="kpi-strip">
-      <div class="kpi">
-        <div class="kpi-label">Total Calls</div>
-        <div class="kpi-val neutral" id="kpi-total">—</div>
-        <div class="kpi-sub">last 30 days</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">CPA / Billable</div>
-        <div class="kpi-val green" id="kpi-billable">—</div>
-        <div class="kpi-sub">signed retainers</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">Today</div>
-        <div class="kpi-val blue" id="kpi-today">—</div>
-        <div class="kpi-sub">calls today</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">Total Payout</div>
-        <div class="kpi-val green" id="kpi-payout">—</div>
-        <div class="kpi-sub">billable only</div>
+      <div class="did-box" id="did-box" style="display:none">
+        <div class="lbl">Your Tracking Number</div>
+        <div class="num" id="did-num">—</div>
       </div>
     </div>
 
-    <!-- Calls table -->
+    <div class="kpis">
+      <div class="kpi"><div class="lbl">Total Calls</div><div class="val v-dark" id="k-total">—</div><div class="sub">last 30 days</div></div>
+      <div class="kpi"><div class="lbl">CPA / Billable</div><div class="val v-green" id="k-bill">—</div><div class="sub">signed retainers</div></div>
+      <div class="kpi"><div class="lbl">Today</div><div class="val v-blue" id="k-today">—</div><div class="sub">calls today</div></div>
+      <div class="kpi"><div class="lbl">Total Payout</div><div class="val v-green" id="k-pay">—</div><div class="sub">billable only</div></div>
+    </div>
+
     <div class="card">
-      <div class="card-header">
-        <div>
-          <div class="card-title">Call Log</div>
-          <div class="card-sub">Updated daily by your buyer</div>
+      <div class="card-hdr">
+        <div class="card-hdr-left">
+          <div class="title">Call Log</div>
+          <div class="sub">Updated daily by your buyer</div>
         </div>
-        <div class="card-filters">
-          <select class="filter-sel" id="filter-days" onchange="loadCalls()">
+        <div class="filters">
+          <select class="fsel" id="f-days" onchange="loadCalls()">
             <option value="7">Last 7 days</option>
             <option value="30" selected>Last 30 days</option>
             <option value="60">Last 60 days</option>
             <option value="90">Last 90 days</option>
           </select>
-          <select class="filter-sel" id="filter-status" onchange="loadCalls()">
+          <select class="fsel" id="f-bill" onchange="loadCalls()">
             <option value="">All Calls</option>
             <option value="true">CPA Only</option>
           </select>
-          <button class="refresh-btn" onclick="loadCalls()">↻ Refresh</button>
+          <button class="rbtn" onclick="loadCalls()">↻</button>
         </div>
       </div>
-
-      <!-- Loading -->
-      <div id="tbl-loading" class="state-box">
-        <div class="spinner"></div>
-        <div class="state-title">Loading your calls...</div>
-      </div>
-
-      <!-- Empty -->
-      <div id="tbl-empty" class="state-box" style="display:none">
-        <div class="state-icon">📋</div>
-        <div class="state-title">No calls yet</div>
-        <div class="state-sub">Calls will appear here once posted by your buyer</div>
-      </div>
-
-      <!-- Table -->
+      <div id="st-load" class="st"><div class="spin"></div><div class="st-t">Loading your calls...</div></div>
+      <div id="st-empty" class="st" style="display:none"><div class="st-ico">📋</div><div class="st-t">No calls yet</div><div class="st-s">Calls will appear here once posted by your buyer</div></div>
+      <div id="st-err" class="st" style="display:none"><div class="st-ico">⚠️</div><div class="st-t">Could not load calls</div><div class="st-s" id="st-err-msg">Please try again</div></div>
       <div id="tbl-wrap" style="display:none;overflow-x:auto">
         <table>
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Caller Name</th>
-              <th>Caller ID</th>
-              <th>Status</th>
-              <th>Payout</th>
-              <th>Campaign</th>
-            </tr>
-          </thead>
-          <tbody id="tbl-body"></tbody>
+          <thead><tr>
+            <th>Date</th><th>Caller Name</th><th>Caller ID</th><th>Status</th><th>Payout</th><th>Campaign</th>
+          </tr></thead>
+          <tbody id="tbl"></tbody>
         </table>
       </div>
     </div>
@@ -222,149 +172,135 @@
 </div>
 
 <script>
-  var API  = 'https://krw-backend-production.up.railway.app';
-  var session = null;
+var API = 'https://krw-backend-production.up.railway.app';
+var S = null;
 
-  // ── Restore session ──────────────────────────────
-  window.onload = function(){
-    try{
-      var s = sessionStorage.getItem('krw_pub_v2');
-      if(s){ session = JSON.parse(s); showPortal(); }
-    }catch(e){}
-  };
+// Restore session on load
+window.addEventListener('load', function(){
+  try{
+    var raw = sessionStorage.getItem('krw_sess');
+    if(raw){ S = JSON.parse(raw); renderPortal(); }
+  }catch(e){}
+});
 
-  // ── Login ────────────────────────────────────────
-  document.getElementById('pub-id-input').addEventListener('keydown', function(e){
-    if(e.key==='Enter') doLogin();
-  });
+document.getElementById('pid').addEventListener('keydown', function(e){
+  if(e.key==='Enter') doLogin();
+});
 
-  async function doLogin(){
-    var input = document.getElementById('pub-id-input');
-    var errEl = document.getElementById('login-error');
-    var btn   = document.getElementById('login-btn');
-    var pubId = input.value.trim();
-    if(!pubId){ input.focus(); return; }
-
-    btn.textContent = 'Signing in...';
-    btn.disabled = true;
-    errEl.style.display = 'none';
-
-    try{
-      var res = await fetch(API+'/publishers/login',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({pub_id:pubId})
-      });
-      var d = await res.json();
-      if(d.ok){
-        session = { pub_id:d.pub_id, name:d.name, campaign:d.campaign, did:d.did };
-        sessionStorage.setItem('krw_pub_v2', JSON.stringify(session));
-        showPortal();
-      } else {
-        errEl.textContent = 'Publisher ID not recognized. Please check and try again.';
-        errEl.style.display = '';
-      }
-    } catch(err){
-      errEl.textContent = 'Connection error — please try again in a moment.';
-      errEl.style.display = '';
+async function doLogin(){
+  var pid   = document.getElementById('pid').value.trim();
+  var errEl = document.getElementById('err');
+  var btn   = document.getElementById('lbtn');
+  errEl.style.display='none';
+  if(!pid){ document.getElementById('pid').focus(); return; }
+  btn.textContent='Signing in...'; btn.disabled=true;
+  try{
+    var r = await fetch(API+'/publishers/login',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({pub_id:pid})
+    });
+    var d = await r.json();
+    if(d.ok){
+      S = {pub_id:d.pub_id, name:d.name, campaign:d.campaign||'SSDI', did:d.did||null};
+      sessionStorage.setItem('krw_sess', JSON.stringify(S));
+      renderPortal();
+    } else {
+      errEl.textContent = 'Publisher ID not recognized. Please check and try again.';
+      errEl.style.display='';
     }
-    btn.textContent = 'Sign In';
-    btn.disabled = false;
+  } catch(e){
+    errEl.textContent = 'Connection error — please try again.';
+    errEl.style.display='';
+  }
+  btn.textContent='Sign In'; btn.disabled=false;
+}
+
+function renderPortal(){
+  // Show portal, hide login
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('portal-screen').style.display = 'block';
+
+  // Fill in details
+  var first = (S.name||'').split(' ')[0];
+  document.getElementById('tb-name').textContent  = S.name+' — Dashboard';
+  document.getElementById('tb-camp').textContent  = S.campaign;
+  document.getElementById('wb-name').textContent  = 'Welcome back, '+first+'!';
+  document.getElementById('wb-id').textContent    = 'Publisher ID: '+S.pub_id;
+
+  if(S.did){
+    var fmt = String(S.did).replace(/(\d{3})(\d{3})(\d{4})/,'($1) $2-$3');
+    document.getElementById('did-num').textContent = fmt||S.did;
+    document.getElementById('did-box').style.display = '';
   }
 
-  // ── Show portal ──────────────────────────────────
-  function showPortal(){
-    document.getElementById('login-screen').style.display  = 'none';
-    document.getElementById('portal-screen').style.display = '';
+  loadCalls();
+}
 
-    var firstName = (session.name||'').split(' ')[0];
-    document.getElementById('tb-name').textContent       = session.name+' — Dashboard';
-    document.getElementById('tb-campaign').textContent   = session.campaign||'SSDI';
-    document.getElementById('wb-greeting').textContent   = 'Welcome back, '+firstName;
-    document.getElementById('wb-sub').textContent        = 'Publisher ID: '+session.pub_id;
+function doLogout(){
+  sessionStorage.removeItem('krw_sess');
+  S = null;
+  document.getElementById('portal-screen').style.display = 'none';
+  document.getElementById('login-screen').style.display  = '';
+  document.getElementById('pid').value = '';
+}
 
-    if(session.did){
-      var didEl = document.getElementById('did-chip');
-      var fmt   = String(session.did).replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
-      document.getElementById('did-display').textContent = fmt;
-      didEl.style.display = '';
+async function loadCalls(){
+  if(!S) return;
+  var days = document.getElementById('f-days').value;
+  var bill = document.getElementById('f-bill').value;
+
+  // Show loading
+  document.getElementById('st-load').style.display  = '';
+  document.getElementById('st-empty').style.display = 'none';
+  document.getElementById('st-err').style.display   = 'none';
+  document.getElementById('tbl-wrap').style.display = 'none';
+
+  try{
+    var url = API+'/publishers/'+encodeURIComponent(S.pub_id)+'/calls?days='+days+(bill?'&billable_only=true':'');
+    var r   = await fetch(url);
+    var d   = await r.json();
+
+    // KPIs
+    document.getElementById('k-total').textContent = d.total||0;
+    document.getElementById('k-bill').textContent  = d.billable_count||0;
+    document.getElementById('k-pay').textContent   = '$'+parseFloat(d.total_payout||0).toFixed(2);
+    var today = new Date().toISOString().split('T')[0];
+    var tc = (d.calls||[]).filter(function(c){ return String(c.call_date||c.received_at||'').startsWith(today); }).length;
+    document.getElementById('k-today').textContent = tc;
+
+    document.getElementById('st-load').style.display = 'none';
+
+    if(!d.calls||!d.calls.length){
+      document.getElementById('st-empty').style.display=''; return;
     }
 
-    loadCalls();
+    var tbody = document.getElementById('tbl');
+    tbody.innerHTML = '';
+    d.calls.forEach(function(c){
+      var date = (c.call_date||c.received_at||'—').split('T')[0];
+      var pay  = c.payout_amount ? '$'+parseFloat(c.payout_amount).toFixed(2) : '—';
+      var badge= c.billable
+        ? '<span class="badge b-cpa">✓ CPA</span>'
+        : '<span class="badge b-no">Not Converted</span>';
+      var tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td>'+date+'</td>'+
+        '<td style="font-weight:500">'+(c.caller_name||'—')+'</td>'+
+        '<td style="font-family:monospace;font-size:12px;color:#6b7280">'+(c.caller_id||'—')+'</td>'+
+        '<td>'+badge+'</td>'+
+        '<td style="font-weight:600;color:#15803d">'+pay+'</td>'+
+        '<td><span class="camp-tag">'+(c.campaign_name||S.campaign)+'</span></td>';
+      tbody.appendChild(tr);
+    });
+    document.getElementById('tbl-wrap').style.display = '';
+
+  } catch(e){
+    document.getElementById('st-load').style.display = 'none';
+    document.getElementById('st-err').style.display  = '';
+    document.getElementById('st-err-msg').textContent = e.message;
   }
-
-  // ── Logout ───────────────────────────────────────
-  function doLogout(){
-    sessionStorage.removeItem('krw_pub_v2');
-    session = null;
-    document.getElementById('login-screen').style.display  = '';
-    document.getElementById('portal-screen').style.display = 'none';
-    document.getElementById('pub-id-input').value = '';
-  }
-
-  // ── Load calls ───────────────────────────────────
-  async function loadCalls(){
-    if(!session) return;
-    var days    = document.getElementById('filter-days').value;
-    var billOnly= document.getElementById('filter-status').value;
-
-    document.getElementById('tbl-loading').style.display = '';
-    document.getElementById('tbl-empty').style.display   = 'none';
-    document.getElementById('tbl-wrap').style.display    = 'none';
-
-    try{
-      var url = API+'/publishers/'+encodeURIComponent(session.pub_id)+'/calls?days='+days;
-      if(billOnly) url += '&billable_only=true';
-      var res = await fetch(url);
-      var d   = await res.json();
-
-      // KPIs
-      document.getElementById('kpi-total').textContent    = d.total         || 0;
-      document.getElementById('kpi-billable').textContent = d.billable_count || 0;
-      document.getElementById('kpi-payout').textContent   = '$'+parseFloat(d.total_payout||0).toFixed(2);
-
-      var today = new Date().toISOString().split('T')[0];
-      var todayCt = (d.calls||[]).filter(function(c){
-        return String(c.call_date||c.received_at||'').startsWith(today);
-      }).length;
-      document.getElementById('kpi-today').textContent = todayCt;
-
-      document.getElementById('tbl-loading').style.display = 'none';
-
-      if(!d.calls||!d.calls.length){
-        document.getElementById('tbl-empty').style.display = '';
-        return;
-      }
-
-      var tbody = document.getElementById('tbl-body');
-      tbody.innerHTML = '';
-      d.calls.forEach(function(c){
-        var date = (c.call_date||c.received_at||'—').split('T')[0];
-        var pay  = c.payout_amount ? '$'+parseFloat(c.payout_amount).toFixed(2) : '—';
-        var badge = c.billable
-          ? '<span class="badge badge-cpa">✓ CPA</span>'
-          : '<span class="badge badge-no">Not Converted</span>';
-        var tr = document.createElement('tr');
-        tr.innerHTML =
-          '<td>'+date+'</td>'+
-          '<td style="font-weight:500">'+(c.caller_name||'—')+'</td>'+
-          '<td style="font-family:monospace;font-size:12px;color:#6b7280">'+(c.caller_id||'—')+'</td>'+
-          '<td>'+badge+'</td>'+
-          '<td style="font-weight:600;color:#15803d">'+pay+'</td>'+
-          '<td><span style="background:#f0f4ff;color:#3b5bdb;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600">'+(c.campaign_name||session.campaign||'SSDI')+'</span></td>';
-        tbody.appendChild(tr);
-      });
-      document.getElementById('tbl-wrap').style.display = '';
-
-    } catch(err){
-      document.getElementById('tbl-loading').style.display = 'none';
-      document.getElementById('tbl-empty').style.display   = '';
-      document.getElementById('tbl-empty').innerHTML =
-        '<div class="state-icon">⚠️</div>'+
-        '<div class="state-title">Could not load calls</div>'+
-        '<div class="state-sub">'+err.message+'</div>';
-    }
-  }
+}
 </script>
 </body>
 </html>
