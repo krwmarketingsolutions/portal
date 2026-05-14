@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>KRW Publisher Portal</title>
+<style>
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{ font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:#f0f2f5; min-height:100vh; color:#1a1a2e; }
+
+  /* Login screen */
+  .login-wrap{ min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; }
+  .login-card{ background:#fff; border-radius:14px; box-shadow:0 4px 24px rgba(0,0,0,.1); padding:40px; width:100%; max-width:420px; }
+  .login-logo{ text-align:center; margin-bottom:28px; }
+  .login-logo h1{ font-size:22px; font-weight:700; color:#1a2744; }
+  .login-logo p{ font-size:13px; color:#888; margin-top:4px; }
+  .login-label{ font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:#555; margin-bottom:6px; display:block; }
+  .login-input{ width:100%; padding:12px 14px; border:1.5px solid #ddd; border-radius:8px; font-size:15px; outline:none; transition:border .15s; }
+  .login-input:focus{ border-color:#2563eb; }
+  .login-btn{ width:100%; padding:13px; background:#1a2744; color:#fff; border:none; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer; margin-top:16px; transition:background .15s; }
+  .login-btn:hover{ background:#2563eb; }
+  .login-error{ background:#fee2e2; color:#991b1b; border-radius:6px; padding:10px 14px; font-size:13px; margin-top:12px; display:none; }
+
+  /* Portal */
+  .portal{ display:none; }
+  .portal-header{ background:#1a2744; color:#fff; padding:16px 24px; display:flex; align-items:center; justify-content:space-between; }
+  .portal-header h1{ font-size:17px; font-weight:700; }
+  .portal-header .sub{ font-size:12px; opacity:.7; margin-top:2px; }
+  .logout-btn{ background:rgba(255,255,255,.15); border:none; color:#fff; padding:7px 14px; border-radius:6px; font-size:12px; cursor:pointer; font-weight:600; }
+  .logout-btn:hover{ background:rgba(255,255,255,.25); }
+
+  .portal-body{ padding:20px; max-width:900px; margin:0 auto; }
+
+  /* KPI strip */
+  .kpi-strip{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:20px; }
+  @media(max-width:600px){ .kpi-strip{ grid-template-columns:repeat(2,1fr); } }
+  .kpi-card{ background:#fff; border-radius:10px; padding:16px; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+  .kpi-label{ font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.07em; color:#888; }
+  .kpi-value{ font-size:26px; font-weight:700; color:#1a2744; margin-top:4px; }
+  .kpi-value.green{ color:#16a34a; }
+  .kpi-value.blue{ color:#2563eb; }
+  .kpi-sub{ font-size:11px; color:#aaa; margin-top:2px; }
+
+  /* Filter bar */
+  .filter-bar{ display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap; align-items:center; }
+  .filter-select{ padding:8px 12px; border:1.5px solid #ddd; border-radius:7px; font-size:13px; outline:none; background:#fff; }
+  .filter-select:focus{ border-color:#2563eb; }
+  .refresh-btn{ padding:8px 16px; background:#2563eb; color:#fff; border:none; border-radius:7px; font-size:13px; font-weight:600; cursor:pointer; }
+  .refresh-btn:hover{ background:#1d4ed8; }
+
+  /* Table */
+  .table-wrap{ background:#fff; border-radius:10px; box-shadow:0 1px 4px rgba(0,0,0,.06); overflow:hidden; }
+  .table-wrap table{ width:100%; border-collapse:collapse; font-size:13px; }
+  .table-wrap th{ background:#f8f9fa; padding:10px 14px; text-align:left; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:#888; border-bottom:1px solid #eee; }
+  .table-wrap td{ padding:11px 14px; border-bottom:1px solid #f0f0f0; color:#333; }
+  .table-wrap tr:last-child td{ border-bottom:none; }
+  .table-wrap tr:hover td{ background:#fafafa; }
+
+  /* Badges */
+  .badge{ display:inline-block; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600; }
+  .badge-yes{ background:#dcfce7; color:#166534; }
+  .badge-no{ background:#fee2e2; color:#991b1b; }
+  .badge-pending{ background:#fef3c7; color:#92400e; }
+
+  /* Empty state */
+  .empty{ text-align:center; padding:48px 24px; color:#aaa; }
+  .empty svg{ margin-bottom:12px; opacity:.4; }
+
+  /* Loading */
+  .spinner{ width:32px; height:32px; border:3px solid #e5e7eb; border-top-color:#2563eb; border-radius:50%; animation:spin .8s linear infinite; margin:40px auto; }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <h1>KRW Marketing</h1>
+      <p>Publisher Portal — Call Tracking</p>
+    </div>
+    <label class="login-label" for="pub-id-input">Your Publisher ID</label>
+    <input class="login-input" id="pub-id-input" type="text" placeholder="e.g. KRW-PUB-JOHN-2026" autocomplete="off"/>
+    <button class="login-btn" onclick="doLogin()">Access My Dashboard</button>
+    <div class="login-error" id="login-error">Publisher ID not found. Please check and try again.</div>
+  </div>
+</div>
+
+<!-- PORTAL -->
+<div class="portal" id="portal-screen">
+  <div class="portal-header">
+    <div>
+      <h1 id="portal-name">Publisher Dashboard</h1>
+      <div class="sub" id="portal-subid"></div>
+    </div>
+    <button class="logout-btn" onclick="doLogout()">Sign Out</button>
+  </div>
+
+  <div class="portal-body">
+    <!-- KPIs -->
+    <div class="kpi-strip">
+      <div class="kpi-card">
+        <div class="kpi-label">Total Calls</div>
+        <div class="kpi-value" id="kpi-total">—</div>
+        <div class="kpi-sub">last 30 days</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Billable Calls</div>
+        <div class="kpi-value green" id="kpi-billable">—</div>
+        <div class="kpi-sub">converted</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Today</div>
+        <div class="kpi-value blue" id="kpi-today">—</div>
+        <div class="kpi-sub">calls today</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Total Payout</div>
+        <div class="kpi-value green" id="kpi-payout">—</div>
+        <div class="kpi-sub">billable only</div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-bar">
+      <select class="filter-select" id="filter-days" onchange="loadCalls()">
+        <option value="7">Last 7 days</option>
+        <option value="30" selected>Last 30 days</option>
+        <option value="60">Last 60 days</option>
+        <option value="90">Last 90 days</option>
+      </select>
+      <select class="filter-select" id="filter-billable" onchange="loadCalls()">
+        <option value="">All Calls</option>
+        <option value="true">Billable Only</option>
+      </select>
+      <button class="refresh-btn" onclick="loadCalls()">↻ Refresh</button>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrap">
+      <div id="calls-loading" class="spinner"></div>
+      <table id="calls-table" style="display:none">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Caller Name</th>
+            <th>Caller ID</th>
+            <th>Duration</th>
+            <th>Billable</th>
+            <th>Payout</th>
+            <th>Campaign</th>
+          </tr>
+        </thead>
+        <tbody id="calls-body"></tbody>
+      </table>
+      <div class="empty" id="calls-empty" style="display:none">
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="8" y="8" width="32" height="32" rx="4"/><path d="M16 24h16M16 30h10"/></svg>
+        <div style="font-size:14px;font-weight:600;color:#555">No calls found</div>
+        <div style="font-size:12px;margin-top:4px">Calls will appear here once posted by your buyer</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  var API_BASE = 'https://krw-backend-production.up.railway.app';
+  var currentPubId = null;
+  var currentName  = null;
+
+  // Check saved session
+  window.onload = function(){
+    var saved = sessionStorage.getItem('krw_pub_session');
+    if(saved){
+      try{
+        var sess = JSON.parse(saved);
+        currentPubId = sess.pub_id;
+        currentName  = sess.name;
+        showPortal();
+      }catch(e){ sessionStorage.removeItem('krw_pub_session'); }
+    }
+  };
+
+  async function doLogin(){
+    var input = document.getElementById('pub-id-input');
+    var pubId = input.value.trim();
+    if(!pubId){ input.focus(); return; }
+
+    var btn = document.querySelector('.login-btn');
+    var errEl = document.getElementById('login-error');
+    btn.textContent = 'Checking...';
+    btn.disabled = true;
+    errEl.style.display = 'none';
+
+    try{
+      var res = await fetch(API_BASE+'/publishers/login', {
+        method:  'POST',
+        headers: {'Content-Type':'application/json'},
+        body:    JSON.stringify({ pub_id: pubId }),
+      });
+      var d = await res.json();
+      if(d.ok){
+        currentPubId = d.pub_id;
+        currentName  = d.name;
+        sessionStorage.setItem('krw_pub_session', JSON.stringify({ pub_id: d.pub_id, name: d.name }));
+        showPortal();
+      } else {
+        errEl.style.display = '';
+        errEl.textContent = 'Publisher ID not found. Please check and try again.';
+      }
+    } catch(err){
+      errEl.style.display = '';
+      errEl.textContent = 'Connection error. Please try again.';
+    }
+    btn.textContent = 'Access My Dashboard';
+    btn.disabled = false;
+  }
+
+  // Allow Enter key on input
+  document.getElementById('pub-id-input').addEventListener('keydown', function(e){
+    if(e.key === 'Enter') doLogin();
+  });
+
+  function showPortal(){
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('portal-screen').style.display = '';
+    document.getElementById('portal-name').textContent = currentName + ' — Call Dashboard';
+    document.getElementById('portal-subid').textContent = 'Publisher ID: ' + currentPubId;
+    loadCalls();
+  }
+
+  function doLogout(){
+    sessionStorage.removeItem('krw_pub_session');
+    currentPubId = null;
+    currentName  = null;
+    document.getElementById('login-screen').style.display = '';
+    document.getElementById('portal-screen').style.display = 'none';
+    document.getElementById('pub-id-input').value = '';
+  }
+
+  async function loadCalls(){
+    if(!currentPubId) return;
+    var days     = document.getElementById('filter-days').value;
+    var billable = document.getElementById('filter-billable').value;
+
+    document.getElementById('calls-loading').style.display = '';
+    document.getElementById('calls-table').style.display   = 'none';
+    document.getElementById('calls-empty').style.display   = 'none';
+
+    try{
+      var url = API_BASE+'/publishers/'+encodeURIComponent(currentPubId)+'/calls?days='+days;
+      if(billable) url += '&billable_only='+billable;
+
+      var res = await fetch(url);
+      var d   = await res.json();
+
+      if(!d.ok) throw new Error(d.error);
+
+      // Update KPIs
+      document.getElementById('kpi-total').textContent    = d.total || 0;
+      document.getElementById('kpi-billable').textContent = d.billable_count || 0;
+      document.getElementById('kpi-payout').textContent   = '$'+(parseFloat(d.total_payout||0).toFixed(2));
+
+      // Today count from calls
+      var today = new Date().toISOString().split('T')[0];
+      var todayCount = (d.calls||[]).filter(function(c){
+        return (c.call_date||'').startsWith(today) || (c.received_at||'').startsWith(today);
+      }).length;
+      document.getElementById('kpi-today').textContent = todayCount;
+
+      // Render table
+      var tbody = document.getElementById('calls-body');
+      tbody.innerHTML = '';
+      if(!d.calls || !d.calls.length){
+        document.getElementById('calls-loading').style.display = 'none';
+        document.getElementById('calls-empty').style.display   = '';
+        return;
+      }
+
+      d.calls.forEach(function(c){
+        var date = c.call_date || (c.received_at||'').split('T')[0] || '—';
+        var dur  = c.call_duration ? formatDuration(c.call_duration) : '—';
+        var pay  = c.payout_amount ? '$'+parseFloat(c.payout_amount).toFixed(2) : '—';
+        var bill = c.billable
+          ? '<span class="badge badge-yes">✓ Billable</span>'
+          : '<span class="badge badge-no">Not Billable</span>';
+        var tr = document.createElement('tr');
+        tr.innerHTML =
+          '<td>'+date+'</td>'+
+          '<td>'+(c.caller_name||'—')+'</td>'+
+          '<td>'+(c.caller_id||'—')+'</td>'+
+          '<td>'+dur+'</td>'+
+          '<td>'+bill+'</td>'+
+          '<td>'+pay+'</td>'+
+          '<td>'+(c.campaign_name||'SSDI')+'</td>';
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById('calls-loading').style.display = 'none';
+      document.getElementById('calls-table').style.display   = '';
+
+    } catch(err){
+      document.getElementById('calls-loading').style.display = 'none';
+      document.getElementById('calls-empty').style.display   = '';
+      document.getElementById('calls-empty').innerHTML =
+        '<div style="font-size:14px;font-weight:600;color:#991b1b">Error loading calls</div>'+
+        '<div style="font-size:12px;margin-top:4px">'+err.message+'</div>';
+    }
+  }
+
+  function formatDuration(secs){
+    if(!secs) return '—';
+    var m = Math.floor(secs/60);
+    var s = secs % 60;
+    return m+'m '+s+'s';
+  }
+</script>
+</body>
+</html>
