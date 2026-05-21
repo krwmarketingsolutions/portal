@@ -8,7 +8,6 @@
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#eef1f6;min-height:100vh;color:#111;}
 
-/* LOGIN */
 #login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(135deg,#0f1c3f 0%,#1e3a8a 100%);}
 .login-box{background:#fff;border-radius:16px;padding:44px 40px;width:100%;max-width:400px;box-shadow:0 24px 64px rgba(0,0,0,.35);}
 .login-box .brand{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.15em;color:#2563eb;margin-bottom:10px;}
@@ -18,12 +17,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .login-box input{width:100%;padding:13px 14px;border:1.5px solid #e5e7eb;border-radius:9px;font-size:15px;outline:none;transition:border .15s;}
 .login-box input:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.1);}
 .login-box button{width:100%;margin-top:14px;padding:14px;background:#0f1c3f;color:#fff;border:none;border-radius:9px;font-size:15px;font-weight:600;cursor:pointer;transition:background .15s;}
-.login-box button:hover:not(:disabled){background:#2563eb;}
-.login-box button:disabled{background:#9ca3af;cursor:not-allowed;}
+.login-box button:hover{background:#2563eb;}
 .err-box{margin-top:12px;background:#fef2f2;color:#991b1b;border:1px solid #fecaca;border-radius:8px;padding:11px 14px;font-size:13px;display:none;}
 .login-footer{text-align:center;font-size:11px;color:#d1d5db;margin-top:20px;}
 
-/* PORTAL */
 #portal-screen{display:none;}
 .topbar{background:#0f1c3f;color:#fff;height:56px;padding:0 28px;display:flex;align-items:center;justify-content:space-between;}
 .topbar-left{display:flex;align-items:center;gap:12px;}
@@ -38,32 +35,28 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .body{padding:28px 32px;max-width:1080px;margin:0 auto;}
 @media(max-width:660px){.body{padding:16px;}}
 
-/* BANNER */
 .banner{background:linear-gradient(135deg,#0f1c3f,#1e40af);border-radius:14px;padding:22px 26px;color:#fff;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;margin-bottom:22px;}
 .banner h2{font-size:19px;font-weight:700;margin-bottom:3px;}
 .banner p{font-size:13px;opacity:.7;}
-.did-box{background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.2);border-radius:10px;padding:10px 18px;text-align:center;min-width:160px;}
+.did-box{background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.2);border-radius:10px;padding:10px 18px;text-align:center;}
 .did-box .lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;opacity:.65;margin-bottom:5px;}
 .did-box .num{font-size:17px;font-weight:700;font-family:monospace;letter-spacing:.04em;}
 
-/* KPIS */
 .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;}
 @media(max-width:660px){.kpis{grid-template-columns:repeat(2,1fr);}}
 .kpi{background:#fff;border-radius:12px;padding:18px 20px;border:1px solid #e9ecef;box-shadow:0 1px 3px rgba(0,0,0,.05);}
 .kpi .lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:#9ca3af;margin-bottom:7px;}
 .kpi .val{font-size:30px;font-weight:700;line-height:1;}
 .kpi .sub{font-size:11px;color:#d1d5db;margin-top:5px;}
-.v-dark{color:#0f1c3f;} .v-green{color:#15803d;} .v-blue{color:#2563eb;}
+.v-dark{color:#0f1c3f;}.v-green{color:#15803d;}.v-blue{color:#2563eb;}
 
-/* CARD */
 .card{background:#fff;border-radius:12px;border:1px solid #e9ecef;box-shadow:0 1px 3px rgba(0,0,0,.05);overflow:hidden;margin-bottom:22px;}
 .card-hdr{padding:15px 20px;border-bottom:1px solid #f3f4f6;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
-.card-hdr-left .title{font-size:14px;font-weight:700;color:#0f1c3f;}
-.card-hdr-left .sub{font-size:12px;color:#9ca3af;margin-top:2px;}
-.filters{display:flex;gap:8px;}
+.card-title{font-size:14px;font-weight:700;color:#0f1c3f;}
+.card-sub{font-size:12px;color:#9ca3af;margin-top:2px;}
+.filters{display:flex;gap:8px;align-items:center;}
 .fsel{padding:6px 10px;border:1px solid #e5e7eb;border-radius:7px;font-size:12px;background:#fff;outline:none;color:#374151;}
 .rbtn{padding:6px 12px;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:7px;font-size:12px;cursor:pointer;font-weight:500;color:#374151;}
-.rbtn:hover{background:#e5e7eb;}
 
 table{width:100%;border-collapse:collapse;font-size:13px;}
 thead{background:#f9fafb;}
@@ -75,9 +68,7 @@ tbody tr:hover td{background:#fafafa;}
 .b-cpa{background:#dcfce7;color:#15803d;}
 .b-no{background:#f3f4f6;color:#6b7280;}
 .b-pending{background:#fef9c3;color:#a16207;}
-.camp-tag{background:#eef2ff;color:#4338ca;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}
 
-/* STATES */
 .st{padding:50px 20px;text-align:center;}
 .st-ico{font-size:36px;margin-bottom:12px;opacity:.4;}
 .st-t{font-size:14px;font-weight:600;color:#6b7280;margin-bottom:5px;}
@@ -88,7 +79,6 @@ tbody tr:hover td{background:#fafafa;}
 </head>
 <body>
 
-<!-- LOGIN -->
 <div id="login-screen">
   <div class="login-box">
     <div class="brand">KRW Marketing Solutions</div>
@@ -96,13 +86,12 @@ tbody tr:hover td{background:#fafafa;}
     <p>Sign in to view your calls and conversions</p>
     <label for="pid">Your Publisher ID</label>
     <input id="pid" type="text" placeholder="e.g. KRW-JOHN-2026-X7K" autocomplete="off" spellcheck="false"/>
-    <button id="lbtn" onclick="doLogin()">Sign In</button>
+    <button onclick="doLogin()">Sign In</button>
     <div class="err-box" id="err"></div>
     <div class="login-footer">Need access? Contact KRW Marketing Solutions</div>
   </div>
 </div>
 
-<!-- PORTAL -->
 <div id="portal-screen">
   <div class="topbar">
     <div class="topbar-left">
@@ -117,7 +106,6 @@ tbody tr:hover td{background:#fafafa;}
   </div>
 
   <div class="body">
-
     <div class="banner">
       <div>
         <h2 id="wb-name">Welcome back</h2>
@@ -130,24 +118,23 @@ tbody tr:hover td{background:#fafafa;}
     </div>
 
     <div class="kpis">
-      <div class="kpi"><div class="lbl">Total Calls</div><div class="val v-dark" id="k-total">—</div><div class="sub">last 30 days</div></div>
-      <div class="kpi"><div class="lbl">CPA / Billable</div><div class="val v-green" id="k-bill">—</div><div class="sub">signed retainers</div></div>
-      <div class="kpi"><div class="lbl">Yesterday</div><div class="val v-blue" id="k-today">—</div><div class="sub">calls yesterday</div></div>
+      <div class="kpi"><div class="lbl">Yesterday</div><div class="val v-blue" id="k-yesterday">—</div><div class="sub">calls yesterday</div></div>
+      <div class="kpi"><div class="lbl">This Week</div><div class="val v-dark" id="k-week">—</div><div class="sub">last 7 days</div></div>
+      <div class="kpi"><div class="lbl">CPA</div><div class="val v-green" id="k-bill">—</div><div class="sub">signed retainers</div></div>
       <div class="kpi"><div class="lbl">Total Payout</div><div class="val v-green" id="k-pay">—</div><div class="sub">billable only</div></div>
     </div>
 
     <div class="card">
       <div class="card-hdr">
-        <div class="card-hdr-left">
-          <div class="title">Call Log</div>
-          <div class="sub">Updated daily by your buyer</div>
+        <div>
+          <div class="card-title">Call Log</div>
+          <div class="card-sub">Updated daily by your buyer</div>
         </div>
         <div class="filters">
-          <select class="fsel" id="f-days" onchange="loadCalls()">
-            <option value="7">Last 7 days</option>
-            <option value="30" selected>Last 30 days</option>
-            <option value="60">Last 60 days</option>
-            <option value="90">Last 90 days</option>
+          <select class="fsel" id="filter-period" onchange="loadCalls()">
+            <option value="yesterday">Yesterday</option>
+            <option value="week" selected>This Week</option>
+            <option value="month">This Month</option>
           </select>
           <select class="fsel" id="f-bill" onchange="loadCalls()">
             <option value="">All Calls</option>
@@ -158,7 +145,7 @@ tbody tr:hover td{background:#fafafa;}
       </div>
       <div id="st-load" class="st"><div class="spin"></div><div class="st-t">Loading your calls...</div></div>
       <div id="st-empty" class="st" style="display:none"><div class="st-ico">📋</div><div class="st-t">No calls yet</div><div class="st-s">Calls will appear here once posted by your buyer</div></div>
-      <div id="st-err" class="st" style="display:none"><div class="st-ico">⚠️</div><div class="st-t">Could not load calls</div><div class="st-s" id="st-err-msg">Please try again</div></div>
+      <div id="st-err" class="st" style="display:none"><div class="st-ico">⚠️</div><div class="st-t">Could not load calls</div><div class="st-s" id="st-err-msg"></div></div>
       <div id="tbl-wrap" style="display:none;overflow-x:auto">
         <table>
           <thead><tr>
@@ -168,81 +155,84 @@ tbody tr:hover td{background:#fafafa;}
         </table>
       </div>
     </div>
-
   </div>
 </div>
 
 <script>
 var API = 'https://krw-backend-production.up.railway.app';
-var S = null;
+var S   = null;
 
-// Restore session on load
+var PERIOD_DAYS = { yesterday: 1, week: 7, month: 30 };
+
+// Restore session
 window.addEventListener('load', function(){
-  try{
+  try {
     var raw = sessionStorage.getItem('krw_sess');
-    if(raw){ S = JSON.parse(raw); renderPortal(); }
-  }catch(e){}
+    if (raw) { S = JSON.parse(raw); showPortal(); }
+  } catch(e) {}
 });
 
+// Enter key on input
 document.getElementById('pid').addEventListener('keydown', function(e){
-  if(e.key==='Enter') doLogin();
+  if (e.key === 'Enter') doLogin();
 });
 
-async function doLogin(){
+function doLogin(){
   var pid   = document.getElementById('pid').value.trim();
   var errEl = document.getElementById('err');
-  var btn   = document.getElementById('lbtn');
-  errEl.style.display='none';
-  if(!pid){ document.getElementById('pid').focus(); return; }
-  btn.textContent='Signing in...'; btn.disabled=true;
-  try{
-    var r = await fetch(API+'/publishers/login',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({pub_id:pid})
-    });
-    var d = await r.json();
-    if(d.ok){
-      S = {pub_id:d.pub_id||pid, name:d.name||pid, campaign:d.campaign||'SSDI', did:d.did||null};
-      sessionStorage.setItem('krw_sess', JSON.stringify(S));
-      renderPortal();
-    } else if(d.error === 'Publisher not found'){
-      // Try logging in directly with pub_id as fallback
-      S = {pub_id:pid, name:pid, campaign:'SSDI', did:null};
-      sessionStorage.setItem('krw_sess', JSON.stringify(S));
-      renderPortal();
+  var btn   = document.querySelector('#login-screen button');
+
+  errEl.style.display = 'none';
+  if (!pid) { document.getElementById('pid').focus(); return; }
+
+  btn.textContent = 'Signing in...';
+  btn.disabled = true;
+
+  fetch(API + '/publishers/login', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ pub_id: pid })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    if (d.ok) {
+      S = { pub_id: d.pub_id || pid, name: d.name || pid, campaign: d.campaign || 'SSDI', did: d.did || null };
     } else {
-      errEl.textContent = d.error || 'Publisher ID not recognized. Please check and try again.';
-      errEl.style.display='';
+      // Allow login with pub_id directly as fallback
+      S = { pub_id: pid, name: pid, campaign: 'SSDI', did: null };
     }
-  } catch(e){
-    // If server is unreachable, allow login with pub_id directly
-    S = {pub_id:pid, name:pid, campaign:'SSDI', did:null};
     sessionStorage.setItem('krw_sess', JSON.stringify(S));
-    renderPortal();
-  }
-  btn.textContent='Sign In'; btn.disabled=false;
+    showPortal();
+  })
+  .catch(function(){
+    // If server unreachable, allow login anyway
+    S = { pub_id: pid, name: pid, campaign: 'SSDI', did: null };
+    sessionStorage.setItem('krw_sess', JSON.stringify(S));
+    showPortal();
+  })
+  .finally(function(){
+    btn.textContent = 'Sign In';
+    btn.disabled = false;
+  });
 }
 
-function renderPortal(){
-  // Show portal, hide login
-  document.getElementById('login-screen').style.display = 'none';
+function showPortal(){
+  document.getElementById('login-screen').style.display  = 'none';
   document.getElementById('portal-screen').style.display = 'block';
 
-  // Fill in details
-  var first = (S.name||'').split(' ')[0];
-  document.getElementById('tb-name').textContent  = S.name+' — Dashboard';
-  document.getElementById('tb-camp').textContent  = S.campaign;
-  document.getElementById('wb-name').textContent  = 'Welcome back, '+first+'!';
-  document.getElementById('wb-id').textContent    = 'Publisher ID: '+S.pub_id;
+  var first = (S.name || '').split(' ')[0] || S.pub_id;
+  document.getElementById('tb-name').textContent = S.name + ' — Dashboard';
+  document.getElementById('tb-camp').textContent = S.campaign || 'SSDI';
+  document.getElementById('wb-name').textContent = 'Welcome back, ' + first + '!';
+  document.getElementById('wb-id').textContent   = 'Publisher ID: ' + S.pub_id;
 
-  if(S.did){
-    var fmt = String(S.did).replace(/(\d{3})(\d{3})(\d{4})/,'($1) $2-$3');
-    document.getElementById('did-num').textContent = fmt||S.did;
+  if (S.did) {
+    var fmt = String(S.did).replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
+    document.getElementById('did-num').textContent  = fmt || S.did;
     document.getElementById('did-box').style.display = '';
   }
 
-  setTimeout(function(){ loadCalls(); }, 100);
+  setTimeout(loadCalls, 100);
 }
 
 function doLogout(){
@@ -253,88 +243,87 @@ function doLogout(){
   document.getElementById('pid').value = '';
 }
 
-async function loadCalls(){
-  if(!S) return;
-  var periodEl = document.getElementById('f-days');
+function loadCalls(){
+  if (!S) return;
+
+  var periodEl = document.getElementById('filter-period');
   var billEl   = document.getElementById('f-bill');
-  var period   = periodEl ? periodEl.value : 'yesterday';
+  var period   = periodEl ? periodEl.value : 'week';
   var bill     = billEl   ? billEl.value   : '';
+  var days     = PERIOD_DAYS[period] || 7;
 
   document.getElementById('st-load').style.display  = '';
   document.getElementById('st-empty').style.display = 'none';
   document.getElementById('st-err').style.display   = 'none';
   document.getElementById('tbl-wrap').style.display = 'none';
 
-  // Map period to days for API
-  var daysParam = 2;
-  if(period === 'week')  daysParam = 7;
-  if(period === 'month') daysParam = 30;
+  var url = API + '/publishers/' + encodeURIComponent(S.pub_id) + '/calls?days=' + days;
+  if (bill) url += '&billable_only=true';
 
-  try{
-    var url = API+'/publishers/'+encodeURIComponent(S.pub_id)+'/calls?days='+daysParam;
-    if(bill) url += '&billable_only=true';
-    var r   = await fetch(url);
-    var d   = await r.json();
+  fetch(url)
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    var calls = d.calls || [];
 
-    // For "Yesterday" filter — only show calls from yesterday
-    var yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    var yesterdayStr = yesterday.toISOString().split('T')[0];
-
-    if(period === 'yesterday' && d.calls){
-      d.calls = d.calls.filter(function(call){
-        return String(call.call_date||call.received_at||'').startsWith(yesterdayStr);
+    // Filter yesterday
+    if (period === 'yesterday') {
+      var yest = new Date();
+      yest.setDate(yest.getDate() - 1);
+      var yestStr = yest.toISOString().split('T')[0];
+      calls = calls.filter(function(c){
+        return String(c.call_date || c.received_at || '').startsWith(yestStr);
       });
     }
 
     // KPIs
-    var calls = d.calls || [];
-    var billableCount = calls.filter(function(c){ return c.billable; }).length;
-    var totalPayout   = calls.reduce(function(sum,c){ return sum + parseFloat(c.payout_amount||0); }, 0);
-    document.getElementById('k-total').textContent = calls.length;
-    document.getElementById('k-bill').textContent  = billableCount;
-    document.getElementById('k-pay').textContent   = '$'+totalPayout.toFixed(2);
+    var yest2 = new Date(); yest2.setDate(yest2.getDate() - 1);
+    var yestStr2 = yest2.toISOString().split('T')[0];
+    var weekAgo  = new Date(); weekAgo.setDate(weekAgo.getDate() - 7);
+    var weekStr  = weekAgo.toISOString().split('T')[0];
 
-    // Yesterday KPI
-    var yestCount = calls.filter(function(c){
-      return String(c.call_date||c.received_at||'').startsWith(yesterdayStr);
-    }).length;
-    document.getElementById('k-today').textContent = yestCount;
+    var allCalls = d.calls || [];
+    document.getElementById('k-yesterday').textContent = allCalls.filter(function(c){ return String(c.call_date||'').startsWith(yestStr2); }).length;
+    document.getElementById('k-week').textContent      = allCalls.filter(function(c){ return (c.call_date||'') >= weekStr; }).length;
+    document.getElementById('k-bill').textContent      = allCalls.filter(function(c){ return c.billable; }).length;
+    document.getElementById('k-pay').textContent       = '$' + allCalls.reduce(function(s,c){ return s + parseFloat(c.payout_amount||0); }, 0).toFixed(2);
 
     document.getElementById('st-load').style.display = 'none';
 
-    if(!calls.length){
-      document.getElementById('st-empty').style.display = ''; return;
+    if (!calls.length) {
+      document.getElementById('st-empty').style.display = '';
+      return;
     }
 
     var tbody = document.getElementById('tbl');
     tbody.innerHTML = '';
     calls.forEach(function(c){
-      var date = (c.call_date||c.received_at||'—').split('T')[0];
-      var pay  = c.payout_amount ? '$'+parseFloat(c.payout_amount).toFixed(2) : '—';
-      var statusLabel = c.call_status_label || (c.billable === true ? 'cpa' : c.billable === false ? 'not_converted' : 'pending');
-      var badge = statusLabel === 'cpa'
+      var date  = (c.call_date || c.received_at || '—').split('T')[0];
+      var pay   = c.payout_amount ? '$' + parseFloat(c.payout_amount).toFixed(2) : '—';
+      var sl    = c.call_status_label || (c.billable === true ? 'cpa' : c.billable === false ? 'not_converted' : 'pending');
+      var badge = sl === 'cpa'
         ? '<span class="badge b-cpa">✓ CPA</span>'
-        : statusLabel === 'not_converted'
+        : sl === 'not_converted'
         ? '<span class="badge b-no">Not Converted</span>'
         : '<span class="badge b-pending">⏳ Pending</span>';
+
       var tr = document.createElement('tr');
       tr.innerHTML =
-        '<td>'+date+'</td>'+
-        '<td style="font-weight:500">'+(c.caller_name||'—')+'</td>'+
-        '<td style="font-family:monospace;font-size:12px;color:#6b7280">'+(c.caller_id||'—')+'</td>'+
-        '<td>'+badge+'</td>'+
-        '<td style="font-weight:600;color:#15803d">'+pay+'</td>'+
-        '<td><span style="background:#f0f4ff;color:#3b5bdb;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600">'+(c.campaign_name||S.campaign||'SSDI')+'</span></td>';
+        '<td>' + date + '</td>' +
+        '<td style="font-weight:500">' + (c.caller_name || '—') + '</td>' +
+        '<td style="font-family:monospace;font-size:12px;color:#6b7280">' + (c.caller_id || '—') + '</td>' +
+        '<td>' + badge + '</td>' +
+        '<td style="font-weight:600;color:#15803d">' + pay + '</td>' +
+        '<td><span style="background:#f0f4ff;color:#3b5bdb;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600">' + (c.campaign_name || S.campaign || 'SSDI') + '</span></td>';
       tbody.appendChild(tr);
     });
     document.getElementById('tbl-wrap').style.display = '';
-
-  } catch(e){
+  })
+  .catch(function(e){
     document.getElementById('st-load').style.display = 'none';
     document.getElementById('st-err').style.display  = '';
     document.getElementById('st-err-msg').textContent = e.message;
-  }
+  });
 }
-
-
+</script>
+</body>
+</html>
