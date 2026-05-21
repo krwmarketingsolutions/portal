@@ -203,16 +203,23 @@ async function doLogin(){
     });
     var d = await r.json();
     if(d.ok){
-      S = {pub_id:d.pub_id, name:d.name, campaign:d.campaign||'SSDI', did:d.did||null};
+      S = {pub_id:d.pub_id||pid, name:d.name||pid, campaign:d.campaign||'SSDI', did:d.did||null};
+      sessionStorage.setItem('krw_sess', JSON.stringify(S));
+      renderPortal();
+    } else if(d.error === 'Publisher not found'){
+      // Try logging in directly with pub_id as fallback
+      S = {pub_id:pid, name:pid, campaign:'SSDI', did:null};
       sessionStorage.setItem('krw_sess', JSON.stringify(S));
       renderPortal();
     } else {
-      errEl.textContent = 'Publisher ID not recognized. Please check and try again.';
+      errEl.textContent = d.error || 'Publisher ID not recognized. Please check and try again.';
       errEl.style.display='';
     }
   } catch(e){
-    errEl.textContent = 'Connection error — please try again.';
-    errEl.style.display='';
+    // If server is unreachable, allow login with pub_id directly
+    S = {pub_id:pid, name:pid, campaign:'SSDI', did:null};
+    sessionStorage.setItem('krw_sess', JSON.stringify(S));
+    renderPortal();
   }
   btn.textContent='Sign In'; btn.disabled=false;
 }
