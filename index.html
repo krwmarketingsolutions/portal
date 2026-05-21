@@ -242,7 +242,7 @@ function renderPortal(){
     document.getElementById('did-box').style.display = '';
   }
 
-  loadCalls();
+  setTimeout(function(){ loadCalls(); }, 100);
 }
 
 function doLogout(){
@@ -255,8 +255,10 @@ function doLogout(){
 
 async function loadCalls(){
   if(!S) return;
-  var period = document.getElementById('f-days').value;
-  var bill   = document.getElementById('f-bill').value;
+  var periodEl = document.getElementById('f-days');
+  var billEl   = document.getElementById('f-bill');
+  var period   = periodEl ? periodEl.value : 'yesterday';
+  var bill     = billEl   ? billEl.value   : '';
 
   document.getElementById('st-load').style.display  = '';
   document.getElementById('st-empty').style.display = 'none';
