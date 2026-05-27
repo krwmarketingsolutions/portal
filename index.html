@@ -294,10 +294,23 @@ function loadCalls(){
       return;
     }
 
+    // Sort by received_at descending — newest call first
+    calls.sort(function(a, b){
+      var ta = new Date(a.received_at || a.call_date || 0).getTime();
+      var tb = new Date(b.received_at || b.call_date || 0).getTime();
+      return tb - ta;
+    });
+
     var tbody = document.getElementById('tbl');
     tbody.innerHTML = '';
     calls.forEach(function(c){
-      var date  = (c.call_date || c.received_at || '—').split('T')[0];
+      var rawDt = c.received_at || c.call_date || '';
+      var dateObj = rawDt ? new Date(rawDt) : null;
+      var date = dateObj
+        ? dateObj.toLocaleDateString('en-US', {month:'2-digit',day:'2-digit',year:'numeric'}) +
+          ' <span style="color:#9ca3af;font-size:11px">' +
+          dateObj.toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit',hour12:true}) + '</span>'
+        : '—';
       var pay   = c.payout_amount ? '$' + parseFloat(c.payout_amount).toFixed(2) : '—';
       var sl    = c.call_status_label || (c.billable === true ? 'cpa' : c.billable === false ? 'not_converted' : 'pending');
       var badge = sl === 'cpa'
