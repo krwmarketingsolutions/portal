@@ -307,9 +307,9 @@ function loadCalls(){
       var rawDt = c.received_at || c.call_date || '';
       var dateObj = rawDt ? new Date(rawDt) : null;
       var date = dateObj
-        ? dateObj.toLocaleDateString('en-US', {month:'2-digit',day:'2-digit',year:'numeric'}) +
+        ? dateObj.toLocaleDateString('en-US', {month:'2-digit',day:'2-digit',year:'numeric', timeZone:'America/New_York'}) +
           ' <span style="color:#9ca3af;font-size:11px">' +
-          dateObj.toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit',hour12:true}) + '</span>'
+          dateObj.toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit',hour12:true, timeZone:'America/New_York'}) + '</span>'
         : '—';
       var pay   = c.payout_amount ? '$' + parseFloat(c.payout_amount).toFixed(2) : '—';
       var sl    = c.call_status_label || (c.billable === true ? 'cpa' : c.billable === false ? 'not_converted' : 'pending');
