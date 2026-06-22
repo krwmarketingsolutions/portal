@@ -133,8 +133,9 @@ tbody tr:hover td{background:#fafafa;}
         <div class="filters">
           <select class="fsel" id="filter-period" onchange="loadCalls()">
             <option value="yesterday">Yesterday</option>
-            <option value="week" selected>This Week</option>
-            <option value="month">This Month</option>
+            <option value="week">This Week</option>
+            <option value="month" selected>This Month</option>
+            <option value="all">All Time</option>
           </select>
           <select class="fsel" id="f-bill" onchange="loadCalls()">
             <option value="">All Calls</option>
@@ -160,11 +161,11 @@ tbody tr:hover td{background:#fafafa;}
 
 <script>
 var API = 'https://krw-backend-production.up.railway.app';
-var S   = null;
+var API_KEY = '64tgzb5ostadx1azjio9crdlduw4vf29';
+var S = null;
 
-var PERIOD_DAYS = { yesterday: 1, week: 7, month: 30 };
+var PERIOD_DAYS = { yesterday: 2, week: 7, month: 30, all: 9999 };
 
-// Restore session
 window.addEventListener('load', function(){
   try {
     var raw = sessionStorage.getItem('krw_sess');
@@ -172,7 +173,6 @@ window.addEventListener('load', function(){
   } catch(e) {}
 });
 
-// Enter key on input
 document.getElementById('pid').addEventListener('keydown', function(e){
   if (e.key === 'Enter') doLogin();
 });
@@ -181,13 +181,10 @@ function doLogin(){
   var pid   = document.getElementById('pid').value.trim();
   var errEl = document.getElementById('err');
   var btn   = document.querySelector('#login-screen button');
-
   errEl.style.display = 'none';
   if (!pid) { document.getElementById('pid').focus(); return; }
-
   btn.textContent = 'Signing in...';
   btn.disabled = true;
-
   fetch(API + '/publishers/login', {
     method:  'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -198,14 +195,15 @@ function doLogin(){
     if (d.ok) {
       S = { pub_id: d.pub_id || pid, name: d.name || pid, campaign: d.campaign || 'SSDI', did: d.did || null };
     } else {
-      // Allow login with pub_id directly as fallback
-      S = { pub_id: pid, name: pid, campaign: 'SSDI', did: null };
+      errEl.textContent = 'Publisher ID not found. Please check and try again.';
+      errEl.style.display = '';
+      btn.textContent = 'Sign In'; btn.disabled = false;
+      return;
     }
     sessionStorage.setItem('krw_sess', JSON.stringify(S));
     showPortal();
   })
   .catch(function(){
-    // If server unreachable, allow login anyway
     S = { pub_id: pid, name: pid, campaign: 'SSDI', did: null };
     sessionStorage.setItem('krw_sess', JSON.stringify(S));
     showPortal();
@@ -219,19 +217,16 @@ function doLogin(){
 function showPortal(){
   document.getElementById('login-screen').style.display  = 'none';
   document.getElementById('portal-screen').style.display = 'block';
-
   var first = (S.name || '').split(' ')[0] || S.pub_id;
   document.getElementById('tb-name').textContent = S.name + ' — Dashboard';
   document.getElementById('tb-camp').textContent = S.campaign || 'SSDI';
   document.getElementById('wb-name').textContent = 'Welcome back, ' + first + '!';
   document.getElementById('wb-id').textContent   = 'Publisher ID: ' + S.pub_id;
-
   if (S.did) {
     var fmt = String(S.did).replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
-    document.getElementById('did-num').textContent  = fmt || S.did;
+    document.getElementById('did-num').textContent   = fmt || S.did;
     document.getElementById('did-box').style.display = '';
   }
-
   setTimeout(loadCalls, 100);
 }
 
@@ -245,43 +240,42 @@ function doLogout(){
 
 function loadCalls(){
   if (!S) return;
-
-  var periodEl = document.getElementById('filter-period');
-  var billEl   = document.getElementById('f-bill');
-  var period   = periodEl ? periodEl.value : 'week';
-  var bill     = billEl   ? billEl.value   : '';
-  var days     = PERIOD_DAYS[period] || 7;
+  var period = (document.getElementById('filter-period') || {value:'month'}).value;
+  var bill   = (document.getElementById('f-bill') || {value:''}).value;
+  var days   = PERIOD_DAYS[period] || 30;
 
   document.getElementById('st-load').style.display  = '';
   document.getElementById('st-empty').style.display = 'none';
   document.getElementById('st-err').style.display   = 'none';
   document.getElementById('tbl-wrap').style.display = 'none';
 
-  var url = API + '/publishers/' + encodeURIComponent(S.pub_id) + '/calls?days=' + days;
-  if (bill) url += '&billable_only=true';
+  // Use /calls/feed which includes both partner and sheet_import records
+  var url = API + '/calls/feed?pub=' + encodeURIComponent(S.pub_id) + '&days=' + days + '&api_key=' + API_KEY;
 
   fetch(url)
   .then(function(r){ return r.json(); })
   .then(function(d){
-    var calls = d.calls || [];
+    if (!d.ok) throw new Error(d.error || 'Server error');
+    var allCalls = d.calls || [];
 
-    // Filter yesterday
+    // Apply billable filter client-side
+    var calls = bill === 'true' ? allCalls.filter(function(c){ return c.billable; }) : allCalls;
+
+    // Apply yesterday filter client-side
     if (period === 'yesterday') {
-      var yest = new Date();
-      yest.setDate(yest.getDate() - 1);
+      var yest = new Date(); yest.setDate(yest.getDate() - 1);
       var yestStr = yest.toISOString().split('T')[0];
       calls = calls.filter(function(c){
         return String(c.call_date || c.received_at || '').startsWith(yestStr);
       });
     }
 
-    // KPIs
+    // KPIs — always from full allCalls
     var yest2 = new Date(); yest2.setDate(yest2.getDate() - 1);
     var yestStr2 = yest2.toISOString().split('T')[0];
     var weekAgo  = new Date(); weekAgo.setDate(weekAgo.getDate() - 7);
     var weekStr  = weekAgo.toISOString().split('T')[0];
 
-    var allCalls = d.calls || [];
     document.getElementById('k-yesterday').textContent = allCalls.filter(function(c){ return String(c.call_date||'').startsWith(yestStr2); }).length;
     document.getElementById('k-week').textContent      = allCalls.filter(function(c){ return (c.call_date||'') >= weekStr; }).length;
     document.getElementById('k-bill').textContent      = allCalls.filter(function(c){ return c.billable; }).length;
@@ -294,7 +288,7 @@ function loadCalls(){
       return;
     }
 
-    // Sort by received_at descending — newest call first
+    // Sort newest first — use call_date for sheet_import, received_at for partner
     calls.sort(function(a, b){
       var ta = new Date(a.received_at || a.call_date || 0).getTime();
       var tb = new Date(b.received_at || b.call_date || 0).getTime();
@@ -304,19 +298,25 @@ function loadCalls(){
     var tbody = document.getElementById('tbl');
     tbody.innerHTML = '';
     calls.forEach(function(c){
-      var rawDt = c.received_at || c.call_date || '';
+      // For sheet_import records, use call_date; for partner records use received_at
+      var rawDt = c.source_system === 'sheet_import' ? c.call_date : (c.received_at || c.call_date || '');
       var dateObj = rawDt ? new Date(rawDt) : null;
       var date = dateObj
-        ? dateObj.toLocaleDateString('en-US', {month:'2-digit',day:'2-digit',year:'numeric', timeZone:'America/New_York'}) +
-          ' <span style="color:#9ca3af;font-size:11px">' +
-          dateObj.toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit',hour12:true, timeZone:'America/New_York'}) + '</span>'
+        ? dateObj.toLocaleDateString('en-US', {month:'2-digit',day:'2-digit',year:'numeric'}) +
+          (c.source_system !== 'sheet_import'
+            ? ' <span style="color:#9ca3af;font-size:11px">' +
+              dateObj.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:true,timeZone:'America/New_York'}) + '</span>'
+            : '')
         : '—';
-      var pay   = c.payout_amount ? '$' + parseFloat(c.payout_amount).toFixed(2) : '—';
+
+      var pay   = c.payout_amount && parseFloat(c.payout_amount) > 0 ? '$' + parseFloat(c.payout_amount).toFixed(2) : '—';
       var sl    = c.call_status_label || (c.billable === true ? 'cpa' : c.billable === false ? 'not_converted' : 'pending');
-      var badge = sl === 'cpa'
-        ? '<span class="badge b-cpa">✓ CPA</span>'
-        : sl === 'not_converted'
-        ? '<span class="badge b-no">Not Converted</span>'
+      var badge = sl === 'cpa' || sl === 'Signed'
+        ? '<span class="badge b-cpa">✓ ' + (sl === 'Signed' ? 'Signed' : 'CPA') + '</span>'
+        : sl === 'not_converted' || sl === 'In Progress'
+        ? '<span class="badge b-no">' + (sl === 'In Progress' ? 'In Progress' : 'Not Converted') + '</span>'
+        : sl === 'Retained'
+        ? '<span class="badge b-pending">⏳ Retained</span>'
         : '<span class="badge b-pending">⏳ Pending</span>';
 
       var tr = document.createElement('tr');
@@ -326,7 +326,7 @@ function loadCalls(){
         '<td style="font-family:monospace;font-size:12px;color:#6b7280">' + (c.caller_id || '—') + '</td>' +
         '<td>' + badge + '</td>' +
         '<td style="font-weight:600;color:#15803d">' + pay + '</td>' +
-        '<td><span style="background:#f0f4ff;color:#3b5bdb;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600">' + (c.campaign_name || S.campaign || 'SSDI') + '</span></td>';
+        '<td><span style="background:#f0f4ff;color:#3b5bdb;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600">' + (c.campaign || S.campaign || 'SSDI').toUpperCase() + '</span></td>';
       tbody.appendChild(tr);
     });
     document.getElementById('tbl-wrap').style.display = '';
