@@ -133,7 +133,9 @@ tbody tr:hover td{background:#fafafa;}
         <div class="filters">
           <select class="fsel" id="filter-period" onchange="loadCalls()">
             <option value="yesterday">Yesterday</option>
-            <option value="week">This Week</option>
+            <option value="current_week">This Week (Mon–Fri)</option>
+            <option value="last_week">Last Week (Mon–Fri)</option>
+            <option value="two_weeks">Last 2 Weeks</option>
             <option value="month" selected>This Month</option>
             <option value="all">All Time</option>
           </select>
@@ -164,7 +166,21 @@ var API = 'https://krw-backend-production.up.railway.app';
 var API_KEY = '64tgzb5ostadx1azjio9crdlduw4vf29';
 var S = null;
 
-var PERIOD_DAYS = { yesterday: 2, week: 7, month: 30, all: 9999 };
+var PERIOD_DAYS = { yesterday: 2, current_week: 7, last_week: 14, two_weeks: 14, month: 30, all: 9999 };
+
+// Returns Mon 00:00 and Fri 23:59 for a given week offset (0=current, -1=last)
+function getWeekBounds(offset) {
+  var now = new Date();
+  var day = now.getDay(); // 0=Sun, 1=Mon...
+  var diffToMon = (day === 0 ? -6 : 1 - day) + (offset * 7);
+  var mon = new Date(now);
+  mon.setDate(now.getDate() + diffToMon);
+  mon.setHours(0, 0, 0, 0);
+  var fri = new Date(mon);
+  fri.setDate(mon.getDate() + 4);
+  fri.setHours(23, 59, 59, 999);
+  return { start: mon, end: fri };
+}
 
 window.addEventListener('load', function(){
   try {
@@ -258,17 +274,25 @@ function loadCalls(){
     if (!d.ok) throw new Error(d.error || 'Server error');
     var allCalls = d.calls || [];
 
-    // Apply billable filter client-side
-    var calls = bill === 'true' ? allCalls.filter(function(c){ return c.billable; }) : allCalls;
-
-    // Apply yesterday filter client-side
-    if (period === 'yesterday') {
-      var yest = new Date(); yest.setDate(yest.getDate() - 1);
+    // Apply period filter client-side
+    var calls = allCalls.slice();
+    if (period === 'current_week') {
+      var wb = getWeekBounds(0);
+      calls = calls.filter(function(c){ var t=new Date(c.call_date||c.received_at||0); return t>=wb.start&&t<=wb.end; });
+    } else if (period === 'last_week') {
+      var wb = getWeekBounds(-1);
+      calls = calls.filter(function(c){ var t=new Date(c.call_date||c.received_at||0); return t>=wb.start&&t<=wb.end; });
+    } else if (period === 'two_weeks') {
+      var wb0 = getWeekBounds(0), wb1 = getWeekBounds(-1);
+      calls = calls.filter(function(c){ var t=new Date(c.call_date||c.received_at||0); return t>=wb1.start&&t<=wb0.end; });
+    } else if (period === 'yesterday') {
+      var yest = new Date(); yest.setDate(yest.getDate()-1);
       var yestStr = yest.toISOString().split('T')[0];
-      calls = calls.filter(function(c){
-        return String(c.call_date || c.received_at || '').startsWith(yestStr);
-      });
+      calls = calls.filter(function(c){ return String(c.call_date||c.received_at||'').startsWith(yestStr); });
     }
+
+    // Apply billable filter
+    if (bill === 'true') calls = calls.filter(function(c){ return c.billable; });
 
     // KPIs — always from full allCalls
     var yest2 = new Date(); yest2.setDate(yest2.getDate() - 1);
