@@ -7,7 +7,6 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#eef1f6;min-height:100vh;color:#111;}
-
 #login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(135deg,#0f1c3f 0%,#1e3a8a 100%);}
 .login-box{background:#fff;border-radius:16px;padding:44px 40px;width:100%;max-width:400px;box-shadow:0 24px 64px rgba(0,0,0,.35);}
 .login-box .brand{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.15em;color:#2563eb;margin-bottom:10px;}
@@ -20,7 +19,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .login-box button:hover{background:#2563eb;}
 .err-box{margin-top:12px;background:#fef2f2;color:#991b1b;border:1px solid #fecaca;border-radius:8px;padding:11px 14px;font-size:13px;display:none;}
 .login-footer{text-align:center;font-size:11px;color:#d1d5db;margin-top:20px;}
-
 #portal-screen{display:none;}
 .topbar{background:#0f1c3f;color:#fff;height:56px;padding:0 28px;display:flex;align-items:center;justify-content:space-between;}
 .topbar-left{display:flex;align-items:center;gap:12px;}
@@ -31,17 +29,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .topbar-tag{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:20px;padding:3px 11px;font-size:11px;font-weight:600;opacity:.85;}
 .signout{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;padding:6px 14px;border-radius:7px;font-size:12px;cursor:pointer;font-weight:500;}
 .signout:hover{background:rgba(255,255,255,.2);}
-
 .body{padding:28px 32px;max-width:1080px;margin:0 auto;}
 @media(max-width:660px){.body{padding:16px;}}
-
 .banner{background:linear-gradient(135deg,#0f1c3f,#1e40af);border-radius:14px;padding:22px 26px;color:#fff;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;margin-bottom:22px;}
 .banner h2{font-size:19px;font-weight:700;margin-bottom:3px;}
 .banner p{font-size:13px;opacity:.7;}
 .did-box{background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.2);border-radius:10px;padding:10px 18px;text-align:center;}
 .did-box .lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;opacity:.65;margin-bottom:5px;}
 .did-box .num{font-size:17px;font-weight:700;font-family:monospace;letter-spacing:.04em;}
-
 .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;}
 @media(max-width:660px){.kpis{grid-template-columns:repeat(2,1fr);}}
 .kpi{background:#fff;border-radius:12px;padding:18px 20px;border:1px solid #e9ecef;box-shadow:0 1px 3px rgba(0,0,0,.05);}
@@ -49,7 +44,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .kpi .val{font-size:30px;font-weight:700;line-height:1;}
 .kpi .sub{font-size:11px;color:#d1d5db;margin-top:5px;}
 .v-dark{color:#0f1c3f;}.v-green{color:#15803d;}.v-blue{color:#2563eb;}
-
 .card{background:#fff;border-radius:12px;border:1px solid #e9ecef;box-shadow:0 1px 3px rgba(0,0,0,.05);overflow:hidden;margin-bottom:22px;}
 .card-hdr{padding:15px 20px;border-bottom:1px solid #f3f4f6;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
 .card-title{font-size:14px;font-weight:700;color:#0f1c3f;}
@@ -57,7 +51,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .filters{display:flex;gap:8px;align-items:center;}
 .fsel{padding:6px 10px;border:1px solid #e5e7eb;border-radius:7px;font-size:12px;background:#fff;outline:none;color:#374151;}
 .rbtn{padding:6px 12px;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:7px;font-size:12px;cursor:pointer;font-weight:500;color:#374151;}
-
 table{width:100%;border-collapse:collapse;font-size:13px;}
 thead{background:#f9fafb;}
 th{padding:10px 16px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#9ca3af;border-bottom:1px solid #f3f4f6;white-space:nowrap;}
@@ -68,7 +61,6 @@ tbody tr:hover td{background:#fafafa;}
 .b-cpa{background:#dcfce7;color:#15803d;}
 .b-no{background:#f3f4f6;color:#6b7280;}
 .b-pending{background:#fef9c3;color:#a16207;}
-
 .st{padding:50px 20px;text-align:center;}
 .st-ico{font-size:36px;margin-bottom:12px;opacity:.4;}
 .st-t{font-size:14px;font-weight:600;color:#6b7280;margin-bottom:5px;}
@@ -78,7 +70,6 @@ tbody tr:hover td{background:#fafafa;}
 </style>
 </head>
 <body>
-
 <div id="login-screen">
   <div class="login-box">
     <div class="brand">KRW Marketing Solutions</div>
@@ -91,7 +82,6 @@ tbody tr:hover td{background:#fafafa;}
     <div class="login-footer">Need access? Contact KRW Marketing Solutions</div>
   </div>
 </div>
-
 <div id="portal-screen">
   <div class="topbar">
     <div class="topbar-left">
@@ -104,7 +94,6 @@ tbody tr:hover td{background:#fafafa;}
       <button class="signout" onclick="doLogout()">Sign Out</button>
     </div>
   </div>
-
   <div class="body">
     <div class="banner">
       <div>
@@ -116,14 +105,12 @@ tbody tr:hover td{background:#fafafa;}
         <div class="num" id="did-num">—</div>
       </div>
     </div>
-
     <div class="kpis">
       <div class="kpi"><div class="lbl">Yesterday</div><div class="val v-blue" id="k-yesterday">—</div><div class="sub">calls yesterday</div></div>
       <div class="kpi"><div class="lbl">This Week</div><div class="val v-dark" id="k-week">—</div><div class="sub">last 7 days</div></div>
-      <div class="kpi"><div class="lbl">CPA</div><div class="val v-green" id="k-bill">—</div><div class="sub">signed retainers</div></div>
-      <div class="kpi"><div class="lbl">Total Payout</div><div class="val v-green" id="k-pay">—</div><div class="sub">billable only</div></div>
+      <div class="kpi"><div class="lbl">CPA</div><div class="val v-green" id="k-bill">—</div><div class="sub" id="k-bill-sub">signed retainers</div></div>
+      <div class="kpi"><div class="lbl">Total Payout</div><div class="val v-green" id="k-pay">—</div><div class="sub" id="k-pay-sub">billable only</div></div>
     </div>
-
     <div class="card">
       <div class="card-hdr">
         <div>
@@ -160,78 +147,55 @@ tbody tr:hover td{background:#fafafa;}
     </div>
   </div>
 </div>
-
 <script>
 var API = 'https://krw-backend-production.up.railway.app';
 var API_KEY = '64tgzb5ostadx1azjio9crdlduw4vf29';
 var S = null;
-
 var PERIOD_DAYS = { yesterday: 2, current_week: 7, last_week: 14, two_weeks: 14, month: 30, all: 9999 };
+var PERIOD_LABELS = { yesterday:'Yesterday', current_week:'This Week', last_week:'Last Week', two_weeks:'Last 2 Weeks', month:'This Month', all:'All Time' };
 
-// Returns Mon 00:00 and Fri 23:59 for a given week offset (0=current, -1=last)
 function getWeekBounds(offset) {
   var now = new Date();
-  var day = now.getDay(); // 0=Sun, 1=Mon...
+  var day = now.getDay();
   var diffToMon = (day === 0 ? -6 : 1 - day) + (offset * 7);
-  var mon = new Date(now);
-  mon.setDate(now.getDate() + diffToMon);
-  mon.setHours(0, 0, 0, 0);
-  var fri = new Date(mon);
-  fri.setDate(mon.getDate() + 4);
-  fri.setHours(23, 59, 59, 999);
+  var mon = new Date(now); mon.setDate(now.getDate() + diffToMon); mon.setHours(0,0,0,0);
+  var fri = new Date(mon); fri.setDate(mon.getDate() + 4); fri.setHours(23,59,59,999);
   return { start: mon, end: fri };
 }
 
 window.addEventListener('load', function(){
-  try {
-    var raw = sessionStorage.getItem('krw_sess');
-    if (raw) { S = JSON.parse(raw); showPortal(); }
-  } catch(e) {}
+  try { var raw = sessionStorage.getItem('krw_sess'); if (raw) { S = JSON.parse(raw); showPortal(); } } catch(e) {}
 });
 
-document.getElementById('pid').addEventListener('keydown', function(e){
-  if (e.key === 'Enter') doLogin();
-});
+document.getElementById('pid').addEventListener('keydown', function(e){ if (e.key === 'Enter') doLogin(); });
 
 function doLogin(){
-  var pid   = document.getElementById('pid').value.trim();
+  var pid = document.getElementById('pid').value.trim();
   var errEl = document.getElementById('err');
-  var btn   = document.querySelector('#login-screen button');
+  var btn = document.querySelector('#login-screen button');
   errEl.style.display = 'none';
   if (!pid) { document.getElementById('pid').focus(); return; }
-  btn.textContent = 'Signing in...';
-  btn.disabled = true;
-  fetch(API + '/publishers/login', {
-    method:  'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body:    JSON.stringify({ pub_id: pid })
-  })
+  btn.textContent = 'Signing in...'; btn.disabled = true;
+  fetch(API + '/publishers/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({pub_id:pid}) })
   .then(function(r){ return r.json(); })
   .then(function(d){
     if (d.ok) {
       S = { pub_id: d.pub_id || pid, name: d.name || pid, campaign: d.campaign || 'SSDI', did: d.did || null };
     } else {
       errEl.textContent = 'Publisher ID not found. Please check and try again.';
-      errEl.style.display = '';
-      btn.textContent = 'Sign In'; btn.disabled = false;
-      return;
+      errEl.style.display = ''; btn.textContent = 'Sign In'; btn.disabled = false; return;
     }
-    sessionStorage.setItem('krw_sess', JSON.stringify(S));
-    showPortal();
+    sessionStorage.setItem('krw_sess', JSON.stringify(S)); showPortal();
   })
   .catch(function(){
     S = { pub_id: pid, name: pid, campaign: 'SSDI', did: null };
-    sessionStorage.setItem('krw_sess', JSON.stringify(S));
-    showPortal();
+    sessionStorage.setItem('krw_sess', JSON.stringify(S)); showPortal();
   })
-  .finally(function(){
-    btn.textContent = 'Sign In';
-    btn.disabled = false;
-  });
+  .finally(function(){ btn.textContent = 'Sign In'; btn.disabled = false; });
 }
 
 function showPortal(){
-  document.getElementById('login-screen').style.display  = 'none';
+  document.getElementById('login-screen').style.display = 'none';
   document.getElementById('portal-screen').style.display = 'block';
   var first = (S.name || '').split(' ')[0] || S.pub_id;
   document.getElementById('tb-name').textContent = S.name + ' — Dashboard';
@@ -247,8 +211,7 @@ function showPortal(){
 }
 
 function doLogout(){
-  sessionStorage.removeItem('krw_sess');
-  S = null;
+  sessionStorage.removeItem('krw_sess'); S = null;
   document.getElementById('portal-screen').style.display = 'none';
   document.getElementById('login-screen').style.display  = '';
   document.getElementById('pid').value = '';
@@ -259,15 +222,14 @@ function loadCalls(){
   var period = (document.getElementById('filter-period') || {value:'month'}).value;
   var bill   = (document.getElementById('f-bill') || {value:''}).value;
   var days   = PERIOD_DAYS[period] || 30;
+  var label  = PERIOD_LABELS[period] || 'Selected Period';
 
   document.getElementById('st-load').style.display  = '';
   document.getElementById('st-empty').style.display = 'none';
   document.getElementById('st-err').style.display   = 'none';
   document.getElementById('tbl-wrap').style.display = 'none';
 
-  // Use /calls/feed which includes both partner and sheet_import records
   var url = API + '/calls/feed?pub=' + encodeURIComponent(S.pub_id) + '&days=' + days + '&api_key=' + API_KEY;
-
   fetch(url)
   .then(function(r){ return r.json(); })
   .then(function(d){
@@ -287,54 +249,43 @@ function loadCalls(){
       calls = calls.filter(function(c){ var t=new Date(c.call_date||c.received_at||0); return t>=wb1.start&&t<=wb0.end; });
     } else if (period === 'yesterday') {
       var yest = new Date(); yest.setDate(yest.getDate()-1);
-      var yestStr = yest.toISOString().split('T')[0];
-      calls = calls.filter(function(c){ return String(c.call_date||c.received_at||'').startsWith(yestStr); });
+      var ys = yest.toISOString().split('T')[0];
+      calls = calls.filter(function(c){ return String(c.call_date||c.received_at||'').startsWith(ys); });
     }
 
-    // Apply billable filter
     if (bill === 'true') calls = calls.filter(function(c){ return c.billable; });
 
-    // KPIs — always from full allCalls
-    var yest2 = new Date(); yest2.setDate(yest2.getDate() - 1);
-    var yestStr2 = yest2.toISOString().split('T')[0];
-    var weekAgo  = new Date(); weekAgo.setDate(weekAgo.getDate() - 7);
-    var weekStr  = weekAgo.toISOString().split('T')[0];
+    // KPIs — Yesterday and This Week always fixed
+    var yest2 = new Date(); yest2.setDate(yest2.getDate()-1); var ys2 = yest2.toISOString().split('T')[0];
+    var wkAgo = new Date(); wkAgo.setDate(wkAgo.getDate()-7); var wks = wkAgo.toISOString().split('T')[0];
+    document.getElementById('k-yesterday').textContent = allCalls.filter(function(c){ return String(c.call_date||'').startsWith(ys2); }).length;
+    document.getElementById('k-week').textContent      = allCalls.filter(function(c){ return (c.call_date||'') >= wks; }).length;
 
-    document.getElementById('k-yesterday').textContent = allCalls.filter(function(c){ return String(c.call_date||'').startsWith(yestStr2); }).length;
-    document.getElementById('k-week').textContent      = allCalls.filter(function(c){ return (c.call_date||'') >= weekStr; }).length;
-    document.getElementById('k-bill').textContent      = allCalls.filter(function(c){ return c.billable; }).length;
-    document.getElementById('k-pay').textContent       = '$' + allCalls.reduce(function(s,c){ return s + parseFloat(c.payout_amount||0); }, 0).toFixed(2);
+    // CPA and Payout reflect the ACTIVE FILTER — update sub labels too
+    var filteredBillable = calls.filter(function(c){ return c.billable; });
+    document.getElementById('k-bill').textContent     = filteredBillable.length;
+    document.getElementById('k-bill-sub').textContent = label;
+    document.getElementById('k-pay').textContent      = '$' + filteredBillable.reduce(function(s,c){ return s + parseFloat(c.payout_amount||0); }, 0).toFixed(2);
+    document.getElementById('k-pay-sub').textContent  = label;
 
     document.getElementById('st-load').style.display = 'none';
+    if (!calls.length) { document.getElementById('st-empty').style.display = ''; return; }
 
-    if (!calls.length) {
-      document.getElementById('st-empty').style.display = '';
-      return;
-    }
-
-    // Sort newest first — use call_date for sheet_import, received_at for partner
-    calls.sort(function(a, b){
-      var ta = new Date(a.received_at || a.call_date || 0).getTime();
-      var tb = new Date(b.received_at || b.call_date || 0).getTime();
-      return tb - ta;
-    });
+    calls.sort(function(a,b){ return new Date(b.received_at||b.call_date||0) - new Date(a.received_at||a.call_date||0); });
 
     var tbody = document.getElementById('tbl');
     tbody.innerHTML = '';
     calls.forEach(function(c){
-      // For sheet_import records, use call_date; for partner records use received_at
       var rawDt = c.source_system === 'sheet_import' ? c.call_date : (c.received_at || c.call_date || '');
       var dateObj = rawDt ? new Date(rawDt) : null;
       var date = dateObj
         ? dateObj.toLocaleDateString('en-US', {month:'2-digit',day:'2-digit',year:'numeric'}) +
           (c.source_system !== 'sheet_import'
-            ? ' <span style="color:#9ca3af;font-size:11px">' +
-              dateObj.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:true,timeZone:'America/New_York'}) + '</span>'
+            ? ' <span style="color:#9ca3af;font-size:11px">' + dateObj.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:true,timeZone:'America/New_York'}) + '</span>'
             : '')
         : '—';
-
-      var pay   = c.payout_amount && parseFloat(c.payout_amount) > 0 ? '$' + parseFloat(c.payout_amount).toFixed(2) : '—';
-      var sl    = c.call_status_label || (c.billable === true ? 'cpa' : c.billable === false ? 'not_converted' : 'pending');
+      var pay  = c.payout_amount && parseFloat(c.payout_amount) > 0 ? '$' + parseFloat(c.payout_amount).toFixed(2) : '—';
+      var sl   = c.call_status_label || (c.billable === true ? 'cpa' : c.billable === false ? 'not_converted' : 'pending');
       var badge = sl === 'cpa' || sl === 'Signed'
         ? '<span class="badge b-cpa">✓ ' + (sl === 'Signed' ? 'Signed' : 'CPA') + '</span>'
         : sl === 'not_converted' || sl === 'In Progress'
@@ -342,7 +293,6 @@ function loadCalls(){
         : sl === 'Retained'
         ? '<span class="badge b-pending">⏳ Retained</span>'
         : '<span class="badge b-pending">⏳ Pending</span>';
-
       var tr = document.createElement('tr');
       tr.innerHTML =
         '<td>' + date + '</td>' +
