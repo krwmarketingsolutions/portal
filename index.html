@@ -292,7 +292,15 @@ function loadCalls(){
         ? '<span class="badge b-no">' + (sl === 'In Progress' ? 'In Progress' : 'Not Converted') + '</span>'
         : sl === 'Retained'
         ? '<span class="badge b-pending">⏳ Retained</span>'
-        : '<span class="badge b-pending">⏳ Pending</span>';
+        : sl === 'Prospect'
+        ? '<span class="badge b-pending">⏳ Prospect</span>'
+        : sl === 'Disqualified'
+        ? '<span class="badge b-no">✕ Disqualified</span>'
+        : sl === 'Call Dropped'
+        ? '<span class="badge b-no">Call Dropped</span>'
+        : sl === 'pending'
+        ? '<span class="badge b-pending">⏳ Pending</span>'
+        : '<span class="badge b-pending">⏳ ' + sl + '</span>';
       var tr = document.createElement('tr');
       tr.innerHTML =
         '<td>' + date + '</td>' +
