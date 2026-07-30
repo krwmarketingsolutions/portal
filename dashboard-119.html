@@ -6345,7 +6345,7 @@ async function fetchCallsFeed(){
     if(!tbody) return;
     tbody.innerHTML = '';
     d.calls.forEach(function(call){
-      var date  = (call.call_date||call.received_at||'').split('T')[0]||'—';
+      var date  = (function(){ var raw = call.call_date||call.received_at; return raw ? new Date(raw).toLocaleDateString('en-US',{month:'2-digit',day:'2-digit',year:'numeric'}) : '—'; })();
       var dur   = call.call_duration ? Math.floor(call.call_duration/60)+'m '+((call.call_duration%60))+'s' : '—';
       var sl = call.call_status_label || (call.billable===true?'cpa':call.billable===false?'not_converted':'pending');
         var bill = sl==='cpa'
@@ -8387,7 +8387,7 @@ async function fetchCallsFeed(){
     if(!tbody) return;
     tbody.innerHTML = '';
     d.calls.forEach(function(call){
-      var date  = (call.call_date||call.received_at||'').split('T')[0]||'—';
+      var date  = (function(){ var raw = call.call_date||call.received_at; return raw ? new Date(raw).toLocaleDateString('en-US',{month:'2-digit',day:'2-digit',year:'numeric'}) : '—'; })();
       var dur   = call.call_duration ? Math.floor(call.call_duration/60)+'m '+((call.call_duration%60))+'s' : '—';
       var sl = call.call_status_label || (call.billable===true?'cpa':call.billable===false?'not_converted':'pending');
         var bill = sl==='cpa'
