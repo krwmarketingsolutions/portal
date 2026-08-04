@@ -7417,7 +7417,10 @@ function renderLeadsFeed(leads){
       '<td style="font-size:11px;color:var(--muted)">'+( lead.email||'—')+'</td>'+
       '<td style="font-size:12px">'+( lead.phone||'—')+'</td>'+
       '<td style="color:var(--muted)">'+( lead.state||'—')+'</td>'+
-      '<td><span style="font-size:10px;padding:2px 7px;border-radius:20px;background:var(--subtle);color:var(--muted)">'+lead.campaign.toUpperCase()+'</span></td>'+
+      '<td><span style="font-size:10px;padding:2px 7px;border-radius:20px;background:var(--subtle);color:var(--muted)">'+lead.campaign.toUpperCase()+'</span>'+
+        (lead.campaign==='mva-funnel' ? ' <span style="font-size:10px;padding:2px 7px;border-radius:20px;background:#dcfce7;color:#15803d;font-weight:600">CPA</span>' :
+         lead.campaign==='mva-cpl'    ? ' <span style="font-size:10px;padding:2px 7px;border-radius:20px;background:#dbeafe;color:#1d4ed8;font-weight:600">CPL</span>' : '')+
+        '</td>'+
       '<td style="font-size:11px;color:var(--muted)">'+( lead.publisher_sub||'—')+'</td>'+
       '<td><span class="lead-status '+status+'">'+status.replace('_',' ')+'</span></td>'+
       '<td style="font-size:11px;color:var(--muted);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+buyerId+'">'+buyerId+'</td>';
