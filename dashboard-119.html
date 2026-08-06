@@ -1693,7 +1693,13 @@
           <!-- Calls Feed -->
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)">
             <div style="padding:.85rem 1rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
-              <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)">Daily Billables</div>
+              <div style="display:flex;align-items:center;gap:10px">
+                <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)">Daily Billables</div>
+                <div style="display:flex;background:var(--subtle);border-radius:20px;padding:2px">
+                  <button id="billables-view-cpa" onclick="setBillablesView('cpa')" style="padding:4px 12px;border:none;border-radius:18px;font-size:11px;font-weight:600;cursor:pointer;background:#0f1c3f;color:#fff">SSDI CPA</button>
+                  <button id="billables-view-cpq" onclick="setBillablesView('cpq')" style="padding:4px 12px;border:none;border-radius:18px;font-size:11px;font-weight:600;cursor:pointer;background:transparent;color:var(--muted)">SSDI CPQ</button>
+                </div>
+              </div>
               <div style="display:flex;gap:8px">
                 <select id="calls-filter-days" onchange="fetchCallsFeed()" style="padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:var(--surface)">
                   <option value="1">Today</option>
@@ -1712,11 +1718,11 @@
                 <thead>
                   <tr style="border-bottom:1px solid var(--border)">
                     <th style="padding:8px 12px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">Date</th>
-                    <th style="padding:8px 12px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">Caller Name</th>
-                    <th style="padding:8px 12px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">Caller ID</th>
-                    <th style="padding:8px 12px;text-align:left;font-size:10px;font-weight:700;text-spacing:.06em;color:var(--muted)">Duration</th>
+                    <th id="billables-th-name" style="padding:8px 12px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">Caller Name</th>
+                    <th id="billables-th-id" style="padding:8px 12px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">Caller ID</th>
+                    <th id="billables-th-dur" style="padding:8px 12px;text-align:left;font-size:10px;font-weight:700;text-spacing:.06em;color:var(--muted)">Duration</th>
                     <th style="padding:8px 12px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">Publisher</th>
-                    <th style="padding:8px 12px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">Billable</th>
+                    <th id="billables-th-status" style="padding:8px 12px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">Billable</th>
                     <th style="padding:8px 12px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">Payout</th>
                   </tr>
                 </thead>
@@ -8393,12 +8399,73 @@ async function fetchCallsKPIs(){
 }
 
 // ── Calls Feed ────────────────────────────────────
+var billablesView = 'cpa';
+
+function setBillablesView(view){
+  billablesView = view;
+  var cpaBtn = document.getElementById('billables-view-cpa');
+  var cpqBtn = document.getElementById('billables-view-cpq');
+  if(view === 'cpa'){
+    cpaBtn.style.background = '#0f1c3f'; cpaBtn.style.color = '#fff';
+    cpqBtn.style.background = 'transparent'; cpqBtn.style.color = 'var(--muted)';
+    document.getElementById('billables-th-name').textContent   = 'Caller Name';
+    document.getElementById('billables-th-id').textContent     = 'Caller ID';
+    document.getElementById('billables-th-dur').textContent    = 'Duration';
+    document.getElementById('billables-th-status').textContent = 'Billable';
+  } else {
+    cpqBtn.style.background = '#0f1c3f'; cpqBtn.style.color = '#fff';
+    cpaBtn.style.background = 'transparent'; cpaBtn.style.color = 'var(--muted)';
+    document.getElementById('billables-th-name').textContent   = 'Name';
+    document.getElementById('billables-th-id').textContent     = 'Phone';
+    document.getElementById('billables-th-dur').textContent    = 'Ping Status';
+    document.getElementById('billables-th-status').textContent = 'Accepted';
+  }
+  fetchCallsFeed();
+}
+
 async function fetchCallsFeed(){
   if(!REV_API_URL||!REV_API_KEY) return;
   var days = (document.getElementById('calls-filter-days')||{value:'30'}).value;
   var pub  = (document.getElementById('calls-filter-pub') ||{value:''}).value;
   var tbody = document.getElementById('calls-feed-body');
   if(tbody) tbody.innerHTML = '<tr><td colspan="7" style="padding:2rem;text-align:center;color:var(--muted)">Loading...</td></tr>';
+
+  if(billablesView === 'cpq'){
+    try{
+      var url = REV_API_URL+'/leads/feed?pub=KRW-JOHNG-SSDI&days='+days+'&limit=200';
+      var r = await fetch(url,{headers:{'x-api-key':REV_API_KEY}});
+      var d = await r.json();
+      if(!d.ok||!d.leads||!d.leads.length){
+        if(tbody) tbody.innerHTML = '<tr><td colspan="7" style="padding:2rem;text-align:center;color:var(--muted)">No SSDI-CPQ leads found</td></tr>';
+        return;
+      }
+      if(!tbody) return;
+      tbody.innerHTML = '';
+      d.leads.forEach(function(lead){
+        var date = lead.received_at ? new Date(lead.received_at).toLocaleDateString('en-US',{month:'2-digit',day:'2-digit',year:'numeric'}) : '—';
+        var name = ((lead.first_name||'')+' '+(lead.last_name||'')).trim() || '—';
+        var accepted = lead.billable === true;
+        var badge = accepted
+          ? '<span style="background:#dcfce7;color:#166534;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600">✓ Ping Accepted</span>'
+          : '<span style="background:#f0f0f0;color:#888;padding:2px 8px;border-radius:20px;font-size:11px">✕ Ping Rejected</span>';
+        var pay = lead.revenue && parseFloat(lead.revenue)>0 ? '$'+parseFloat(lead.revenue).toFixed(2) : '—';
+        var tr = document.createElement('tr');
+        tr.style.borderBottom = '1px solid var(--border)';
+        tr.innerHTML =
+          '<td style="padding:10px 12px">'+date+'</td>'+
+          '<td style="padding:10px 12px">'+name+'</td>'+
+          '<td style="padding:10px 12px;font-family:monospace;font-size:12px">'+(lead.phone||'—')+'</td>'+
+          '<td style="padding:10px 12px">'+(lead.buyer_status||'—')+'</td>'+
+          '<td style="padding:10px 12px"><span style="background:var(--subtle);padding:2px 7px;border-radius:20px;font-size:11px">'+(lead.publisher_sub||'—')+'</span></td>'+
+          '<td style="padding:10px 12px">'+badge+'</td>'+
+          '<td style="padding:10px 12px;font-weight:600;color:#16a34a">'+pay+'</td>';
+        tbody.appendChild(tr);
+      });
+    } catch(e){
+      if(tbody) tbody.innerHTML = '<tr><td colspan="7" style="padding:1rem;text-align:center;color:var(--red)">Error loading SSDI-CPQ leads: '+e.message+'</td></tr>';
+    }
+    return;
+  }
 
   try{
     var url = REV_API_URL+'/calls/feed?days='+days+(pub?'&pub='+encodeURIComponent(pub):'');
