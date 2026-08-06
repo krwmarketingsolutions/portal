@@ -1741,7 +1741,13 @@
             <div id="ssdi-leads-chevron" style="font-size:13px;color:var(--muted)">▸</div>
           </div>
           <div id="ssdi-leads-content" style="display:none;border-top:1px solid var(--border)">
-            <div style="padding:.85rem 1rem;border-bottom:1px solid var(--border);display:flex;justify-content:flex-end;align-items:center;flex-wrap:wrap;gap:8px;background:#fafbfd">
+            <div style="padding:.85rem 1rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;background:#fafbfd">
+              <select id="ssdi-leads-publisher" onchange="fetchSsdiLeads()" style="padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-weight:600;background:var(--surface)">
+                <option value="all">All SSDI Publishers</option>
+                <option value="KRW-SSDI-2026-4QM">Nexus-7</option>
+                <option value="KRW-JOHNG-SSDI">John-G (SSDI-CPQ)</option>
+              </select>
+              <div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px">
               <input id="ssdi-leads-search" type="text" placeholder="Search name or phone..." oninput="filterSsdiLeads()" style="padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:var(--surface);min-width:180px">
               <select id="ssdi-leads-days" onchange="fetchSsdiLeads()" style="padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:var(--surface)">
                 <option value="7">Last 7 days</option>
@@ -1755,6 +1761,7 @@
                 <option value="buyer_rejected">Rejected</option>
               </select>
               <button onclick="fetchSsdiLeads()" style="padding:5px 10px;background:#f1f5f9;border:1px solid var(--border);border-radius:6px;font-size:12px;cursor:pointer">↻</button>
+              </div>
             </div>
             <div style="overflow-x:auto">
               <table style="width:100%;border-collapse:collapse;font-size:12.5px">
@@ -8296,15 +8303,29 @@ function toggleSsdiLeads(){
 
 async function fetchSsdiLeads(){
   if(!REV_API_URL||!REV_API_KEY) return;
-  var days   = (document.getElementById('ssdi-leads-days')||{value:'30'}).value;
-  var status = (document.getElementById('ssdi-leads-status')||{value:''}).value;
-  var tbody  = document.getElementById('ssdi-leads-body');
+  var days      = (document.getElementById('ssdi-leads-days')||{value:'30'}).value;
+  var status    = (document.getElementById('ssdi-leads-status')||{value:''}).value;
+  var publisher = (document.getElementById('ssdi-leads-publisher')||{value:'all'}).value;
+  var tbody     = document.getElementById('ssdi-leads-body');
   if(tbody) tbody.innerHTML = '<tr><td colspan="7" style="padding:2rem;text-align:center;color:var(--muted)">Loading...</td></tr>';
+
+  function buildUrl(pubId){
+    return REV_API_URL+'/leads/feed?pub='+encodeURIComponent(pubId)+'&days='+days+(status?'&status='+encodeURIComponent(status):'')+'&limit=200';
+  }
+
   try{
-    var url = REV_API_URL+'/leads/feed?campaign=Lssdi-shore&days='+days+(status?'&status='+encodeURIComponent(status):'')+'&limit=200';
-    var r   = await fetch(url,{headers:{'x-api-key':REV_API_KEY}});
-    var d   = await r.json();
-    ssdiLeadsCache  = d.leads || [];
+    var leads = [];
+    if(publisher === 'all'){
+      var urls = [buildUrl('KRW-SSDI-2026-4QM'), buildUrl('KRW-JOHNG-SSDI')];
+      var responses = await Promise.all(urls.map(function(u){ return fetch(u,{headers:{'x-api-key':REV_API_KEY}}).then(function(r){return r.json();}); }));
+      responses.forEach(function(d){ leads = leads.concat(d.leads || []); });
+      leads.sort(function(a,b){ return new Date(b.received_at||0) - new Date(a.received_at||0); });
+    } else {
+      var r = await fetch(buildUrl(publisher),{headers:{'x-api-key':REV_API_KEY}});
+      var d = await r.json();
+      leads = d.leads || [];
+    }
+    ssdiLeadsCache  = leads;
     ssdiLeadsLoaded = true;
     var search = document.getElementById('ssdi-leads-search');
     if(search) search.value = '';
