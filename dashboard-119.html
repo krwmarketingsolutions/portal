@@ -1707,7 +1707,7 @@
                   <option value="30">Last 30 days</option>
                   <option value="9999">All Time</option>
                 </select>
-                <select id="calls-filter-pub" onchange="fetchCallsFeed()" style="padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:var(--surface)">
+                <select id="calls-filter-pub" onchange="currentPubFilter=this.value;document.querySelectorAll('.did-pill').forEach(function(b){b.style.background='var(--surface)';b.style.color='var(--text)';});fetchCallsFeed()" style="padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:var(--surface)">
                   <option value="">All Publishers</option>
                 </select>
                 <button class="btn" style="padding:5px 10px;font-size:11px" onclick="fetchCallsFeed()">↻</button>
@@ -1715,10 +1715,7 @@
             </div>
             <div id="did-quick-switch" style="padding:8px 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:#fafbfd">
               <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">DID:</span>
-              <button class="did-pill" data-did-pub="" onclick="setDidFilter('')" style="padding:4px 12px;border:1px solid var(--border);border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;background:#0f1c3f;color:#fff">All</button>
-              <button class="did-pill" data-did-pub="KRW-JOSHUA-2026-76M" onclick="setDidFilter('KRW-JOSHUA-2026-76M')" style="padding:4px 12px;border:1px solid var(--border);border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;background:var(--surface);color:var(--text)">Joshua — Lead Tree (3216033068)</button>
-              <button class="did-pill" data-did-pub="KRW-JOSHUA-FIELDSLAW" onclick="setDidFilter('KRW-JOSHUA-FIELDSLAW')" style="padding:4px 12px;border:1px solid var(--border);border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;background:var(--surface);color:var(--text)">Joshua — Fields Law (844-719-1715)</button>
-              <button class="did-pill" data-did-pub="KRW-SSDI-2026-4QM" onclick="setDidFilter('KRW-SSDI-2026-4QM')" style="padding:4px 12px;border:1px solid var(--border);border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;background:var(--surface);color:var(--text)">Nexus-7 (4752243637)</button>
+              <div id="did-pills-container" style="display:flex;gap:8px;flex-wrap:wrap"></div>
             </div>
             <div id="calls-feed-wrap" style="overflow-x:auto">
               <table style="width:100%;border-collapse:collapse;font-size:13px">
@@ -8292,6 +8289,7 @@ function saveCallsPublishers(){
 function initCallsTab(){
   loadCallsPublishers();
   renderCallsPubList();
+  loadDidPills();
   fetchCallsFeed();
   fetchCallsKPIs();
 }
@@ -8408,6 +8406,44 @@ async function fetchCallsKPIs(){
 
 // ── Calls Feed ────────────────────────────────────
 var billablesView = 'cpa';
+var currentPubFilter = '';
+
+// Builds DID pills live from the actual publishers table, filtered to SSDI
+// campaigns. Any new SSDI publisher added to the database automatically gets
+// a pill here — no dashboard code change needed when adding more publishers.
+async function loadDidPills(){
+  var container = document.getElementById('did-pills-container');
+  if(!container || !REV_API_URL || !REV_API_KEY) return;
+  try{
+    var r = await fetch(REV_API_URL+'/publishers', {headers:{'x-api-key':REV_API_KEY}});
+    var d = await r.json();
+    var pubs = (d.publishers||[]).filter(function(p){
+      return (p.campaign||'').toLowerCase().indexOf('ssdi') === 0 && p.active;
+    });
+
+    container.innerHTML = '';
+    var allBtn = document.createElement('button');
+    allBtn.className = 'did-pill';
+    allBtn.setAttribute('data-did-pub','');
+    allBtn.textContent = 'All';
+    allBtn.style.cssText = 'padding:4px 12px;border:1px solid var(--border);border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;background:#0f1c3f;color:#fff';
+    allBtn.onclick = function(){ setDidFilter(''); };
+    container.appendChild(allBtn);
+
+    pubs.forEach(function(p){
+      var btn = document.createElement('button');
+      btn.className = 'did-pill';
+      btn.setAttribute('data-did-pub', p.pub_id);
+      var label = p.name + (p.did ? ' (' + p.did + ')' : '');
+      btn.textContent = label;
+      btn.style.cssText = 'padding:4px 12px;border:1px solid var(--border);border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;background:var(--surface);color:var(--text)';
+      btn.onclick = function(){ setDidFilter(p.pub_id); };
+      container.appendChild(btn);
+    });
+  } catch(e){
+    console.log('[DID Pills] Failed to load:', e.message);
+  }
+}
 
 function setBillablesView(view){
   billablesView = view;
@@ -8434,9 +8470,14 @@ function setBillablesView(view){
   fetchCallsFeed();
 }
 
+// Pills set currentPubFilter directly — never depends on the dropdown having
+// a matching <option>, which was the root cause of the pill filter silently
+// failing (a <select>'s .value can't be set to a value with no matching
+// option; it fails silently and leaves the filter unapplied).
 function setDidFilter(pubId){
+  currentPubFilter = pubId;
   var sel = document.getElementById('calls-filter-pub');
-  if(sel) sel.value = pubId;
+  if(sel) sel.value = pubId; // best-effort sync if a matching option exists; harmless if not
   document.querySelectorAll('.did-pill').forEach(function(btn){
     var active = btn.getAttribute('data-did-pub') === pubId;
     btn.style.background = active ? '#0f1c3f' : 'var(--surface)';
@@ -8448,7 +8489,9 @@ function setDidFilter(pubId){
 async function fetchCallsFeed(){
   if(!REV_API_URL||!REV_API_KEY) return;
   var days = (document.getElementById('calls-filter-days')||{value:'30'}).value;
-  var pub  = (document.getElementById('calls-filter-pub') ||{value:''}).value;
+  // currentPubFilter (set by DID pills) takes priority; falls back to the
+  // dropdown's own value if a pill hasn't been used this session
+  var pub  = currentPubFilter || (document.getElementById('calls-filter-pub') ||{value:''}).value;
   var tbody = document.getElementById('calls-feed-body');
   if(tbody) tbody.innerHTML = '<tr><td colspan="7" style="padding:2rem;text-align:center;color:var(--muted)">Loading...</td></tr>';
 
