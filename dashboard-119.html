@@ -1713,6 +1713,13 @@
                 <button class="btn" style="padding:5px 10px;font-size:11px" onclick="fetchCallsFeed()">↻</button>
               </div>
             </div>
+            <div id="did-quick-switch" style="padding:8px 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:#fafbfd">
+              <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">DID:</span>
+              <button class="did-pill" data-did-pub="" onclick="setDidFilter('')" style="padding:4px 12px;border:1px solid var(--border);border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;background:#0f1c3f;color:#fff">All</button>
+              <button class="did-pill" data-did-pub="KRW-JOSHUA-2026-76M" onclick="setDidFilter('KRW-JOSHUA-2026-76M')" style="padding:4px 12px;border:1px solid var(--border);border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;background:var(--surface);color:var(--text)">Joshua — Lead Tree (3216033068)</button>
+              <button class="did-pill" data-did-pub="KRW-JOSHUA-FIELDSLAW" onclick="setDidFilter('KRW-JOSHUA-FIELDSLAW')" style="padding:4px 12px;border:1px solid var(--border);border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;background:var(--surface);color:var(--text)">Joshua — Fields Law (844-719-1715)</button>
+              <button class="did-pill" data-did-pub="KRW-SSDI-2026-4QM" onclick="setDidFilter('KRW-SSDI-2026-4QM')" style="padding:4px 12px;border:1px solid var(--border);border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;background:var(--surface);color:var(--text)">Nexus-7 (4752243637)</button>
+            </div>
             <div id="calls-feed-wrap" style="overflow-x:auto">
               <table style="width:100%;border-collapse:collapse;font-size:13px">
                 <thead>
@@ -8406,9 +8413,11 @@ function setBillablesView(view){
   billablesView = view;
   var cpaBtn = document.getElementById('billables-view-cpa');
   var cpqBtn = document.getElementById('billables-view-cpq');
+  var didRow = document.getElementById('did-quick-switch');
   if(view === 'cpa'){
     cpaBtn.style.background = '#0f1c3f'; cpaBtn.style.color = '#fff';
     cpqBtn.style.background = 'transparent'; cpqBtn.style.color = 'var(--muted)';
+    if(didRow) didRow.style.display = 'flex';
     document.getElementById('billables-th-name').textContent   = 'Caller Name';
     document.getElementById('billables-th-id').textContent     = 'Caller ID';
     document.getElementById('billables-th-dur').textContent    = 'Duration';
@@ -8416,11 +8425,23 @@ function setBillablesView(view){
   } else {
     cpqBtn.style.background = '#0f1c3f'; cpqBtn.style.color = '#fff';
     cpaBtn.style.background = 'transparent'; cpaBtn.style.color = 'var(--muted)';
+    if(didRow) didRow.style.display = 'none';
     document.getElementById('billables-th-name').textContent   = 'Name';
     document.getElementById('billables-th-id').textContent     = 'Phone';
     document.getElementById('billables-th-dur').textContent    = 'Ping Status';
     document.getElementById('billables-th-status').textContent = 'Accepted';
   }
+  fetchCallsFeed();
+}
+
+function setDidFilter(pubId){
+  var sel = document.getElementById('calls-filter-pub');
+  if(sel) sel.value = pubId;
+  document.querySelectorAll('.did-pill').forEach(function(btn){
+    var active = btn.getAttribute('data-did-pub') === pubId;
+    btn.style.background = active ? '#0f1c3f' : 'var(--surface)';
+    btn.style.color = active ? '#fff' : 'var(--text)';
+  });
   fetchCallsFeed();
 }
 
