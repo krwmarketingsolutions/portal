@@ -8411,6 +8411,16 @@ var currentPubFilter = '';
 // Builds DID pills live from the actual publishers table, filtered to SSDI
 // campaigns. Any new SSDI publisher added to the database automatically gets
 // a pill here — no dashboard code change needed when adding more publishers.
+// Explicit allowlist — only these specific publishers appear as DID pills.
+// This is intentional: showing every SSDI-campaign publisher surfaced stale
+// test records and duplicates sitting in the database. Add a pub_id here
+// only when Kyler specifically wants a new one tracked in this view.
+var DID_PILL_ALLOWLIST = [
+  'KRW-JOSHUA-2026-76M',   // Joshua Duran — Lead Tree
+  'KRW-JOSHUA-FIELDSLAW',  // Joshua Duran — Fields Law
+  'KRW-SSDI-2026-4QM',     // Nexus-7
+];
+
 async function loadDidPills(){
   var container = document.getElementById('did-pills-container');
   if(!container || !REV_API_URL || !REV_API_KEY) return;
@@ -8418,7 +8428,11 @@ async function loadDidPills(){
     var r = await fetch(REV_API_URL+'/publishers', {headers:{'x-api-key':REV_API_KEY}});
     var d = await r.json();
     var pubs = (d.publishers||[]).filter(function(p){
-      return (p.campaign||'').toLowerCase().indexOf('ssdi') === 0 && p.active;
+      return DID_PILL_ALLOWLIST.indexOf(p.pub_id) !== -1;
+    });
+    // Preserve allowlist order rather than database order
+    pubs.sort(function(a,b){
+      return DID_PILL_ALLOWLIST.indexOf(a.pub_id) - DID_PILL_ALLOWLIST.indexOf(b.pub_id);
     });
 
     container.innerHTML = '';
