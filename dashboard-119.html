@@ -7426,7 +7426,14 @@ function renderLeadsFeed(leads){
     var date = lead.received_at ? new Date(lead.received_at).toLocaleDateString([],{month:'short',day:'numeric'}) : '';
     var name = [lead.first_name,lead.last_name].filter(Boolean).join(' ')||'—';
     var status = lead.status||'received';
-    var buyerId = lead.buyer_intake_id || (lead.buyer_error ? '⚠ '+lead.buyer_error.slice(0,25) : '—');
+    var buyerId;
+    if (lead.buyer_name) {
+      var shortId = lead.buyer_intake_id ? lead.buyer_intake_id.slice(0,12)+'…' : '';
+      buyerId = '<div style="font-weight:600">'+lead.buyer_name+'</div>' +
+        (shortId ? '<div style="font-size:10px;color:var(--muted)" title="'+lead.buyer_intake_id+'">'+shortId+'</div>' : '');
+    } else {
+      buyerId = lead.buyer_intake_id || (lead.buyer_error ? '⚠ '+lead.buyer_error.slice(0,25) : '—');
+    }
     var tr = document.createElement('tr');
     tr.innerHTML =
       '<td style="font-size:11px;color:var(--muted);white-space:nowrap">KRW-'+lead.campaign.toUpperCase()+'-'+lead.id+'</td>'+
@@ -7441,7 +7448,7 @@ function renderLeadsFeed(leads){
         '</td>'+
       '<td style="font-size:11px;color:var(--muted)">'+( lead.publisher_sub||'—')+'</td>'+
       '<td><span class="lead-status '+status+'">'+status.replace('_',' ')+'</span></td>'+
-      '<td style="font-size:11px;color:var(--muted);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+buyerId+'">'+buyerId+'</td>';
+      '<td style="font-size:11px;color:var(--muted);max-width:160px;overflow:hidden;text-overflow:ellipsis" title="'+(lead.buyer_intake_id||'')+'">'+buyerId+'</td>';
     tbody.appendChild(tr);
   });
 }
