@@ -70,6 +70,7 @@
   .node-name{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .node-stat{font-size:22px;font-weight:700;color:var(--forest)}
   .node-stat-label{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-top:2px}
+  .node-est{font-size:11px;color:var(--plan-amber);font-style:italic;margin-top:8px;padding-top:8px;border-top:1px dashed var(--border)}
   .node-rate{position:absolute;top:12px;right:12px;font-size:10px;font-weight:700;padding:3px 7px;border-radius:20px}
   .rate-good{background:var(--sage-pale);color:var(--forest)}
   .rate-mid{background:#FBF0D9;color:#8A6D1F}
@@ -161,6 +162,18 @@
 var API_URL = 'https://krw-backend-production.up.railway.app';
 var API_KEY = '64tgzb5ostadx1azjio9crdlduw4vf29';
 var PERIOD = 'week';
+
+// Estimated revenue assumptions per buyer (Kyler, Aug 28) - these are
+// projections based on assumed conversion rates, NOT real confirmed data.
+// Kept clearly separate from the real, postback-confirmed Revenue figure.
+var BUYER_ECONOMICS = {
+  'NLD CPA':        { rate: 0.08, payout: 2000 },
+  'MVA-003-LT':     { rate: 0.08, payout: 1800 },
+  'Email Agency':   { rate: 0.08, payout: 2750 },
+  'LAR-MVA-CPA':    { rate: 0.08, payout: 2500 },
+  'Calltoffic 1696':{ rate: 0.05, payout: 525 },
+  'Fields Law':     { rate: 0.10, payout: 205 },
+};
 var LAST_DATA = null;
 var MANUAL_KEY = 'krw_funnel_manual_links_v1';
 
@@ -274,16 +287,21 @@ function renderSection(key, label, data, routing) {
   }).join('');
 
   var buyerCols = Math.max(buyerNames.length, 1);
+  var totalEstRevenue = 0;
   var buyerNodesHtml = buyerNames.map(function(name, i){
     var b = data.buyers[name];
     var rate = b.received ? (b.accepted / b.received) : 0;
     var isInactive = b.received === 0;
+    var econ = BUYER_ECONOMICS[name];
+    var estRevenue = econ ? Math.round(b.received * econ.rate * econ.payout) : null;
+    if (estRevenue) totalEstRevenue += estRevenue;
     return '<div class="node' + (isInactive ? ' paused' : '') + '" id="fn-buy-' + key + '-' + i + '" data-buyer="' + escapeHtml(name) + '" data-section="' + key + '">' +
       '<div class="handle buy-handle" data-role="buy-handle" data-section="' + key + '" data-buyer="' + escapeHtml(name) + '"></div>' +
       (isInactive ? '' : '<div class="node-rate ' + rateClass(b.accepted, b.received) + '">' + Math.round(rate*100) + '%</div>') +
       '<div class="node-name">' + escapeHtml(name) + '</div>' +
       '<div class="node-stat mono">' + b.received + '</div>' +
       '<div class="node-stat-label">' + (isInactive ? 'no traffic' : 'received') + '</div>' +
+      (estRevenue ? '<div class="node-est">Est. $' + estRevenue.toLocaleString() + '</div>' : '') +
       '</div>';
   }).join('');
 
@@ -298,6 +316,7 @@ function renderSection(key, label, data, routing) {
       '<div class="outcome-bar">' +
         '<div><div class="lbl">Total Leads</div><div class="big mono">' + totalReceived + '</div></div>' +
         '<div style="text-align:center"><div class="lbl">Accepted / Billable</div><div class="big mono">' + totalAccepted + '</div></div>' +
+        '<div style="text-align:center"><div class="lbl" style="color:#F0D9B5">Est. Revenue (projected)</div><div class="big mono" style="color:#F0D9B5;opacity:.9">$' + totalEstRevenue.toLocaleString() + '</div></div>' +
         '<div style="text-align:right"><div class="lbl">Revenue</div><div class="big mono">$' + totalRevenue.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0}) + '</div></div>' +
       '</div>' +
     '</div>';
