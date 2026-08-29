@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KRW — Funnel</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --cream:#FAF7EE;
+    --sage-pale:#E8F0DD;
+    --forest:#1F4D2E;
+    --green:#5A9B5C;
+    --leaf:#9BC98E;
+    --ink:#2B2A26;
+    --muted:#8A8577;
+    --border:#DCE4CC;
+    --white:#FFFFFF;
+    --plan-amber:#C9862E;
+  }
+  body{
+    font-family:'Helvetica Neue',Arial,sans-serif;
+    background:var(--cream);
+    color:var(--ink);
+    min-height:100vh;
+  }
+  .mono{font-family:'SF Mono','JetBrains Mono',ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums}
+
+  .preview-banner{
+    background:var(--forest);color:#fff;text-align:center;
+    padding:8px 16px;font-size:12px;font-weight:600;letter-spacing:.02em;
+  }
+
+  header{
+    padding:28px 40px 20px;display:flex;align-items:center;justify-content:space-between;
+    flex-wrap:wrap;gap:16px;border-bottom:1px solid var(--border);
+  }
+  header h1{font-size:24px;font-weight:700;color:var(--forest);letter-spacing:-.01em}
+  header p{font-size:13px;color:var(--muted);margin-top:2px}
+
+  .period-group{display:flex;gap:8px}
+  .period-btn{
+    font-size:12px;padding:7px 16px;border-radius:20px;
+    border:1px solid var(--border);background:var(--white);
+    color:var(--muted);cursor:pointer;transition:all .15s;
+  }
+  .period-btn.active{background:var(--forest);border-color:var(--forest);color:#fff}
+  .period-btn:hover:not(.active){border-color:var(--green);color:var(--forest)}
+
+  .legend{display:flex;gap:18px;align-items:center;padding:14px 40px;font-size:11px;color:var(--muted);flex-wrap:wrap}
+  .legend-item{display:flex;align-items:center;gap:6px}
+  .legend-swatch{width:20px;height:2px}
+  .legend-swatch.live{background:var(--leaf)}
+  .legend-swatch.planned{background:var(--plan-amber);border-top:2px dashed var(--plan-amber);background:none;height:0}
+  .legend-hint{font-size:11px;color:var(--muted);font-style:italic}
+
+  main{padding:8px 40px 60px;max-width:1200px;margin:0 auto}
+
+  .section{margin-bottom:56px}
+  .section-title{font-size:20px;font-weight:700;color:var(--forest);letter-spacing:-.01em;margin-bottom:4px}
+  .section-sub{font-size:12px;color:var(--muted);margin-bottom:22px}
+
+  .node-row{display:grid;gap:14px;position:relative;z-index:2}
+  .node{
+    background:var(--white);border:1.5px solid var(--border);border-radius:12px;
+    padding:14px 16px;position:relative;
+    transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease;
+  }
+  .node.paused{opacity:.4;filter:grayscale(1)}
+  .node-name{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .node-stat{font-size:22px;font-weight:700;color:var(--forest)}
+  .node-stat-label{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-top:2px}
+  .node-rate{position:absolute;top:12px;right:12px;font-size:10px;font-weight:700;padding:3px 7px;border-radius:20px}
+  .rate-good{background:var(--sage-pale);color:var(--forest)}
+  .rate-mid{background:#FBF0D9;color:#8A6D1F}
+  .rate-low{background:#FBE4E0;color:#A13F2F}
+
+  /* Drag handles */
+  .handle{
+    position:absolute;left:50%;width:14px;height:14px;border-radius:50%;
+    background:var(--white);border:2px solid var(--green);
+    transform:translateX(-50%);cursor:grab;z-index:5;
+    transition:transform .12s,background .12s;
+  }
+  .handle:hover{transform:translateX(-50%) scale(1.25);background:var(--sage-pale)}
+  .handle.pub-handle{bottom:-8px}
+  .handle.buy-handle{top:-8px}
+  .handle.dragging{cursor:grabbing;background:var(--plan-amber);border-color:var(--plan-amber)}
+  .node.drop-target{border-color:var(--plan-amber);box-shadow:0 0 0 3px rgba(201,134,46,0.18)}
+
+  .flow-wrap{position:relative;min-height:70px}
+  .flow-svg{position:absolute;top:0;left:0;width:100%;height:100%;z-index:1;overflow:visible}
+  .flow-path{fill:none;stroke:var(--leaf);stroke-width:2;stroke-dasharray:2 7;animation:flowMove .8s linear infinite;pointer-events:none}
+  .flow-path.planned{stroke:var(--plan-amber);stroke-dasharray:5 4;animation:none;pointer-events:stroke;cursor:pointer}
+  .flow-path.planned:hover{stroke-width:3.5}
+  .flow-hit{fill:none;stroke:transparent;stroke-width:14;cursor:pointer}
+
+  @keyframes flowMove{to{stroke-dashoffset:-18}}
+
+  .connector-final{width:3px;height:40px;margin:0 auto;background:repeating-linear-gradient(180deg,var(--green) 0 6px,transparent 6px 14px);animation:flowMove2 .9s linear infinite}
+  @keyframes flowMove2{to{background-position:0 -20px}}
+
+  .outcome-bar{
+    background:linear-gradient(90deg,var(--forest),var(--green));
+    border-radius:14px;padding:20px 28px;
+    display:flex;align-items:center;justify-content:space-between;
+    box-shadow:0 10px 28px rgba(31,77,46,0.18);
+  }
+  .outcome-bar .big{color:#fff;font-size:32px;font-weight:700}
+  .outcome-bar .lbl{color:rgba(255,255,255,.75);font-size:11px;text-transform:uppercase;letter-spacing:.07em}
+
+  .empty{text-align:center;padding:40px;color:var(--muted);font-size:13px}
+  .empty button{margin-left:8px;font-size:12px;padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:var(--white);cursor:pointer}
+
+  #drag-ghost{position:fixed;pointer-events:none;z-index:999;top:0;left:0;width:100vw;height:100vh}
+  #drag-ghost path{fill:none;stroke:var(--plan-amber);stroke-width:2.5;stroke-dasharray:5 4}
+
+  .toast{
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:var(--forest);color:#fff;padding:10px 18px;border-radius:10px;
+    font-size:12px;opacity:0;transition:opacity .2s;z-index:1000;pointer-events:none;
+  }
+  .toast.show{opacity:1}
+
+  @media (max-width:700px){
+    header,main,.legend{padding-left:20px;padding-right:20px}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Funnel</h1>
+    <p>Live traffic flow · Publisher → Buyer → Outcome</p>
+  </div>
+  <div class="period-group">
+    <button class="period-btn" id="period-today" onclick="setPeriod('today')">Today</button>
+    <button class="period-btn active" id="period-week" onclick="setPeriod('week')">This Week</button>
+    <button class="period-btn" id="period-month" onclick="setPeriod('month')">This Month</button>
+  </div>
+</header>
+
+<div class="legend">
+  <div class="legend-item"><span class="legend-swatch live"></span> Live routing (actual, from real data)</div>
+  <div class="legend-item"><span class="legend-swatch planned"></span> Planned (drawn in manually)</div>
+  <div class="legend-hint">Drag from the green dot below a publisher to a buyer to add a planned connection. Click a planned (amber) line to remove it.</div>
+  <button class="period-btn" style="margin-left:auto;color:var(--plan-amber);border-color:var(--plan-amber)" onclick="clearAllPlanned()">Clear all planned lines</button>
+</div>
+
+<main>
+  <div id="content">
+    <div class="empty">Loading funnel data…</div>
+  </div>
+</main>
+
+<svg id="drag-ghost" style="display:none"><path id="drag-ghost-path"/></svg>
+<div class="toast" id="toast"></div>
+
+<script>
+var API_URL = 'https://krw-backend-production.up.railway.app';
+var API_KEY = '64tgzb5ostadx1azjio9crdlduw4vf29';
+var PERIOD = 'week';
+var LAST_DATA = null;
+var MANUAL_KEY = 'krw_funnel_manual_links_v1';
+
+function loadManualLinks() {
+  try { return JSON.parse(localStorage.getItem(MANUAL_KEY) || '[]'); } catch(e) { return []; }
+}
+function saveManualLinks(links) {
+  try { localStorage.setItem(MANUAL_KEY, JSON.stringify(links)); } catch(e){}
+}
+function addManualLink(section, pubId, buyerName) {
+  var links = loadManualLinks();
+  var exists = links.some(function(l){ return l.section===section && l.pubId===pubId && l.buyerName===buyerName; });
+  if (exists) { showToast('That connection already exists'); return; }
+  links.push({ section: section, pubId: pubId, buyerName: buyerName });
+  saveManualLinks(links);
+  showToast('Planned connection added');
+}
+function removeManualLink(section, pubId, buyerName) {
+  var links = loadManualLinks().filter(function(l){
+    return !(l.section===section && l.pubId===pubId && l.buyerName===buyerName);
+  });
+  saveManualLinks(links);
+  showToast('Planned connection removed');
+}
+function clearAllPlanned() {
+  var links = loadManualLinks();
+  if (!links.length) { showToast('No planned connections to clear'); return; }
+  saveManualLinks([]);
+  drawAllLines();
+  showToast('Cleared ' + links.length + ' planned connection' + (links.length === 1 ? '' : 's'));
+}
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(showToast._h);
+  showToast._h = setTimeout(function(){ t.classList.remove('show'); }, 1800);
+}
+
+function setPeriod(p) {
+  PERIOD = p;
+  ['today','week','month'].forEach(function(x){
+    var el = document.getElementById('period-'+x);
+    if (el) el.classList.toggle('active', x === p);
+  });
+  fetchFunnelData();
+}
+
+function rateClass(accepted, forwarded) {
+  if (!forwarded) return 'rate-mid';
+  var rate = accepted / forwarded;
+  if (rate >= 0.15) return 'rate-good';
+  if (rate >= 0.05) return 'rate-mid';
+  return 'rate-low';
+}
+
+function escapeHtml(str) {
+  var div = document.createElement('div');
+  div.textContent = str == null ? '' : String(str);
+  return div.innerHTML;
+}
+
+async function fetchFunnelData() {
+  var content = document.getElementById('content');
+  content.innerHTML = '<div class="empty">Loading funnel data…</div>';
+  try {
+    var r = await fetch(API_URL + '/dashboard/funnel?period=' + encodeURIComponent(PERIOD), {
+      headers: { 'x-api-key': API_KEY }
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    var d = await r.json();
+    if (!d.ok) throw new Error(d.error || 'Failed to load');
+    LAST_DATA = d;
+
+    var routing = d.routing || {};
+    var html = '';
+    html += renderSection('mva', 'MVA', d.mva, routing);
+    html += renderSection('ssdi', 'SSDI', d.ssdi, routing);
+    content.innerHTML = html;
+
+    requestAnimationFrame(function(){
+      drawAllLines();
+      initDragHandles();
+    });
+  } catch(e) {
+    content.innerHTML = '<div class="empty">Could not load funnel data: ' + escapeHtml(e.message) + ' <button onclick="fetchFunnelData()">Retry</button></div>';
+  }
+}
+
+function renderSection(key, label, data, routing) {
+  var pubIds = Object.keys(data.publishers);
+  var buyerNames = Object.keys(data.buyers);
+
+  var totalReceived = 0, totalAccepted = 0, totalRevenue = 0;
+  pubIds.forEach(function(id){
+    totalReceived += data.publishers[id].received;
+    totalAccepted += data.publishers[id].accepted;
+    totalRevenue += data.publishers[id].revenue;
+  });
+
+  var pubCols = Math.max(pubIds.length, 1);
+  var pubNodesHtml = pubIds.map(function(id, i){
+    var p = data.publishers[id];
+    var isPaused = p.received === 0;
+    return '<div class="node' + (isPaused ? ' paused' : '') + '" id="fn-pub-' + key + '-' + i + '" data-pubid="' + escapeHtml(id) + '" data-section="' + key + '">' +
+      '<div class="node-name">' + escapeHtml(p.name) + '</div>' +
+      '<div class="node-stat mono">' + p.received + '</div>' +
+      '<div class="node-stat-label">' + (isPaused ? 'inactive' : 'received') + '</div>' +
+      '<div class="handle pub-handle" data-role="pub-handle" data-section="' + key + '" data-pubid="' + escapeHtml(id) + '" title="Drag to a buyer to add a planned connection"></div>' +
+      '</div>';
+  }).join('');
+
+  var buyerCols = Math.max(buyerNames.length, 1);
+  var buyerNodesHtml = buyerNames.map(function(name, i){
+    var b = data.buyers[name];
+    var rate = b.received ? (b.accepted / b.received) : 0;
+    var isInactive = b.received === 0;
+    return '<div class="node' + (isInactive ? ' paused' : '') + '" id="fn-buy-' + key + '-' + i + '" data-buyer="' + escapeHtml(name) + '" data-section="' + key + '">' +
+      '<div class="handle buy-handle" data-role="buy-handle" data-section="' + key + '" data-buyer="' + escapeHtml(name) + '"></div>' +
+      (isInactive ? '' : '<div class="node-rate ' + rateClass(b.accepted, b.received) + '">' + Math.round(rate*100) + '%</div>') +
+      '<div class="node-name">' + escapeHtml(name) + '</div>' +
+      '<div class="node-stat mono">' + b.received + '</div>' +
+      '<div class="node-stat-label">' + (isInactive ? 'no traffic' : 'received') + '</div>' +
+      '</div>';
+  }).join('');
+
+  return '' +
+    '<div class="section">' +
+      '<div class="section-title">' + escapeHtml(label) + '</div>' +
+      '<div class="section-sub">' + pubIds.length + ' publishers tracked · ' + totalReceived + ' leads received</div>' +
+      '<div class="node-row" style="grid-template-columns:repeat(' + pubCols + ',1fr)">' + pubNodesHtml + '</div>' +
+      '<div class="flow-wrap" id="fn-flow-' + key + '"><svg class="flow-svg" id="fn-svg-' + key + '"></svg></div>' +
+      '<div class="node-row" style="grid-template-columns:repeat(' + buyerCols + ',1fr);max-width:' + Math.min(buyerCols, 4) * 260 + 'px;margin:0 auto 8px">' + buyerNodesHtml + '</div>' +
+      '<div class="connector-final"></div>' +
+      '<div class="outcome-bar">' +
+        '<div><div class="lbl">Total Leads</div><div class="big mono">' + totalReceived + '</div></div>' +
+        '<div style="text-align:center"><div class="lbl">Accepted / Billable</div><div class="big mono">' + totalAccepted + '</div></div>' +
+        '<div style="text-align:right"><div class="lbl">Revenue</div><div class="big mono">$' + totalRevenue.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0}) + '</div></div>' +
+      '</div>' +
+    '</div>';
+}
+
+function drawAllLines() {
+  if (!LAST_DATA) return;
+  var routing = LAST_DATA.routing || {};
+  drawSectionLines('mva', LAST_DATA.mva, routing);
+  drawSectionLines('ssdi', LAST_DATA.ssdi, routing);
+}
+
+function drawSectionLines(key, data, routing) {
+  var svg = document.getElementById('fn-svg-' + key);
+  var wrap = document.getElementById('fn-flow-' + key);
+  if (!svg || !wrap) return;
+
+  var wrapRect = wrap.getBoundingClientRect();
+  svg.setAttribute('viewBox', '0 0 ' + wrapRect.width + ' ' + wrapRect.height);
+
+  var pubIds = Object.keys(data.publishers);
+  var buyerNames = Object.keys(data.buyers);
+  var manualLinks = loadManualLinks().filter(function(l){ return l.section === key; });
+  var markup = '';
+
+  function pathFor(pubId, buyerName) {
+    var pi = pubIds.indexOf(pubId);
+    var bi = buyerNames.indexOf(buyerName);
+    if (pi === -1 || bi === -1) return null;
+    var pubEl = document.getElementById('fn-pub-' + key + '-' + pi);
+    var buyEl = document.getElementById('fn-buy-' + key + '-' + bi);
+    if (!pubEl || !buyEl) return null;
+    var pubRect = pubEl.getBoundingClientRect();
+    var buyRect = buyEl.getBoundingClientRect();
+    var startX = pubRect.left + pubRect.width / 2 - wrapRect.left;
+    var endX = buyRect.left + buyRect.width / 2 - wrapRect.left;
+    var midY = wrapRect.height / 2;
+    return 'M ' + startX + ' 0 C ' + startX + ' ' + midY + ', ' + endX + ' ' + midY + ', ' + endX + ' ' + wrapRect.height;
+  }
+
+  // Live (auto) routing lines - not removable, always reflect real system state
+  pubIds.forEach(function(pubId){
+    var reachable = routing[pubId] || [];
+    reachable.forEach(function(buyerName){
+      var d = pathFor(pubId, buyerName);
+      if (d) markup += '<path class="flow-path" d="' + d + '"/>';
+    });
+  });
+
+  // Planned (manual) lines - clickable to remove
+  manualLinks.forEach(function(l){
+    var d = pathFor(l.pubId, l.buyerName);
+    if (!d) return;
+    markup += '<path class="flow-path planned" data-pubid="' + escapeHtml(l.pubId) + '" data-buyer="' + escapeHtml(l.buyerName) + '" data-section="' + key + '" d="' + d + '"/>';
+    markup += '<path class="flow-hit" data-pubid="' + escapeHtml(l.pubId) + '" data-buyer="' + escapeHtml(l.buyerName) + '" data-section="' + key + '" d="' + d + '"/>';
+  });
+
+  svg.innerHTML = markup;
+
+  // Click a planned line (or its wider invisible hit-area) to remove it
+  svg.querySelectorAll('.flow-path.planned, .flow-hit').forEach(function(el){
+    el.addEventListener('click', function(){
+      removeManualLink(el.getAttribute('data-section'), el.getAttribute('data-pubid'), el.getAttribute('data-buyer'));
+      drawAllLines();
+    });
+  });
+}
+
+// ── Drag-to-connect ──────────────────────────────────────────────────────
+var DRAG = null; // { section, pubId, startX, startY }
+
+function initDragHandles() {
+  document.querySelectorAll('[data-role="pub-handle"]').forEach(function(handle){
+    handle.onmousedown = function(e){
+      e.preventDefault();
+      var rect = handle.getBoundingClientRect();
+      DRAG = {
+        section: handle.getAttribute('data-section'),
+        pubId: handle.getAttribute('data-pubid'),
+        startX: rect.left + rect.width/2,
+        startY: rect.top + rect.height/2
+      };
+      handle.classList.add('dragging');
+      document.getElementById('drag-ghost').style.display = 'block';
+      document.body.style.userSelect = 'none';
+    };
+  });
+
+  document.querySelectorAll('.node[data-buyer]').forEach(function(buyEl){
+    buyEl.addEventListener('mouseenter', function(){
+      if (DRAG && buyEl.getAttribute('data-section') === DRAG.section) buyEl.classList.add('drop-target');
+    });
+    buyEl.addEventListener('mouseleave', function(){
+      buyEl.classList.remove('drop-target');
+    });
+    buyEl.addEventListener('mouseup', function(){
+      if (DRAG && buyEl.getAttribute('data-section') === DRAG.section) {
+        addManualLink(DRAG.section, DRAG.pubId, buyEl.getAttribute('data-buyer'));
+        drawAllLines();
+      }
+    });
+  });
+}
+
+document.addEventListener('mousemove', function(e){
+  if (!DRAG) return;
+  var path = document.getElementById('drag-ghost-path');
+  var midY = (DRAG.startY + e.clientY) / 2;
+  path.setAttribute('d', 'M ' + DRAG.startX + ' ' + DRAG.startY + ' C ' + DRAG.startX + ' ' + midY + ', ' + e.clientX + ' ' + midY + ', ' + e.clientX + ' ' + e.clientY);
+});
+
+document.addEventListener('mouseup', function(){
+  if (DRAG) {
+    document.querySelectorAll('.handle.dragging').forEach(function(h){ h.classList.remove('dragging'); });
+    document.querySelectorAll('.node.drop-target').forEach(function(n){ n.classList.remove('drop-target'); });
+    document.getElementById('drag-ghost').style.display = 'none';
+    document.body.style.userSelect = '';
+    DRAG = null;
+  }
+});
+
+fetchFunnelData();
+window.addEventListener('resize', function(){ drawAllLines(); });
+</script>
+
+</body>
+</html>
