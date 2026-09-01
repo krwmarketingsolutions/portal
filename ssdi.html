@@ -154,7 +154,7 @@ tbody tr:hover td{background:#fafafa;}
       <div class="card-hdr">
         <div>
           <div class="card-title">Signed</div>
-          <div class="card-sub">Live call data via Trackdrive postback</div>
+          <div class="card-sub">Live call data</div>
         </div>
         <div class="filters">
           <button class="rbtn" onclick="loadCalls()">↻</button>
@@ -178,6 +178,18 @@ tbody tr:hover td{background:#fafafa;}
 var API = 'https://krw-backend-production.up.railway.app';
 var API_KEY = '64tgzb5ostadx1azjio9crdlduw4vf29';
 var S = null;
+
+// Publisher "families" - lets one publisher log in with any one of their IDs
+// and see all their verticals merged together. Add entries here whenever a
+// publisher gets a second (or third) pub_id for a different line - list all
+// their IDs together, every ID in the group maps to the same full list.
+var PUBLISHER_FAMILIES = {
+  'SSDI-AZ-1696':      ['SSDI-AZ-1696', 'KRW-JOSHUA-SIGNED'],
+  'KRW-JOSHUA-SIGNED':  ['SSDI-AZ-1696', 'KRW-JOSHUA-SIGNED'],
+};
+function getFamilyIds(pubId){
+  return PUBLISHER_FAMILIES[pubId] || [pubId];
+}
 var DATE_FROM = null; // shared custom date range, applies to both 1696 and Signed sections
 var DATE_TO = null;
 
@@ -280,12 +292,13 @@ function loadCalls(){
   document.getElementById('st-err').style.display   = 'none';
   document.getElementById('tbl-wrap').style.display = 'none';
 
-  var url = API + '/calls/feed?pub=' + encodeURIComponent(S.pub_id) + '&days=9999&api_key=' + API_KEY;
-  fetch(url)
-  .then(function(r){ return r.json(); })
-  .then(function(d){
-    if (!d.ok) throw new Error(d.error || 'Server error');
-    var allCalls = d.calls || [];
+  var familyIds = getFamilyIds(S.pub_id);
+  var urls = familyIds.map(function(id){ return API + '/calls/feed?pub=' + encodeURIComponent(id) + '&days=9999&api_key=' + API_KEY; });
+  Promise.all(urls.map(function(u){ return fetch(u).then(function(r){ return r.json(); }); }))
+  .then(function(results){
+    var allCalls = [];
+    results.forEach(function(d){ if (d.ok && d.calls) allCalls = allCalls.concat(d.calls); });
+    var d = { ok: true }; // keep downstream code shape consistent
 
     // Apply shared custom date-range filter (client-side)
     var calls = allCalls.filter(function(c){ return inDateRange(c.received_at || c.call_date); });
@@ -356,12 +369,13 @@ function loadLeads(){
   document.getElementById('lst-err').style.display   = 'none';
   document.getElementById('ltbl-wrap').style.display = 'none';
 
-  var url = API + '/leads/feed?portal_id=' + encodeURIComponent(S.pub_id) + '&days=9999&api_key=' + API_KEY;
-  fetch(url)
-  .then(function(r){ return r.json(); })
-  .then(function(d){
-    if (!d.ok) throw new Error(d.error || 'Server error');
-    var leads = (d.leads || []).filter(function(l){ return inDateRange(l.received_at); });
+  var familyIds2 = getFamilyIds(S.pub_id);
+  var urls2 = familyIds2.map(function(id){ return API + '/leads/feed?portal_id=' + encodeURIComponent(id) + '&days=9999&api_key=' + API_KEY; });
+  Promise.all(urls2.map(function(u){ return fetch(u).then(function(r){ return r.json(); }); }))
+  .then(function(results){
+    var allLeads = [];
+    results.forEach(function(d){ if (d.ok && d.leads) allLeads = allLeads.concat(d.leads); });
+    var leads = allLeads.filter(function(l){ return inDateRange(l.received_at); });
 
     document.getElementById('lst-load').style.display = 'none';
     if (!leads.length) { document.getElementById('lst-empty').style.display = ''; return; }
