@@ -394,7 +394,13 @@ function loadLeads(){
       var rawStatus = l.buyer_status || l.status || 'Pending';
       var statusLabel = rawStatus === 'Ping Accepted' ? 'Pending' : rawStatus;
       var sl = String(statusLabel).toLowerCase();
-      var badge = sl === 'accepted' || sl === 'signed'
+      // billable is the real source of truth (set only via the approval
+      // queue) - always takes priority over the raw ping-status text, so a
+      // genuinely approved lead always shows green even if its buyer_status
+      // text still just says "Ping Accepted" (Kyler, Sep 1).
+      var badge = l.billable === true
+        ? '<span class="badge b-cpa">✓ Billable — $' + parseFloat(l.revenue||0).toFixed(2) + '</span>'
+        : sl === 'accepted' || sl === 'signed'
         ? '<span class="badge b-cpa">✓ ' + statusLabel + '</span>'
         : sl === 'rejected' || sl === 'buyer_rejected'
         ? '<span class="badge b-no">' + statusLabel + '</span>'
