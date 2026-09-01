@@ -134,10 +134,15 @@
     <h1>Funnel</h1>
     <p>Live traffic flow · Publisher → Buyer → Outcome</p>
   </div>
-  <div class="period-group">
+  <div class="period-group" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
     <button class="period-btn" id="period-today" onclick="setPeriod('today')">Today</button>
     <button class="period-btn active" id="period-week" onclick="setPeriod('week')">This Week</button>
     <button class="period-btn" id="period-month" onclick="setPeriod('month')">This Month</button>
+    <span style="color:var(--muted);font-size:12px;margin-left:6px">or</span>
+    <input type="date" id="fn-date-from" style="padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px">
+    <span style="color:var(--muted);font-size:12px">to</span>
+    <input type="date" id="fn-date-to" style="padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px">
+    <button class="period-btn" onclick="applyFunnelDateRange()">Apply</button>
   </div>
 </header>
 
@@ -161,6 +166,8 @@
 var API_URL = 'https://krw-backend-production.up.railway.app';
 var API_KEY = '64tgzb5ostadx1azjio9crdlduw4vf29';
 var PERIOD = 'week';
+var CUSTOM_FROM = null;
+var CUSTOM_TO = null;
 
 var LAST_DATA = null;
 var MANUAL_KEY = 'krw_funnel_manual_links_v1';
@@ -203,9 +210,25 @@ function showToast(msg) {
 
 function setPeriod(p) {
   PERIOD = p;
+  CUSTOM_FROM = null; CUSTOM_TO = null;
+  document.getElementById('fn-date-from').value = '';
+  document.getElementById('fn-date-to').value = '';
   ['today','week','month'].forEach(function(x){
     var el = document.getElementById('period-'+x);
     if (el) el.classList.toggle('active', x === p);
+  });
+  fetchFunnelData();
+}
+
+function applyFunnelDateRange() {
+  var f = document.getElementById('fn-date-from').value;
+  var t = document.getElementById('fn-date-to').value;
+  if (!f && !t) return;
+  CUSTOM_FROM = f || null;
+  CUSTOM_TO = t || null;
+  ['today','week','month'].forEach(function(x){
+    var el = document.getElementById('period-'+x);
+    if (el) el.classList.remove('active');
   });
   fetchFunnelData();
 }
@@ -228,7 +251,15 @@ async function fetchFunnelData() {
   var content = document.getElementById('content');
   content.innerHTML = '<div class="empty">Loading funnel data…</div>';
   try {
-    var r = await fetch(API_URL + '/dashboard/funnel?period=' + encodeURIComponent(PERIOD), {
+    var params = [];
+    if (CUSTOM_FROM || CUSTOM_TO) {
+      if (CUSTOM_FROM) params.push('from=' + encodeURIComponent(CUSTOM_FROM));
+      if (CUSTOM_TO)   params.push('to=' + encodeURIComponent(CUSTOM_TO));
+    } else {
+      params.push('period=' + encodeURIComponent(PERIOD));
+    }
+    var url = API_URL + '/dashboard/funnel?' + params.join('&');
+    var r = await fetch(url, {
       headers: { 'x-api-key': API_KEY }
     });
     if (!r.ok) throw new Error('HTTP ' + r.status);
