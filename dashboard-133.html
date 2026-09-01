@@ -916,6 +916,14 @@
        than just shrinking visually on top of unchanged space. */
     .page-area { zoom: 0.72; }
 
+    /* Sidebar is a fixed 210px width regardless of screen size - on a
+       ~375-430px phone that's over half the screen. Same zoom technique
+       as above shrinks it proportionally (text + icons together) rather
+       than forcing a narrow fixed width that could wrap the nav labels
+       awkwardly. Kyler confirmed nav itself works well - this only fixes
+       its screen-share, not its layout or function. */
+    .sidebar { zoom: 0.7; }
+
     /* Any inline-styled grid (KPI cards, Billable Queue counts, etc.) still
        collapses to a single column even at the zoomed-out size, since a
        4-across grid at 72% size is still cramped on a phone screen. */
