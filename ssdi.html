@@ -111,45 +111,26 @@ tbody tr:hover td{background:#fafafa;}
       <div class="kpi"><div class="lbl">CPA</div><div class="val v-green" id="k-bill">—</div><div class="sub" id="k-bill-sub">signed retainers</div></div>
       <div class="kpi"><div class="lbl">Total Payout</div><div class="val v-green" id="k-pay">—</div><div class="sub" id="k-pay-sub">billable only</div></div>
     </div>
-    <div class="card">
+    <div class="card" style="margin-bottom:14px">
       <div class="card-hdr">
         <div>
-          <div class="card-title">Call Log</div>
-          <div class="card-sub">Updated daily by your buyer</div>
+          <div class="card-title">Call Logs</div>
+          <div class="card-sub">Custom date range applies to both sections below</div>
         </div>
         <div class="filters">
-          <select class="fsel" id="filter-period" onchange="loadCalls()">
-            <option value="yesterday">Yesterday</option>
-            <option value="current_week">This Week (Mon–Fri)</option>
-            <option value="last_week">Last Week (Mon–Fri)</option>
-            <option value="two_weeks">Last 2 Weeks</option>
-            <option value="month" selected>This Month</option>
-            <option value="all">All Time</option>
-          </select>
-          <select class="fsel" id="f-bill" onchange="loadCalls()">
-            <option value="">All Calls</option>
-            <option value="true">CPA Only</option>
-          </select>
-          <button class="rbtn" onclick="loadCalls()">↻</button>
+          <input type="date" class="fsel" id="date-from">
+          <span style="color:#9ca3af;font-size:12px">to</span>
+          <input type="date" class="fsel" id="date-to">
+          <button class="rbtn" onclick="applyDateRange()">Apply</button>
+          <button class="rbtn" onclick="clearDateRange()">Clear</button>
         </div>
-      </div>
-      <div id="st-load" class="st"><div class="spin"></div><div class="st-t">Loading your calls...</div></div>
-      <div id="st-empty" class="st" style="display:none"><div class="st-ico">📋</div><div class="st-t">No calls yet</div><div class="st-s">Calls will appear here once posted by your buyer</div></div>
-      <div id="st-err" class="st" style="display:none"><div class="st-ico">⚠️</div><div class="st-t">Could not load calls</div><div class="st-s" id="st-err-msg"></div></div>
-      <div id="tbl-wrap" style="display:none;overflow-x:auto">
-        <table>
-          <thead><tr>
-            <th>Date</th><th>Caller Name</th><th>Caller ID</th><th>Status</th><th>Payout</th><th>Campaign</th>
-          </tr></thead>
-          <tbody id="tbl"></tbody>
-        </table>
       </div>
     </div>
 
     <div class="card">
       <div class="card-hdr">
         <div>
-          <div class="card-title">Lead Log</div>
+          <div class="card-title">1696</div>
           <div class="card-sub">Updated by your buyer — statuses reflect the latest intake disposition</div>
         </div>
         <div class="filters">
@@ -168,12 +149,62 @@ tbody tr:hover td{background:#fafafa;}
         </table>
       </div>
     </div>
+
+    <div class="card">
+      <div class="card-hdr">
+        <div>
+          <div class="card-title">Signed</div>
+          <div class="card-sub">Live call data via Trackdrive postback</div>
+        </div>
+        <div class="filters">
+          <button class="rbtn" onclick="loadCalls()">↻</button>
+        </div>
+      </div>
+      <div id="st-load" class="st"><div class="spin"></div><div class="st-t">Loading your calls...</div></div>
+      <div id="st-empty" class="st" style="display:none"><div class="st-ico">📋</div><div class="st-t">No calls yet</div><div class="st-s">Calls will appear here once posted by your buyer</div></div>
+      <div id="st-err" class="st" style="display:none"><div class="st-ico">⚠️</div><div class="st-t">Could not load calls</div><div class="st-s" id="st-err-msg"></div></div>
+      <div id="tbl-wrap" style="display:none;overflow-x:auto">
+        <table>
+          <thead><tr>
+            <th>Date</th><th>Caller Name</th><th>Caller ID</th><th>Status</th><th>Payout</th><th>Campaign</th>
+          </tr></thead>
+          <tbody id="tbl"></tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </div>
 <script>
 var API = 'https://krw-backend-production.up.railway.app';
 var API_KEY = '64tgzb5ostadx1azjio9crdlduw4vf29';
 var S = null;
+var DATE_FROM = null; // shared custom date range, applies to both 1696 and Signed sections
+var DATE_TO = null;
+
+function applyDateRange(){
+  var f = document.getElementById('date-from').value;
+  var t = document.getElementById('date-to').value;
+  DATE_FROM = f ? new Date(f + 'T00:00:00') : null;
+  DATE_TO   = t ? new Date(t + 'T23:59:59') : null;
+  loadLeads();
+  loadCalls();
+}
+
+function clearDateRange(){
+  document.getElementById('date-from').value = '';
+  document.getElementById('date-to').value = '';
+  DATE_FROM = null; DATE_TO = null;
+  loadLeads();
+  loadCalls();
+}
+
+function inDateRange(dateVal){
+  if (!DATE_FROM && !DATE_TO) return true;
+  var d = new Date(dateVal || 0);
+  if (DATE_FROM && d < DATE_FROM) return false;
+  if (DATE_TO && d > DATE_TO) return false;
+  return true;
+}
 var PERIOD_DAYS = { yesterday: 2, current_week: 7, last_week: 14, two_weeks: 14, month: 30, all: 9999 };
 var PERIOD_LABELS = { yesterday:'Yesterday', current_week:'This Week', last_week:'Last Week', two_weeks:'Last 2 Weeks', month:'This Month', all:'All Time' };
 
@@ -243,54 +274,35 @@ function doLogout(){
 
 function loadCalls(){
   if (!S) return;
-  var period = (document.getElementById('filter-period') || {value:'month'}).value;
-  var bill   = (document.getElementById('f-bill') || {value:''}).value;
-  var days   = PERIOD_DAYS[period] || 30;
-  var label  = PERIOD_LABELS[period] || 'Selected Period';
 
   document.getElementById('st-load').style.display  = '';
   document.getElementById('st-empty').style.display = 'none';
   document.getElementById('st-err').style.display   = 'none';
   document.getElementById('tbl-wrap').style.display = 'none';
 
-  var url = API + '/calls/feed?pub=' + encodeURIComponent(S.pub_id) + '&days=' + days + '&api_key=' + API_KEY;
+  var url = API + '/calls/feed?pub=' + encodeURIComponent(S.pub_id) + '&days=9999&api_key=' + API_KEY;
   fetch(url)
   .then(function(r){ return r.json(); })
   .then(function(d){
     if (!d.ok) throw new Error(d.error || 'Server error');
     var allCalls = d.calls || [];
 
-    // Apply period filter client-side
-    var calls = allCalls.slice();
-    if (period === 'current_week') {
-      var wb = getWeekBounds(0);
-      calls = calls.filter(function(c){ var t=new Date(c.call_date||c.received_at||0); return t>=wb.start&&t<=wb.end; });
-    } else if (period === 'last_week') {
-      var wb = getWeekBounds(-1);
-      calls = calls.filter(function(c){ var t=new Date(c.call_date||c.received_at||0); return t>=wb.start&&t<=wb.end; });
-    } else if (period === 'two_weeks') {
-      var wb0 = getWeekBounds(0), wb1 = getWeekBounds(-1);
-      calls = calls.filter(function(c){ var t=new Date(c.call_date||c.received_at||0); return t>=wb1.start&&t<=wb0.end; });
-    } else if (period === 'yesterday') {
-      var yest = new Date(); yest.setDate(yest.getDate()-1);
-      var ys = yest.toISOString().split('T')[0];
-      calls = calls.filter(function(c){ return String(c.call_date||c.received_at||'').startsWith(ys); });
-    }
+    // Apply shared custom date-range filter (client-side)
+    var calls = allCalls.filter(function(c){ return inDateRange(c.received_at || c.call_date); });
 
-    if (bill === 'true') calls = calls.filter(function(c){ return c.billable; });
-
-    // KPIs — Yesterday and This Week always fixed
+    // KPIs — Yesterday and This Week always fixed, regardless of date-range filter
     var yest2 = new Date(); yest2.setDate(yest2.getDate()-1); var ys2 = yest2.toISOString().split('T')[0];
     var wkAgo = new Date(); wkAgo.setDate(wkAgo.getDate()-7); var wks = wkAgo.toISOString().split('T')[0];
     document.getElementById('k-yesterday').textContent = allCalls.filter(function(c){ return String(c.call_date||'').startsWith(ys2); }).length;
     document.getElementById('k-week').textContent      = allCalls.filter(function(c){ return (c.call_date||'') >= wks; }).length;
 
-    // CPA and Payout reflect the ACTIVE FILTER — update sub labels too
+    // CPA and Payout reflect the ACTIVE date-range filter
     var filteredBillable = calls.filter(function(c){ return c.billable; });
+    var rangeLabel = (DATE_FROM || DATE_TO) ? 'Selected Range' : 'All Time';
     document.getElementById('k-bill').textContent     = filteredBillable.length;
-    document.getElementById('k-bill-sub').textContent = label;
+    document.getElementById('k-bill-sub').textContent = rangeLabel;
     document.getElementById('k-pay').textContent      = '$' + filteredBillable.reduce(function(s,c){ return s + parseFloat(c.payout_amount||0); }, 0).toFixed(2);
-    document.getElementById('k-pay-sub').textContent  = label;
+    document.getElementById('k-pay-sub').textContent  = rangeLabel;
 
     document.getElementById('st-load').style.display = 'none';
     if (!calls.length) { document.getElementById('st-empty').style.display = ''; return; }
@@ -349,7 +361,7 @@ function loadLeads(){
   .then(function(r){ return r.json(); })
   .then(function(d){
     if (!d.ok) throw new Error(d.error || 'Server error');
-    var leads = d.leads || [];
+    var leads = (d.leads || []).filter(function(l){ return inDateRange(l.received_at); });
 
     document.getElementById('lst-load').style.display = 'none';
     if (!leads.length) { document.getElementById('lst-empty').style.display = ''; return; }
@@ -365,7 +377,8 @@ function loadLeads(){
           ' <span style="color:#9ca3af;font-size:11px">' + dateObj.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:true,timeZone:'America/New_York'}) + '</span>'
         : '—';
       var name = ((l.first_name||'') + ' ' + (l.last_name||'')).trim() || '—';
-      var statusLabel = l.buyer_status || l.status || 'Pending';
+      var rawStatus = l.buyer_status || l.status || 'Pending';
+      var statusLabel = rawStatus === 'Ping Accepted' ? 'Pending' : rawStatus;
       var sl = String(statusLabel).toLowerCase();
       var badge = sl === 'accepted' || sl === 'signed'
         ? '<span class="badge b-cpa">✓ ' + statusLabel + '</span>'
