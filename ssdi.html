@@ -191,6 +191,40 @@ function getFamilyIds(pubId){
   return PUBLISHER_FAMILIES[pubId] || [pubId];
 }
 var DATE_FROM = null; // shared custom date range, applies to both 1696 and Signed sections
+var KPI_CALLS_DATA = null;  // set once loadCalls finishes
+var KPI_LEADS_DATA = null;  // set once loadLeads finishes
+
+function updateCombinedKPIs(){
+  // Combines both the Signed (calls) and 1696 (leads) sources into the top
+  // KPI strip, so a billable 1696 lead like James Aiken actually moves
+  // these numbers, not just calls-table activity (Kyler, Sep 1).
+  var calls = KPI_CALLS_DATA || [];
+  var leads = KPI_LEADS_DATA || [];
+
+  var yest = new Date(); yest.setDate(yest.getDate()-1); var ys = yest.toISOString().split('T')[0];
+  var wkAgo = new Date(); wkAgo.setDate(wkAgo.getDate()-7); var wks = wkAgo.toISOString().split('T')[0];
+
+  var callsYesterday = calls.filter(function(c){ return String(c.call_date||'').startsWith(ys); }).length;
+  var leadsYesterday  = leads.filter(function(l){ return String(l.received_at||'').startsWith(ys); }).length;
+  document.getElementById('k-yesterday').textContent = callsYesterday + leadsYesterday;
+
+  var callsWeek = calls.filter(function(c){ return (c.call_date||'') >= wks; }).length;
+  var leadsWeek  = leads.filter(function(l){ return (l.received_at||'') >= wks; }).length;
+  document.getElementById('k-week').textContent = callsWeek + leadsWeek;
+
+  var callsInRange = calls.filter(function(c){ return inDateRange(c.received_at || c.call_date); });
+  var leadsInRange  = leads.filter(function(l){ return inDateRange(l.received_at); });
+  var billableCalls = callsInRange.filter(function(c){ return c.billable; });
+  var billableLeads  = leadsInRange.filter(function(l){ return l.billable; });
+  var rangeLabel = (DATE_FROM || DATE_TO) ? 'Selected Range' : 'All Time';
+
+  document.getElementById('k-bill').textContent     = billableCalls.length + billableLeads.length;
+  document.getElementById('k-bill-sub').textContent = rangeLabel;
+  var totalPayout = billableCalls.reduce(function(s,c){ return s + parseFloat(c.payout_amount||0); }, 0)
+                   + billableLeads.reduce(function(s,l){ return s + parseFloat(l.revenue||0); }, 0);
+  document.getElementById('k-pay').textContent     = '$' + totalPayout.toFixed(2);
+  document.getElementById('k-pay-sub').textContent = rangeLabel;
+}
 var DATE_TO = null;
 
 function applyDateRange(){
@@ -303,19 +337,8 @@ function loadCalls(){
     // Apply shared custom date-range filter (client-side)
     var calls = allCalls.filter(function(c){ return inDateRange(c.received_at || c.call_date); });
 
-    // KPIs — Yesterday and This Week always fixed, regardless of date-range filter
-    var yest2 = new Date(); yest2.setDate(yest2.getDate()-1); var ys2 = yest2.toISOString().split('T')[0];
-    var wkAgo = new Date(); wkAgo.setDate(wkAgo.getDate()-7); var wks = wkAgo.toISOString().split('T')[0];
-    document.getElementById('k-yesterday').textContent = allCalls.filter(function(c){ return String(c.call_date||'').startsWith(ys2); }).length;
-    document.getElementById('k-week').textContent      = allCalls.filter(function(c){ return (c.call_date||'') >= wks; }).length;
-
-    // CPA and Payout reflect the ACTIVE date-range filter
-    var filteredBillable = calls.filter(function(c){ return c.billable; });
-    var rangeLabel = (DATE_FROM || DATE_TO) ? 'Selected Range' : 'All Time';
-    document.getElementById('k-bill').textContent     = filteredBillable.length;
-    document.getElementById('k-bill-sub').textContent = rangeLabel;
-    document.getElementById('k-pay').textContent      = '$' + filteredBillable.reduce(function(s,c){ return s + parseFloat(c.payout_amount||0); }, 0).toFixed(2);
-    document.getElementById('k-pay-sub').textContent  = rangeLabel;
+    KPI_CALLS_DATA = allCalls;
+    updateCombinedKPIs();
 
     document.getElementById('st-load').style.display = 'none';
     if (!calls.length) { document.getElementById('st-empty').style.display = ''; return; }
@@ -376,6 +399,9 @@ function loadLeads(){
     var allLeads = [];
     results.forEach(function(d){ if (d.ok && d.leads) allLeads = allLeads.concat(d.leads); });
     var leads = allLeads.filter(function(l){ return inDateRange(l.received_at); });
+
+    KPI_LEADS_DATA = allLeads;
+    updateCombinedKPIs();
 
     document.getElementById('lst-load').style.display = 'none';
     if (!leads.length) { document.getElementById('lst-empty').style.display = ''; return; }
