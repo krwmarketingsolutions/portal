@@ -116,11 +116,13 @@ tbody tr:hover td{background:#fafafa;}
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#9ca3af">SSDI 1696 — Filed</div>
         <div id="filed-total" style="font-size:28px;font-weight:700;color:#1F4D2E;margin-top:4px">—</div>
         <div style="font-size:11px;color:#9ca3af;margin-top:2px">total calls sent</div>
+        <div id="filed-cpa" style="font-size:13px;font-weight:600;color:#15803d;margin-top:8px;padding-top:8px;border-top:1px dashed #e5e7eb">—</div>
       </div>
       <div class="card" style="padding:14px 18px;text-align:center">
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#9ca3af">Signed</div>
         <div id="signed-total" style="font-size:28px;font-weight:700;color:#1F4D2E;margin-top:4px">—</div>
         <div style="font-size:11px;color:#9ca3af;margin-top:2px">total calls sent</div>
+        <div id="signed-cpa" style="font-size:13px;font-weight:600;color:#15803d;margin-top:8px;padding-top:8px;border-top:1px dashed #e5e7eb">—</div>
       </div>
     </div>
     <div class="card" style="margin-bottom:14px">
@@ -364,6 +366,9 @@ function loadCalls(){
     KPI_CALLS_DATA = allCalls;
     updateCombinedKPIs();
     document.getElementById('signed-total').textContent = allCalls.length;
+    var signedBillable = allCalls.filter(function(c){ return c.billable; });
+    var signedRevenue = signedBillable.reduce(function(s,c){ return s + parseFloat(c.payout_amount||0); }, 0);
+    document.getElementById('signed-cpa').textContent = signedBillable.length + ' CPA · $' + signedRevenue.toFixed(2);
 
     document.getElementById('st-load').style.display = 'none';
     if (!calls.length) { document.getElementById('st-empty').style.display = ''; return; }
@@ -428,6 +433,9 @@ function loadLeads(){
     KPI_LEADS_DATA = allLeads;
     updateCombinedKPIs();
     document.getElementById('filed-total').textContent = allLeads.length;
+    var filedBillable = allLeads.filter(function(l){ return l.billable; });
+    var filedRevenue = filedBillable.reduce(function(s,l){ return s + parseFloat(l.revenue||0); }, 0);
+    document.getElementById('filed-cpa').textContent = filedBillable.length + ' CPA · $' + filedRevenue.toFixed(2);
 
     document.getElementById('lst-load').style.display = 'none';
     if (!leads.length) { document.getElementById('lst-empty').style.display = ''; return; }
