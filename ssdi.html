@@ -111,6 +111,18 @@ tbody tr:hover td{background:#fafafa;}
       <div class="kpi"><div class="lbl">CPA</div><div class="val v-green" id="k-bill">—</div><div class="sub" id="k-bill-sub">signed retainers</div></div>
       <div class="kpi"><div class="lbl">Total Payout</div><div class="val v-green" id="k-pay">—</div><div class="sub" id="k-pay-sub">billable only</div></div>
     </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+      <div class="card" style="padding:14px 18px;text-align:center">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#9ca3af">SSDI 1696 — Filed</div>
+        <div id="filed-total" style="font-size:28px;font-weight:700;color:#1F4D2E;margin-top:4px">—</div>
+        <div style="font-size:11px;color:#9ca3af;margin-top:2px">total calls sent</div>
+      </div>
+      <div class="card" style="padding:14px 18px;text-align:center">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#9ca3af">Signed</div>
+        <div id="signed-total" style="font-size:28px;font-weight:700;color:#1F4D2E;margin-top:4px">—</div>
+        <div style="font-size:11px;color:#9ca3af;margin-top:2px">total calls sent</div>
+      </div>
+    </div>
     <div class="card" style="margin-bottom:14px">
       <div class="card-hdr">
         <div>
@@ -128,15 +140,16 @@ tbody tr:hover td{background:#fafafa;}
     </div>
 
     <div class="card">
-      <div class="card-hdr">
+      <div class="card-hdr" onclick="toggleSection('sec-1696')" style="cursor:pointer;user-select:none">
         <div>
-          <div class="card-title">1696</div>
+          <div class="card-title">1696 <span id="chev-1696" style="font-size:11px;color:#9ca3af">▼</span></div>
           <div class="card-sub">Updated by your buyer — statuses reflect the latest intake disposition</div>
         </div>
         <div class="filters">
-          <button class="rbtn" onclick="loadLeads()">↻</button>
+          <button class="rbtn" onclick="event.stopPropagation();loadLeads()">↻</button>
         </div>
       </div>
+      <div id="sec-1696">
       <div id="lst-load" class="st"><div class="spin"></div><div class="st-t">Loading your leads...</div></div>
       <div id="lst-empty" class="st" style="display:none"><div class="st-ico">📋</div><div class="st-t">No leads yet</div><div class="st-s">Leads will appear here once submitted</div></div>
       <div id="lst-err" class="st" style="display:none"><div class="st-ico">⚠️</div><div class="st-t">Could not load leads</div><div class="st-s" id="lst-err-msg"></div></div>
@@ -148,18 +161,20 @@ tbody tr:hover td{background:#fafafa;}
           <tbody id="ltbl"></tbody>
         </table>
       </div>
+      </div>
     </div>
 
     <div class="card">
-      <div class="card-hdr">
+      <div class="card-hdr" onclick="toggleSection('sec-signed')" style="cursor:pointer;user-select:none">
         <div>
-          <div class="card-title">Signed</div>
+          <div class="card-title">Signed <span id="chev-signed" style="font-size:11px;color:#9ca3af">▼</span></div>
           <div class="card-sub">Live call data</div>
         </div>
         <div class="filters">
-          <button class="rbtn" onclick="loadCalls()">↻</button>
+          <button class="rbtn" onclick="event.stopPropagation();loadCalls()">↻</button>
         </div>
       </div>
+      <div id="sec-signed">
       <div id="st-load" class="st"><div class="spin"></div><div class="st-t">Loading your calls...</div></div>
       <div id="st-empty" class="st" style="display:none"><div class="st-ico">📋</div><div class="st-t">No calls yet</div><div class="st-s">Calls will appear here once posted by your buyer</div></div>
       <div id="st-err" class="st" style="display:none"><div class="st-ico">⚠️</div><div class="st-t">Could not load calls</div><div class="st-s" id="st-err-msg"></div></div>
@@ -170,6 +185,7 @@ tbody tr:hover td{background:#fafafa;}
           </tr></thead>
           <tbody id="tbl"></tbody>
         </table>
+      </div>
       </div>
     </div>
   </div>
@@ -250,6 +266,14 @@ function inDateRange(dateVal){
   if (DATE_FROM && d < DATE_FROM) return false;
   if (DATE_TO && d > DATE_TO) return false;
   return true;
+}
+
+function toggleSection(id){
+  var el = document.getElementById(id);
+  var chev = document.getElementById('chev-' + id.replace('sec-',''));
+  var collapsed = el.style.display === 'none';
+  el.style.display = collapsed ? '' : 'none';
+  if (chev) chev.textContent = collapsed ? '▼' : '▶';
 }
 var PERIOD_DAYS = { yesterday: 2, current_week: 7, last_week: 14, two_weeks: 14, month: 30, all: 9999 };
 var PERIOD_LABELS = { yesterday:'Yesterday', current_week:'This Week', last_week:'Last Week', two_weeks:'Last 2 Weeks', month:'This Month', all:'All Time' };
@@ -339,6 +363,7 @@ function loadCalls(){
 
     KPI_CALLS_DATA = allCalls;
     updateCombinedKPIs();
+    document.getElementById('signed-total').textContent = allCalls.length;
 
     document.getElementById('st-load').style.display = 'none';
     if (!calls.length) { document.getElementById('st-empty').style.display = ''; return; }
@@ -402,6 +427,7 @@ function loadLeads(){
 
     KPI_LEADS_DATA = allLeads;
     updateCombinedKPIs();
+    document.getElementById('filed-total').textContent = allLeads.length;
 
     document.getElementById('lst-load').style.display = 'none';
     if (!leads.length) { document.getElementById('lst-empty').style.display = ''; return; }
