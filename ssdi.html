@@ -137,6 +137,10 @@ tbody tr:hover td{background:#fafafa;}
           <input type="date" class="fsel" id="date-to">
           <button class="rbtn" onclick="applyDateRange()">Apply</button>
           <button class="rbtn" onclick="clearDateRange()">Clear</button>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#374151;cursor:pointer;margin-left:8px">
+            <input type="checkbox" id="billable-only-filter" onchange="applyBillableFilter()">
+            Billable Only
+          </label>
         </div>
       </div>
     </div>
@@ -209,6 +213,7 @@ function getFamilyIds(pubId){
   return PUBLISHER_FAMILIES[pubId] || [pubId];
 }
 var DATE_FROM = null; // shared custom date range, applies to both 1696 and Signed sections
+var BILLABLE_ONLY = false; // shared billable-only filter, applies to both 1696 and Signed sections
 var KPI_CALLS_DATA = null;  // set once loadCalls finishes
 var KPI_LEADS_DATA = null;  // set once loadLeads finishes
 
@@ -254,6 +259,12 @@ function applyDateRange(){
   loadCalls();
 }
 
+function applyBillableFilter(){
+  BILLABLE_ONLY = document.getElementById('billable-only-filter').checked;
+  loadLeads();
+  loadCalls();
+}
+
 function clearDateRange(){
   document.getElementById('date-from').value = '';
   document.getElementById('date-to').value = '';
@@ -268,6 +279,11 @@ function inDateRange(dateVal){
   if (DATE_FROM && d < DATE_FROM) return false;
   if (DATE_TO && d > DATE_TO) return false;
   return true;
+}
+
+function passesBillableFilter(billableVal){
+  if (!BILLABLE_ONLY) return true;
+  return billableVal === true;
 }
 
 function toggleSection(id){
@@ -361,7 +377,7 @@ function loadCalls(){
     var d = { ok: true }; // keep downstream code shape consistent
 
     // Apply shared custom date-range filter (client-side)
-    var calls = allCalls.filter(function(c){ return inDateRange(c.received_at || c.call_date); });
+    var calls = allCalls.filter(function(c){ return inDateRange(c.received_at || c.call_date) && passesBillableFilter(c.billable); });
 
     KPI_CALLS_DATA = allCalls;
     updateCombinedKPIs();
@@ -428,7 +444,7 @@ function loadLeads(){
   .then(function(results){
     var allLeads = [];
     results.forEach(function(d){ if (d.ok && d.leads) allLeads = allLeads.concat(d.leads); });
-    var leads = allLeads.filter(function(l){ return inDateRange(l.received_at); });
+    var leads = allLeads.filter(function(l){ return inDateRange(l.received_at) && passesBillableFilter(l.billable); });
 
     KPI_LEADS_DATA = allLeads;
     updateCombinedKPIs();
