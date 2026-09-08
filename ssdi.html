@@ -59,6 +59,7 @@ tbody tr:last-child td{border-bottom:none;}
 tbody tr:hover td{background:#fafafa;}
 .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;}
 .b-cpa{background:#dcfce7;color:#15803d;}
+.b-queued{background:#ecfdf5;color:#059669;}
 .b-no{background:#f3f4f6;color:#6b7280;}
 .b-pending{background:#fef9c3;color:#a16207;}
 .st{padding:50px 20px;text-align:center;}
@@ -410,6 +411,8 @@ function loadCalls(){
         ? '<span class="badge b-no">' + (sl === 'In Progress' ? 'In Progress' : 'Not Converted') + '</span>'
         : sl === 'Retained'
         ? '<span class="badge b-pending">⏳ Retained</span>'
+        : sl === 'Queued'
+        ? '<span class="badge b-queued">◐ Queued</span>'
         : '<span class="badge b-pending">⏳ Pending</span>';
       var tr = document.createElement('tr');
       tr.innerHTML =
