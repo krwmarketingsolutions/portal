@@ -377,15 +377,23 @@ function loadCalls(){
     results.forEach(function(d){ if (d.ok && d.calls) allCalls = allCalls.concat(d.calls); });
     var d = { ok: true }; // keep downstream code shape consistent
 
-    // Apply shared custom date-range filter (client-side)
-    var calls = allCalls.filter(function(c){ return inDateRange(c.received_at || c.call_date) && passesBillableFilter(c.billable); });
-
     KPI_CALLS_DATA = allCalls;
     updateCombinedKPIs();
-    document.getElementById('signed-total').textContent = allCalls.length;
-    var signedBillable = allCalls.filter(function(c){ return c.billable; });
+    // The Signed box/table must show only true Signed-line calls, not every
+    // call across the whole publisher family - allCalls includes SSDI-AZ-1696
+    // records too (like James Aiken), which was leaking into this box's count
+    // and total, inflating both. The combined KPI strip above intentionally
+    // stays family-wide; only this section needs the narrower filter
+    // (Kyler, Sep 10).
+    var signedOnlyCalls = allCalls.filter(function(c){ return c.publisher_sub === 'KRW-JOSHUA-SIGNED'; });
+    document.getElementById('signed-total').textContent = signedOnlyCalls.length;
+    var signedBillable = signedOnlyCalls.filter(function(c){ return c.billable; });
     var signedRevenue = signedBillable.reduce(function(s,c){ return s + parseFloat(c.payout_amount||0); }, 0);
     document.getElementById('signed-cpa').textContent = signedBillable.length + ' CPA · $' + signedRevenue.toFixed(2);
+
+    // Apply shared custom date-range filter (client-side) - now scoped to
+    // Signed-only calls too, so the table rows match the box above it.
+    var calls = signedOnlyCalls.filter(function(c){ return inDateRange(c.received_at || c.call_date) && passesBillableFilter(c.billable); });
 
     document.getElementById('st-load').style.display = 'none';
     if (!calls.length) { document.getElementById('st-empty').style.display = ''; return; }
@@ -447,16 +455,22 @@ function loadLeads(){
   .then(function(results){
     var allLeads = [];
     results.forEach(function(d){ if (d.ok && d.leads) allLeads = allLeads.concat(d.leads); });
-    var leads = allLeads.filter(function(l){ return inDateRange(l.received_at) && passesBillableFilter(l.billable); });
 
     KPI_LEADS_DATA = allLeads;
     updateCombinedKPIs();
-    document.getElementById('filed-total').textContent = allLeads.length;
-    var filedBillable = allLeads.filter(function(l){ return l.billable; });
+    // The Filed box/table must show only true 1696-line leads, not every
+    // lead across the whole publisher family - allLeads could include
+    // KRW-JOSHUA-SIGNED leads too, which would inflate this box's count and
+    // total the same way James Aiken's call was inflating the Signed box.
+    // Combined KPI strip stays family-wide intentionally (Kyler, Sep 10).
+    var filedOnlyLeads = allLeads.filter(function(l){ return l.publisher_sub === 'SSDI-AZ-1696'; });
+    document.getElementById('filed-total').textContent = filedOnlyLeads.length;
+    var filedBillable = filedOnlyLeads.filter(function(l){ return l.billable; });
     var filedRevenue = filedBillable.reduce(function(s,l){ return s + parseFloat(l.revenue||0); }, 0);
     document.getElementById('filed-cpa').textContent = filedBillable.length + ' CPA · $' + filedRevenue.toFixed(2);
 
     document.getElementById('lst-load').style.display = 'none';
+    var leads = filedOnlyLeads.filter(function(l){ return inDateRange(l.received_at) && passesBillableFilter(l.billable); });
     if (!leads.length) { document.getElementById('lst-empty').style.display = ''; return; }
 
     leads.sort(function(a,b){ return new Date(b.received_at||0) - new Date(a.received_at||0); });
