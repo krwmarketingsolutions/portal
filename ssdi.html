@@ -210,6 +210,20 @@ var PUBLISHER_FAMILIES = {
   'SSDI-AZ-1696':      ['SSDI-AZ-1696', 'KRW-JOSHUA-SIGNED'],
   'KRW-JOSHUA-SIGNED':  ['SSDI-AZ-1696', 'KRW-JOSHUA-SIGNED'],
 };
+// Which publisher_sub each section's box/table should filter to, per login.
+// AZ-1696's family has a genuinely separate Signed line (KRW-JOSHUA-SIGNED);
+// any other login (like SLC, which has no separate Signed line) just shows
+// its own tag in both sections - there's nothing else to filter it against.
+// The earlier fix hardcoded 'SSDI-AZ-1696'/'KRW-JOSHUA-SIGNED' directly,
+// which broke SLC's login entirely (neither section's filter ever matched
+// SLC's own calls/leads, so both showed empty despite the data being real
+// and present) (Kyler, Sep 14).
+var FILED_TAG_FOR = {
+  'SSDI-AZ-1696': 'SSDI-AZ-1696', 'KRW-JOSHUA-SIGNED': 'SSDI-AZ-1696',
+};
+var SIGNED_TAG_FOR = {
+  'SSDI-AZ-1696': 'KRW-JOSHUA-SIGNED', 'KRW-JOSHUA-SIGNED': 'KRW-JOSHUA-SIGNED',
+};
 function getFamilyIds(pubId){
   return PUBLISHER_FAMILIES[pubId] || [pubId];
 }
@@ -385,7 +399,7 @@ function loadCalls(){
     // and total, inflating both. The combined KPI strip above intentionally
     // stays family-wide; only this section needs the narrower filter
     // (Kyler, Sep 10).
-    var signedOnlyCalls = allCalls.filter(function(c){ return c.publisher_sub === 'KRW-JOSHUA-SIGNED'; });
+    var signedOnlyCalls = allCalls.filter(function(c){ return c.publisher_sub === (SIGNED_TAG_FOR[S.pub_id] || S.pub_id); });
     document.getElementById('signed-total').textContent = signedOnlyCalls.length;
     var signedBillable = signedOnlyCalls.filter(function(c){ return c.billable; });
     var signedRevenue = signedBillable.reduce(function(s,c){ return s + parseFloat(c.payout_amount||0); }, 0);
@@ -463,7 +477,7 @@ function loadLeads(){
     // KRW-JOSHUA-SIGNED leads too, which would inflate this box's count and
     // total the same way James Aiken's call was inflating the Signed box.
     // Combined KPI strip stays family-wide intentionally (Kyler, Sep 10).
-    var filedOnlyLeads = allLeads.filter(function(l){ return l.publisher_sub === 'SSDI-AZ-1696'; });
+    var filedOnlyLeads = allLeads.filter(function(l){ return l.publisher_sub === (FILED_TAG_FOR[S.pub_id] || S.pub_id); });
     document.getElementById('filed-total').textContent = filedOnlyLeads.length;
     var filedBillable = filedOnlyLeads.filter(function(l){ return l.billable; });
     var filedRevenue = filedBillable.reduce(function(s,l){ return s + parseFloat(l.revenue||0); }, 0);
