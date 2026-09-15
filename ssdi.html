@@ -213,7 +213,7 @@ tbody tr:hover td{background:var(--paper);}
         <div class="perf-item"><div class="n" id="perf-accept">—</div><div class="l">acceptance rate</div></div>
         <div class="perf-item"><div class="n neutral" id="perf-time">—</div><div class="l">avg. time to disposition</div></div>
         <div class="perf-item"><div class="n" id="perf-billable-rate">—</div><div class="l">billable rate</div></div>
-        <div class="perf-item"><div class="n neutral" id="perf-total">—<span class="perf-trend" id="perf-trend"></span></div><div class="l">total this week vs. last</div></div>
+        <div class="perf-item"><div class="n neutral"><span id="perf-total">—</span><span class="perf-trend" id="perf-trend"></span></div><div class="l">total this week vs. last</div></div>
       </div>
     </div>
 
@@ -305,7 +305,7 @@ tbody tr:hover td{background:var(--paper);}
       <div id="tbl-wrap" style="display:none;overflow-x:auto">
         <table>
           <thead><tr>
-            <th>Date</th><th>Caller Name</th><th>Caller ID</th><th>Status</th><th>Payout</th><th>Campaign</th>
+            <th>Date</th><th>Caller Name</th><th>Caller ID</th><th>Duration</th><th>Status</th><th>Payout</th><th>Campaign</th>
           </tr></thead>
           <tbody id="tbl"></tbody>
         </table>
@@ -446,7 +446,8 @@ function updatePerformanceSummary(){
     document.getElementById('perf-accept').textContent = '—';
     document.getElementById('perf-time').textContent = '—';
     document.getElementById('perf-billable-rate').textContent = '—';
-    document.getElementById('perf-total').innerHTML = '—';
+    document.getElementById('perf-total').textContent = '—';
+    document.getElementById('perf-trend').textContent = '';
     return;
   }
 
@@ -465,7 +466,7 @@ function updatePerformanceSummary(){
   var twoWkAgo = new Date(); twoWkAgo.setDate(twoWkAgo.getDate()-14);
   var thisWeek = allItems.filter(function(i){ var d = new Date(i.received_at||i.call_date||0); return d >= wkAgo; }).length;
   var lastWeek = allItems.filter(function(i){ var d = new Date(i.received_at||i.call_date||0); return d >= twoWkAgo && d < wkAgo; }).length;
-  document.getElementById('perf-total').innerHTML = thisWeek;
+  document.getElementById('perf-total').textContent = thisWeek;
   var trendEl = document.getElementById('perf-trend');
   if (lastWeek > 0) {
     var pct = Math.round(((thisWeek - lastWeek) / lastWeek) * 100);
@@ -636,6 +637,20 @@ function populateCallsFilterOptions(calls){
   statusSel.value = current;
 }
 
+// Formats raw seconds as MM:SS. Two separate duration columns exist on the
+// backend (duration, call_duration) - which one is populated depends on
+// which source system logged the call (Ringfuel uses one, Trackdrive/
+// partner records use the other, only ringfuel_webhook fills both) - so
+// this always checks both and uses whichever is actually present, rather
+// than assuming one column covers every call (Kyler, Sep 15).
+function formatDuration(c){
+  var secs = parseInt(c.duration, 10) || parseInt(c.call_duration, 10) || 0;
+  if (!secs) return '—';
+  var m = Math.floor(secs / 60);
+  var s = secs % 60;
+  return m + ':' + (s < 10 ? '0' : '') + s;
+}
+
 function renderCallsTable(){
   var searchVal = (document.getElementById('calls-search').value || '').toLowerCase();
   var statusVal = document.getElementById('calls-status-filter').value;
@@ -688,6 +703,7 @@ function renderCallsTable(){
       '<td>' + date + '</td>' +
       '<td style="font-weight:500">' + (c.caller_name || '—') + '</td>' +
       '<td style="font-family:monospace;font-size:12px;color:var(--ink-3)">' + (c.caller_id || '—') + '</td>' +
+      '<td style="font-family:monospace;font-size:12px">' + formatDuration(c) + '</td>' +
       '<td>' + badge + '</td>' +
       '<td style="font-weight:600;color:var(--green)">' + pay + '</td>' +
       '<td><span class="badge" style="background:var(--brown-soft);color:var(--brown)">' + (c.campaign || S.campaign || 'SSDI').toUpperCase() + '</span></td>';
@@ -897,11 +913,14 @@ function exportCSV(kind){
   if (!rows || !rows.length) { alert('Nothing to export yet.'); return; }
   var cols = kind === 'leads'
     ? ['received_at','first_name','last_name','phone','email','state','buyer_status','billable','revenue']
-    : ['received_at','call_date','caller_name','caller_id','call_status_label','billable','payout_amount','campaign'];
+    : ['received_at','call_date','caller_name','caller_id','duration','call_status_label','billable','payout_amount','campaign'];
   var lines = [cols.join(',')];
   rows.forEach(function(r){
     var line = cols.map(function(c){
-      var v = r[c] === undefined || r[c] === null ? '' : String(r[c]);
+      // duration isn't a single raw column on the backend - two separate
+      // columns exist depending on source system, so use the same combined
+      // formatter the table uses rather than a raw (often-empty) field.
+      var v = c === 'duration' ? formatDuration(r) : (r[c] === undefined || r[c] === null ? '' : String(r[c]));
       if (v.indexOf(',') !== -1 || v.indexOf('"') !== -1) v = '"' + v.replace(/"/g,'""') + '"';
       return v;
     }).join(',');
