@@ -727,6 +727,8 @@ function renderCallsTable(){
       ? '<span class="badge b-cpa">✓ Billable — $' + parseFloat(c.payout_amount||0).toFixed(2) + '</span>'
       : sl === 'cpa' || sl === 'Signed'
       ? '<span class="badge b-pending">⏳ ' + (sl === 'Signed' ? 'Signed' : 'CPA') + ' (not yet confirmed)</span>'
+      : sl === 'Rejected'
+      ? '<span class="badge b-no">✕ Rejected</span>'
       : sl === 'not_converted' || sl === 'In Progress'
       ? '<span class="badge b-no">' + (sl === 'In Progress' ? 'In Progress' : 'Not Converted') + '</span>'
       : sl === 'Retained'
