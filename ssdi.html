@@ -222,7 +222,6 @@ tbody tr:hover td{background:var(--paper);}
         <div style="font-size:11px;font-weight:600;letter-spacing:.05em;color:var(--ink-3)">Postings</div>
         <div id="filed-total" style="font-size:26px;font-weight:600;color:var(--green);margin-top:4px">—</div>
         <div style="font-size:11px;color:var(--ink-3);margin-top:2px">total postings sent</div>
-        <div id="filed-cpa" style="font-size:13px;font-weight:600;color:var(--green);margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)">—</div>
       </div>
       <div class="card" style="padding:14px 18px;text-align:center;border-top:3px solid var(--brown)">
         <div style="font-size:11px;font-weight:600;letter-spacing:.05em;color:var(--ink-3)">1696 Filed</div>
@@ -961,16 +960,15 @@ function loadLeads(){
 
     KPI_LEADS_DATA = allLeads;
     updateCombinedKPIs();
-    // The Filed box/table must show only true 1696-line leads, not every
-    // lead across the whole publisher family - allLeads could include
-    // KRW-JOSHUA-SIGNED leads too, which would inflate this box's count and
-    // total the same way James Aiken's call was inflating the Signed box.
-    // Combined KPI strip stays family-wide intentionally (Kyler, Sep 10).
+    // Postings shows only true 1696-line leads, not every lead across the
+    // whole publisher family - allLeads could include KRW-JOSHUA-SIGNED
+    // leads too, which would inflate this box's count the same way James
+    // Aiken's call was inflating the old Signed box. Combined KPI strip
+    // stays family-wide intentionally (Kyler, Sep 10). Billable/CPA info is
+    // deliberately not shown here - that belongs only on 1696 Filed, since
+    // Postings is raw lead submissions, not billing status (Kyler, Sep 15).
     var filedOnlyLeads = allLeads.filter(function(l){ return l.publisher_sub === (FILED_TAG_FOR[S.pub_id] || S.pub_id); });
     document.getElementById('filed-total').textContent = filedOnlyLeads.length;
-    var filedBillable = filedOnlyLeads.filter(function(l){ return l.billable; });
-    var filedRevenue = filedBillable.reduce(function(s,l){ return s + parseFloat(l.revenue||0); }, 0);
-    document.getElementById('filed-cpa').textContent = filedBillable.length + ' CPA · $' + filedRevenue.toFixed(2);
 
     document.getElementById('lst-load').style.display = 'none';
     var leads = filedOnlyLeads.filter(function(l){ return inDateRange(l.received_at) && passesBillableFilter(l.billable); });
