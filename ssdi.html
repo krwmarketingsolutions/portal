@@ -865,20 +865,34 @@ function renderLeadsTable(){
 }
 
 // ---------- Feature 1 + 2: lead/call detail modal with profile + timeline ----------
-// Shows every field we actually have for this record, plus an honest
-// timeline - we don't store a true status-change history table, so this
-// timeline only shows events we can genuinely prove happened (submission,
-// and the current disposition), not a fabricated sequence (Kyler, Sep 15).
-var DETAIL_FIELD_LABELS = {
-  first_name: 'First name', last_name: 'Last name', phone: 'Phone', email: 'Email',
-  state: 'State', zip: 'ZIP', city: 'City', caller_name: 'Caller name', caller_id: 'Caller ID',
-  buyer_status: 'Buyer status', status: 'Status', call_status_label: 'Call status',
-  payout_amount: 'Payout', revenue: 'Payout', billable: 'Billable',
-  campaign: 'Campaign', publisher_sub: 'Publisher', source_system: 'Source',
-  duration: 'Duration (sec)', call_duration: 'Duration (sec)',
-  notes: 'Notes',
-};
-var DETAIL_SKIP_FIELDS = ['id','raw','buyer_response','ip_address','landing_page_url'];
+// Shows an explicit allowlist of fields, not "everything except a
+// blocklist" - the API response also carries our own internal data
+// (which buyer/vendor a lead went to, our cost, our profit, invoice
+// status) that a publisher must never see. An allowlist means a new
+// field added to the API later defaults to hidden, not visible - the
+// earlier blocklist approach leaked buyer_name and source_system
+// (which named our upstream vendor) straight to the portal, plus cost
+// and profit, which is far worse (Kyler, Sep 15).
+var DETAIL_ALLOWED_FIELDS = [
+  { key: 'first_name', label: 'First name' },
+  { key: 'last_name', label: 'Last name' },
+  { key: 'phone', label: 'Phone' },
+  { key: 'email', label: 'Email' },
+  { key: 'city', label: 'City' },
+  { key: 'state', label: 'State' },
+  { key: 'zip', label: 'ZIP' },
+  { key: 'caller_name', label: 'Caller name' },
+  { key: 'caller_id', label: 'Caller ID' },
+  { key: 'vertical', label: 'Vertical' },
+  { key: 'campaign', label: 'Campaign' },
+  { key: 'status', label: 'Status' },
+  { key: 'buyer_status', label: 'Status' },
+  { key: 'call_status_label', label: 'Status' },
+  { key: 'billable', label: 'Billable' },
+  { key: 'payout_amount', label: 'Payout' },
+  { key: 'revenue', label: 'Payout' },
+  { key: 'notes', label: 'Notes' },
+];
 
 function openDetail(item, kind){
   var name = kind === 'lead'
@@ -891,20 +905,30 @@ function openDetail(item, kind){
 
   var fieldsHost = document.getElementById('dm-fields');
   fieldsHost.innerHTML = '';
-  Object.keys(item).forEach(function(k){
-    if (DETAIL_SKIP_FIELDS.indexOf(k) !== -1) return;
-    var val = item[k];
+  var shownLabels = {}; // avoid showing e.g. both status and call_status_label as separate rows
+  DETAIL_ALLOWED_FIELDS.forEach(function(f){
+    var val = item[f.key];
     if (val === null || val === undefined || val === '') return;
     if (typeof val === 'object') return;
-    var label = DETAIL_FIELD_LABELS[k] || k;
+    if (shownLabels[f.label]) return;
     var displayVal = val;
-    if (k === 'billable') displayVal = val ? 'Yes' : 'No';
-    if ((k === 'payout_amount' || k === 'revenue') && parseFloat(val) > 0) displayVal = '$' + parseFloat(val).toFixed(2);
+    if (f.key === 'billable') displayVal = val ? 'Yes' : 'No';
+    if ((f.key === 'payout_amount' || f.key === 'revenue') && parseFloat(val) > 0) displayVal = '$' + parseFloat(val).toFixed(2);
     var row = document.createElement('div');
     row.className = 'field-row';
-    row.innerHTML = '<span class="fl">' + label + '</span><span class="fv">' + String(displayVal) + '</span>';
+    row.innerHTML = '<span class="fl">' + f.label + '</span><span class="fv">' + String(displayVal) + '</span>';
     fieldsHost.appendChild(row);
+    shownLabels[f.label] = true;
   });
+  // Duration shown once via the same combined helper the table uses,
+  // rather than the raw duration/call_duration columns separately.
+  var durSecs = getDurationSeconds(item);
+  if (durSecs > 0) {
+    var durRow = document.createElement('div');
+    durRow.className = 'field-row';
+    durRow.innerHTML = '<span class="fl">Duration</span><span class="fv">' + formatDuration(item) + '</span>';
+    fieldsHost.appendChild(durRow);
+  }
   if (item.trustedform_cert_url || item.trusted_form_url) {
     var tfRow = document.createElement('div');
     tfRow.className = 'field-row';
