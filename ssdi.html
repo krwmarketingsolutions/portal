@@ -219,15 +219,15 @@ tbody tr:hover td{background:var(--paper);}
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
       <div class="card" style="padding:14px 18px;text-align:center;border-top:3px solid var(--brown)">
-        <div style="font-size:11px;font-weight:600;letter-spacing:.05em;color:var(--ink-3)">SSDI 1696 — Filed</div>
+        <div style="font-size:11px;font-weight:600;letter-spacing:.05em;color:var(--ink-3)">Postings</div>
         <div id="filed-total" style="font-size:26px;font-weight:600;color:var(--green);margin-top:4px">—</div>
-        <div style="font-size:11px;color:var(--ink-3);margin-top:2px">total calls sent</div>
+        <div style="font-size:11px;color:var(--ink-3);margin-top:2px">total postings sent</div>
         <div id="filed-cpa" style="font-size:13px;font-weight:600;color:var(--green);margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)">—</div>
       </div>
       <div class="card" style="padding:14px 18px;text-align:center;border-top:3px solid var(--brown)">
-        <div style="font-size:11px;font-weight:600;letter-spacing:.05em;color:var(--ink-3)">Signed</div>
+        <div style="font-size:11px;font-weight:600;letter-spacing:.05em;color:var(--ink-3)">1696 Filed</div>
         <div id="signed-total" style="font-size:26px;font-weight:600;color:var(--green);margin-top:4px">—</div>
-        <div style="font-size:11px;color:var(--ink-3);margin-top:2px">total calls sent</div>
+        <div style="font-size:11px;color:var(--ink-3);margin-top:2px">connected calls</div>
         <div id="signed-cpa" style="font-size:13px;font-weight:600;color:var(--green);margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)">—</div>
       </div>
     </div>
@@ -255,15 +255,15 @@ tbody tr:hover td{background:var(--paper);}
     <div class="card">
       <div class="card-hdr" onclick="toggleSection('sec-1696')" style="cursor:pointer;user-select:none">
         <div>
-          <div class="card-title">1696 <span id="chev-1696" class="chev">▼</span></div>
-          <div class="card-sub">Updated by your buyer — statuses reflect the latest intake disposition</div>
+          <div class="card-title">Postings <span id="chev-1696" class="chev">▶</span></div>
+          <div class="card-sub">Every lead posted, whether or not the call ever connected</div>
         </div>
         <div class="filters">
           <button class="rbtn" onclick="event.stopPropagation();exportCSV('leads')">Export CSV</button>
           <button class="rbtn" onclick="event.stopPropagation();loadLeads()">↻</button>
         </div>
       </div>
-      <div id="sec-1696">
+      <div id="sec-1696" style="display:none">
       <div class="searchbar">
         <input type="text" id="leads-search" placeholder="Search by name, phone, or email..." oninput="renderLeadsTable()">
         <select class="fsel" id="leads-state-filter" onchange="renderLeadsTable()"><option value="">All states</option></select>
@@ -286,8 +286,8 @@ tbody tr:hover td{background:var(--paper);}
     <div class="card">
       <div class="card-hdr" onclick="toggleSection('sec-signed')" style="cursor:pointer;user-select:none">
         <div>
-          <div class="card-title">Signed <span id="chev-signed" class="chev">▼</span></div>
-          <div class="card-sub">Live call data</div>
+          <div class="card-title">1696 Filed <span id="chev-signed" class="chev">▼</span></div>
+          <div class="card-sub">Calls that actually connected — sort by duration to see the longest calls first</div>
         </div>
         <div class="filters">
           <button class="rbtn" onclick="event.stopPropagation();exportCSV('calls')">Export CSV</button>
@@ -305,7 +305,7 @@ tbody tr:hover td{background:var(--paper);}
       <div id="tbl-wrap" style="display:none;overflow-x:auto">
         <table>
           <thead><tr>
-            <th>Date</th><th>Caller Name</th><th>Caller ID</th><th>Duration</th><th>Status</th><th>Payout</th><th>Campaign</th>
+            <th>Date</th><th>Caller Name</th><th>Caller ID</th><th style="cursor:pointer;user-select:none" onclick="toggleDurationSort()" title="Click to sort by duration">Duration <span id="dur-sort-arrow"></span></th><th>Status</th><th>Payout</th><th>Campaign</th>
           </tr></thead>
           <tbody id="tbl"></tbody>
         </table>
@@ -596,13 +596,17 @@ function loadCalls(){
 
     KPI_CALLS_DATA = allCalls;
     updateCombinedKPIs();
-    // The Signed box/table must show only true Signed-line calls, not every
-    // call across the whole publisher family - allCalls includes SSDI-AZ-1696
-    // records too (like James Aiken), which was leaking into this box's count
-    // and total, inflating both. The combined KPI strip above intentionally
-    // stays family-wide; only this section needs the narrower filter
-    // (Kyler, Sep 10).
-    var signedOnlyCalls = allCalls.filter(function(c){ return c.publisher_sub === (SIGNED_TAG_FOR[S.pub_id] || S.pub_id); });
+    // The "1696 Filed" box/table must show only true Signed-line calls that
+    // actually connected (real duration) - not every call across the whole
+    // publisher family (allCalls includes SSDI-AZ-1696 records too, like
+    // James Aiken, which was leaking into this box's count and total,
+    // inflating both - Kyler, Sep 10), and not calls that never connected,
+    // since those are just postings that didn't result in a conversation,
+    // not something that belongs in this "actually filed" view (Kyler,
+    // Sep 15).
+    var signedOnlyCalls = allCalls.filter(function(c){
+      return c.publisher_sub === (SIGNED_TAG_FOR[S.pub_id] || S.pub_id) && getDurationSeconds(c) > 0;
+    });
     document.getElementById('signed-total').textContent = signedOnlyCalls.length;
     var signedBillable = signedOnlyCalls.filter(function(c){ return c.billable; });
     var signedRevenue = signedBillable.reduce(function(s,c){ return s + parseFloat(c.payout_amount||0); }, 0);
@@ -643,19 +647,38 @@ function populateCallsFilterOptions(calls){
 // partner records use the other, only ringfuel_webhook fills both) - so
 // this always checks both and uses whichever is actually present, rather
 // than assuming one column covers every call (Kyler, Sep 15).
+function getDurationSeconds(c){
+  return parseInt(c.duration, 10) || parseInt(c.call_duration, 10) || 0;
+}
 function formatDuration(c){
-  var secs = parseInt(c.duration, 10) || parseInt(c.call_duration, 10) || 0;
+  var secs = getDurationSeconds(c);
   if (!secs) return '—';
   var m = Math.floor(secs / 60);
   var s = secs % 60;
   return m + ':' + (s < 10 ? '0' : '') + s;
 }
 
+// Duration sort toggle for the "1696 Filed" (connected calls) table.
+// null = default (date, newest first), 'desc'/'asc' = by duration.
+var DURATION_SORT = null;
+function toggleDurationSort(){
+  DURATION_SORT = DURATION_SORT === 'desc' ? 'asc' : DURATION_SORT === 'asc' ? null : 'desc';
+  var arrow = document.getElementById('dur-sort-arrow');
+  arrow.textContent = DURATION_SORT === 'desc' ? '↓' : DURATION_SORT === 'asc' ? '↑' : '';
+  renderCallsTable();
+}
+
 function renderCallsTable(){
   var searchVal = (document.getElementById('calls-search').value || '').toLowerCase();
   var statusVal = document.getElementById('calls-status-filter').value;
 
+  // "1696 Filed" only shows calls that actually connected - a real
+  // conversation happened, evidenced by a real duration. Calls that never
+  // connected (0 or missing duration) still exist as records but don't
+  // belong in this view - they're just postings that didn't result in a
+  // conversation (Kyler, Sep 15).
   var calls = CALLS_CURRENT.filter(function(c){
+    if (getDurationSeconds(c) <= 0) return false;
     if (statusVal) {
       var sl = c.call_status_label || (c.billable === true ? 'cpa' : c.billable === false ? 'not_converted' : 'pending');
       if (sl !== statusVal) return false;
@@ -674,7 +697,13 @@ function renderCallsTable(){
   }
   document.getElementById('st-empty').style.display = 'none';
 
-  calls.sort(function(a,b){ return new Date(b.received_at||b.call_date||0) - new Date(a.received_at||a.call_date||0); });
+  if (DURATION_SORT === 'desc') {
+    calls.sort(function(a,b){ return getDurationSeconds(b) - getDurationSeconds(a); });
+  } else if (DURATION_SORT === 'asc') {
+    calls.sort(function(a,b){ return getDurationSeconds(a) - getDurationSeconds(b); });
+  } else {
+    calls.sort(function(a,b){ return new Date(b.received_at||b.call_date||0) - new Date(a.received_at||a.call_date||0); });
+  }
 
   var tbody = document.getElementById('tbl');
   tbody.innerHTML = '';
