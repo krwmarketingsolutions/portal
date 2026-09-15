@@ -610,7 +610,7 @@ function loadCalls(){
     document.getElementById('signed-total').textContent = signedOnlyCalls.length;
     var signedBillable = signedOnlyCalls.filter(function(c){ return c.billable; });
     var signedRevenue = signedBillable.reduce(function(s,c){ return s + parseFloat(c.payout_amount||0); }, 0);
-    document.getElementById('signed-cpa').textContent = signedBillable.length + ' CPA · $' + signedRevenue.toFixed(2);
+    document.getElementById('signed-cpa').textContent = signedBillable.length + ' confirmed billable · $' + signedRevenue.toFixed(2);
 
     // Apply shared custom date-range filter (client-side) - now scoped to
     // Signed-only calls too, so the table rows match the box above it.
@@ -718,8 +718,15 @@ function renderCallsTable(){
       : '—';
     var pay  = c.payout_amount && parseFloat(c.payout_amount) > 0 ? '$' + parseFloat(c.payout_amount).toFixed(2) : '—';
     var sl   = c.call_status_label || (c.billable === true ? 'cpa' : c.billable === false ? 'not_converted' : 'pending');
-    var badge = sl === 'cpa' || sl === 'Signed'
-      ? '<span class="badge b-cpa">✓ ' + (sl === 'Signed' ? 'Signed' : 'CPA') + '</span>'
+    // billable is the real source of truth (set only via the approval
+    // queue) - a call whose status text happens to say "Signed" or "cpa"
+    // isn't actually confirmed billable until that's genuinely true, so
+    // the checkmark/green badge only shows once billable is really set,
+    // matching the same rule already applied to leads (Kyler, Sep 15).
+    var badge = c.billable === true
+      ? '<span class="badge b-cpa">✓ Billable — $' + parseFloat(c.payout_amount||0).toFixed(2) + '</span>'
+      : sl === 'cpa' || sl === 'Signed'
+      ? '<span class="badge b-pending">⏳ ' + (sl === 'Signed' ? 'Signed' : 'CPA') + ' (not yet confirmed)</span>'
       : sl === 'not_converted' || sl === 'In Progress'
       ? '<span class="badge b-no">' + (sl === 'In Progress' ? 'In Progress' : 'Not Converted') + '</span>'
       : sl === 'Retained'
