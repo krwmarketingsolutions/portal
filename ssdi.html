@@ -217,7 +217,7 @@ tbody tr:hover td{background:var(--paper);}
       </div>
     </div>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+    <div id="kpi-boxes-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
       <div class="card" style="padding:14px 18px;text-align:center;border-top:3px solid var(--brown)">
         <div style="font-size:11px;font-weight:600;letter-spacing:.05em;color:var(--ink-3)">Postings</div>
         <div id="filed-total" style="font-size:26px;font-weight:600;color:var(--green);margin-top:4px">—</div>
@@ -229,6 +229,12 @@ tbody tr:hover td{background:var(--paper);}
         <div id="signed-total" style="font-size:26px;font-weight:600;color:var(--green);margin-top:4px">—</div>
         <div style="font-size:11px;color:var(--ink-3);margin-top:2px">connected calls</div>
         <div id="signed-cpa" style="font-size:13px;font-weight:600;color:var(--green);margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)">—</div>
+      </div>
+      <div class="card" id="jsigned-box" style="display:none;padding:14px 18px;text-align:center;border-top:3px solid var(--brown)">
+        <div style="font-size:11px;font-weight:600;letter-spacing:.05em;color:var(--ink-3)">Signed</div>
+        <div id="jsigned-total" style="font-size:26px;font-weight:600;color:var(--green);margin-top:4px">—</div>
+        <div style="font-size:11px;color:var(--ink-3);margin-top:2px">connected calls</div>
+        <div id="jsigned-cpa" style="font-size:13px;font-weight:600;color:var(--green);margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)">—</div>
       </div>
     </div>
 
@@ -308,6 +314,36 @@ tbody tr:hover td{background:var(--paper);}
             <th>Date</th><th>Caller Name</th><th>Caller ID</th><th style="cursor:pointer;user-select:none" onclick="toggleDurationSort()" title="Click to sort by duration">Duration <span id="dur-sort-arrow"></span></th><th>Status</th><th>Payout</th><th>Campaign</th>
           </tr></thead>
           <tbody id="tbl"></tbody>
+        </table>
+      </div>
+      </div>
+    </div>
+
+    <div class="card" id="jsigned-section" style="display:none">
+      <div class="card-hdr" onclick="toggleSection('sec-jsigned')" style="cursor:pointer;user-select:none">
+        <div>
+          <div class="card-title">Signed <span id="chev-jsigned" class="chev">▼</span></div>
+          <div class="card-sub">A separate Signed line, distinct from Postings and 1696 Filed — sort by duration to see the longest calls first</div>
+        </div>
+        <div class="filters">
+          <button class="rbtn" onclick="event.stopPropagation();exportCSV('jsigned')">Export CSV</button>
+          <button class="rbtn" onclick="event.stopPropagation();loadJSigned()">↻</button>
+        </div>
+      </div>
+      <div id="sec-jsigned">
+      <div class="searchbar">
+        <input type="text" id="jsigned-search" placeholder="Search by name or caller ID..." oninput="renderJSignedTable()">
+        <select class="fsel" id="jsigned-status-filter" onchange="renderJSignedTable()"><option value="">All statuses</option></select>
+      </div>
+      <div id="jst-load" class="st"><div class="spin"></div><div class="st-t">Loading your calls...</div></div>
+      <div id="jst-empty" class="st" style="display:none"><div class="st-ico">📋</div><div class="st-t">No calls yet</div><div class="st-s">Calls will appear here once posted by your buyer</div></div>
+      <div id="jst-err" class="st" style="display:none"><div class="st-ico">⚠️</div><div class="st-t">Could not load calls</div><div class="st-s" id="jst-err-msg"></div></div>
+      <div id="jtbl-wrap" style="display:none;overflow-x:auto">
+        <table>
+          <thead><tr>
+            <th>Date</th><th>Caller Name</th><th>Caller ID</th><th style="cursor:pointer;user-select:none" onclick="toggleJDurationSort()" title="Click to sort by duration">Duration <span id="jdur-sort-arrow"></span></th><th>Status</th><th>Payout</th><th>Campaign</th>
+          </tr></thead>
+          <tbody id="jtbl"></tbody>
         </table>
       </div>
       </div>
@@ -396,6 +432,7 @@ var KPI_CALLS_DATA = null;  // set once loadCalls finishes
 var KPI_LEADS_DATA = null;  // set once loadLeads finishes
 var LEADS_CURRENT = [];     // currently-loaded, date/billable-filtered leads (search/state/status filter applied at render)
 var CALLS_CURRENT = [];     // same, for calls
+var JSIGNED_CURRENT = [];   // same, for the genuinely separate Signed line (only populated for logins that have one)
 
 function updateCombinedKPIs(){
   // Combines both the Signed (calls) and 1696 (leads) sources into the top
@@ -486,12 +523,14 @@ function applyDateRange(){
   DATE_TO   = t ? new Date(t + 'T23:59:59') : null;
   loadLeads();
   loadCalls();
+  loadJSigned();
 }
 
 function applyBillableFilter(){
   BILLABLE_ONLY = document.getElementById('billable-only-filter').checked;
   loadLeads();
   loadCalls();
+  loadJSigned();
 }
 
 function clearDateRange(){
@@ -500,6 +539,7 @@ function clearDateRange(){
   DATE_FROM = null; DATE_TO = null;
   loadLeads();
   loadCalls();
+  loadJSigned();
 }
 
 function inDateRange(dateVal){
@@ -568,8 +608,16 @@ function showPortal(){
     document.getElementById('did-num').textContent   = fmt || S.did;
     document.getElementById('did-box').style.display = '';
   }
+  // Only show the Signed box/section for logins that genuinely have a
+  // separate Signed line - showing it for everyone would just duplicate
+  // their own 1696 Filed data under a second label (Kyler, Sep 15).
+  var showSigned = hasSeparateSignedLine(S.pub_id);
+  document.getElementById('jsigned-box').style.display = showSigned ? '' : 'none';
+  document.getElementById('jsigned-section').style.display = showSigned ? '' : 'none';
+  document.getElementById('kpi-boxes-grid').style.gridTemplateColumns = showSigned ? '1fr 1fr 1fr' : '1fr 1fr';
   setTimeout(loadCalls, 100);
   setTimeout(loadLeads, 100);
+  if (showSigned) setTimeout(loadJSigned, 100);
 }
 
 function doLogout(){
@@ -596,25 +644,26 @@ function loadCalls(){
 
     KPI_CALLS_DATA = allCalls;
     updateCombinedKPIs();
-    // The "1696 Filed" box/table must show only true Signed-line calls that
-    // actually connected (real duration) - not every call across the whole
-    // publisher family (allCalls includes SSDI-AZ-1696 records too, like
-    // James Aiken, which was leaking into this box's count and total,
-    // inflating both - Kyler, Sep 10), and not calls that never connected,
-    // since those are just postings that didn't result in a conversation,
-    // not something that belongs in this "actually filed" view (Kyler,
-    // Sep 15).
-    var signedOnlyCalls = allCalls.filter(function(c){
-      return c.publisher_sub === (SIGNED_TAG_FOR[S.pub_id] || S.pub_id) && getDurationSeconds(c) > 0;
+    // "1696 Filed" shows the publisher's own filed-line calls that actually
+    // connected (real duration) - not every call across the whole publisher
+    // family (allCalls includes both lines for a family like Josh's), and
+    // not the genuinely separate Signed line, which now has its own section
+    // (Kyler, Sep 15). Previously this used SIGNED_TAG_FOR, which for
+    // Josh's login pointed at KRW-JOSHUA-SIGNED instead of his own
+    // SSDI-AZ-1696 calls - meaning his actual Filed data (the 190
+    // rejected/3 pending we just set) was invisible on his portal, silently
+    // replaced by his Signed data under the wrong label.
+    var filedOnlyCalls = allCalls.filter(function(c){
+      return c.publisher_sub === (FILED_TAG_FOR[S.pub_id] || S.pub_id) && getDurationSeconds(c) > 0;
     });
-    document.getElementById('signed-total').textContent = signedOnlyCalls.length;
-    var signedBillable = signedOnlyCalls.filter(function(c){ return c.billable; });
+    document.getElementById('signed-total').textContent = filedOnlyCalls.length;
+    var signedBillable = filedOnlyCalls.filter(function(c){ return c.billable; });
     var signedRevenue = signedBillable.reduce(function(s,c){ return s + parseFloat(c.payout_amount||0); }, 0);
     document.getElementById('signed-cpa').textContent = signedBillable.length + ' confirmed billable · $' + signedRevenue.toFixed(2);
 
-    // Apply shared custom date-range filter (client-side) - now scoped to
-    // Signed-only calls too, so the table rows match the box above it.
-    var calls = signedOnlyCalls.filter(function(c){ return inDateRange(c.received_at || c.call_date) && passesBillableFilter(c.billable); });
+    // Apply shared custom date-range filter (client-side) - scoped to
+    // Filed-only calls, so the table rows match the box above it.
+    var calls = filedOnlyCalls.filter(function(c){ return inDateRange(c.received_at || c.call_date) && passesBillableFilter(c.billable); });
 
     document.getElementById('st-load').style.display = 'none';
     CALLS_CURRENT = calls;
@@ -749,6 +798,150 @@ function renderCallsTable(){
     tbody.appendChild(tr);
   });
   document.getElementById('tbl-wrap').style.display = '';
+}
+
+// Whether this login has a genuine, separate Signed line (distinct
+// publisher_sub from its Filed line) - only true for logins explicitly
+// listed in SIGNED_TAG_FOR with a value different from FILED_TAG_FOR (e.g.
+// Josh's SSDI-AZ-1696 family, whose Signed line is KRW-JOSHUA-SIGNED).
+// Most logins (like SLC) have no separate Signed line at all, and should
+// never show this section - showing it for them would just duplicate
+// their own 1696 Filed data under a second label (Kyler, Sep 15).
+function hasSeparateSignedLine(pubId){
+  var signedTag = SIGNED_TAG_FOR[pubId];
+  var filedTag = FILED_TAG_FOR[pubId] || pubId;
+  return !!signedTag && signedTag !== filedTag;
+}
+
+function loadJSigned(){
+  if (!S) return;
+  if (!hasSeparateSignedLine(S.pub_id)) return;
+
+  document.getElementById('jst-load').style.display  = '';
+  document.getElementById('jst-empty').style.display = 'none';
+  document.getElementById('jst-err').style.display   = 'none';
+  document.getElementById('jtbl-wrap').style.display = 'none';
+
+  var familyIds = getFamilyIds(S.pub_id);
+  var urls = familyIds.map(function(id){ return API + '/calls/feed?pub=' + encodeURIComponent(id) + '&days=9999&api_key=' + API_KEY; });
+  Promise.all(urls.map(function(u){ return fetch(u).then(function(r){ return r.json(); }); }))
+  .then(function(results){
+    var allCalls = [];
+    results.forEach(function(d){ if (d.ok && d.calls) allCalls = allCalls.concat(d.calls); });
+
+    var signedOnlyCalls = allCalls.filter(function(c){
+      return c.publisher_sub === SIGNED_TAG_FOR[S.pub_id] && getDurationSeconds(c) > 0;
+    });
+    document.getElementById('jsigned-total').textContent = signedOnlyCalls.length;
+    var signedBillable = signedOnlyCalls.filter(function(c){ return c.billable; });
+    var signedRevenue = signedBillable.reduce(function(s,c){ return s + parseFloat(c.payout_amount||0); }, 0);
+    document.getElementById('jsigned-cpa').textContent = signedBillable.length + ' confirmed billable · $' + signedRevenue.toFixed(2);
+
+    var calls = signedOnlyCalls.filter(function(c){ return inDateRange(c.received_at || c.call_date) && passesBillableFilter(c.billable); });
+
+    document.getElementById('jst-load').style.display = 'none';
+    JSIGNED_CURRENT = calls;
+    populateJSignedFilterOptions(calls);
+    renderJSignedTable();
+  })
+  .catch(function(e){
+    document.getElementById('jst-load').style.display = 'none';
+    document.getElementById('jst-err').style.display  = '';
+    document.getElementById('jst-err-msg').textContent = e.message;
+  });
+}
+
+function populateJSignedFilterOptions(calls){
+  var statusSel = document.getElementById('jsigned-status-filter');
+  var current = statusSel.value;
+  var statuses = {};
+  calls.forEach(function(c){
+    var sl = c.call_status_label || (c.billable === true ? 'cpa' : c.billable === false ? 'not_converted' : 'pending');
+    statuses[sl] = true;
+  });
+  statusSel.innerHTML = '<option value="">All statuses</option>' + Object.keys(statuses).sort().map(function(s){ return '<option value="'+s+'">'+s+'</option>'; }).join('');
+  statusSel.value = current;
+}
+
+var JDURATION_SORT = null;
+function toggleJDurationSort(){
+  JDURATION_SORT = JDURATION_SORT === 'desc' ? 'asc' : JDURATION_SORT === 'asc' ? null : 'desc';
+  var arrow = document.getElementById('jdur-sort-arrow');
+  arrow.textContent = JDURATION_SORT === 'desc' ? '↓' : JDURATION_SORT === 'asc' ? '↑' : '';
+  renderJSignedTable();
+}
+
+function renderJSignedTable(){
+  var searchVal = (document.getElementById('jsigned-search').value || '').toLowerCase();
+  var statusVal = document.getElementById('jsigned-status-filter').value;
+
+  var calls = JSIGNED_CURRENT.filter(function(c){
+    if (getDurationSeconds(c) <= 0) return false;
+    if (statusVal) {
+      var sl = c.call_status_label || (c.billable === true ? 'cpa' : c.billable === false ? 'not_converted' : 'pending');
+      if (sl !== statusVal) return false;
+    }
+    if (searchVal) {
+      var hay = ((c.caller_name||'') + ' ' + (c.caller_id||'')).toLowerCase();
+      if (hay.indexOf(searchVal) === -1) return false;
+    }
+    return true;
+  });
+
+  if (!calls.length) {
+    document.getElementById('jst-empty').style.display = '';
+    document.getElementById('jtbl-wrap').style.display = 'none';
+    return;
+  }
+  document.getElementById('jst-empty').style.display = 'none';
+
+  if (JDURATION_SORT === 'desc') {
+    calls.sort(function(a,b){ return getDurationSeconds(b) - getDurationSeconds(a); });
+  } else if (JDURATION_SORT === 'asc') {
+    calls.sort(function(a,b){ return getDurationSeconds(a) - getDurationSeconds(b); });
+  } else {
+    calls.sort(function(a,b){ return new Date(b.received_at||b.call_date||0) - new Date(a.received_at||a.call_date||0); });
+  }
+
+  var tbody = document.getElementById('jtbl');
+  tbody.innerHTML = '';
+  calls.forEach(function(c){
+    var rawDt = c.source_system === 'sheet_import' ? c.call_date : (c.received_at || c.call_date || '');
+    var dateObj = rawDt ? new Date(rawDt) : null;
+    var date = dateObj
+      ? dateObj.toLocaleDateString('en-US', {month:'2-digit',day:'2-digit',year:'numeric'}) +
+        (c.source_system !== 'sheet_import'
+          ? ' <span style="color:var(--ink-3);font-size:11px">' + dateObj.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:true,timeZone:'America/New_York'}) + '</span>'
+          : '')
+      : '—';
+    var pay  = c.payout_amount && parseFloat(c.payout_amount) > 0 ? '$' + parseFloat(c.payout_amount).toFixed(2) : '—';
+    var sl   = c.call_status_label || (c.billable === true ? 'cpa' : c.billable === false ? 'not_converted' : 'pending');
+    var badge = c.billable === true
+      ? '<span class="badge b-cpa">✓ Billable — $' + parseFloat(c.payout_amount||0).toFixed(2) + '</span>'
+      : sl === 'cpa' || sl === 'Signed'
+      ? '<span class="badge b-pending">⏳ ' + (sl === 'Signed' ? 'Signed' : 'CPA') + ' (not yet confirmed)</span>'
+      : sl === 'Rejected'
+      ? '<span class="badge b-no">✕ Rejected</span>'
+      : sl === 'not_converted' || sl === 'In Progress'
+      ? '<span class="badge b-no">' + (sl === 'In Progress' ? 'In Progress' : 'Not Converted') + '</span>'
+      : sl === 'Retained'
+      ? '<span class="badge b-pending">⏳ Retained</span>'
+      : sl === 'Queued'
+      ? '<span class="badge b-queued">◐ Queued</span>'
+      : '<span class="badge b-pending">⏳ Pending</span>';
+    var tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td>' + date + '</td>' +
+      '<td style="font-weight:500">' + (c.caller_name || '—') + '</td>' +
+      '<td style="font-family:monospace;font-size:12px;color:var(--ink-3)">' + (c.caller_id || '—') + '</td>' +
+      '<td style="font-family:monospace;font-size:12px">' + formatDuration(c) + '</td>' +
+      '<td>' + badge + '</td>' +
+      '<td style="font-weight:600;color:var(--green)">' + pay + '</td>' +
+      '<td><span class="badge" style="background:var(--brown-soft);color:var(--brown)">' + (c.campaign || S.campaign || 'SSDI').toUpperCase() + '</span></td>';
+    tr.addEventListener('click', function(){ openDetail(c, 'call'); });
+    tbody.appendChild(tr);
+  });
+  document.getElementById('jtbl-wrap').style.display = '';
 }
 
 function loadLeads(){
@@ -971,7 +1164,7 @@ function closeDetail(){
 
 // ---------- Feature 5: CSV export ----------
 function exportCSV(kind){
-  var rows = kind === 'leads' ? LEADS_CURRENT : CALLS_CURRENT;
+  var rows = kind === 'leads' ? LEADS_CURRENT : kind === 'jsigned' ? JSIGNED_CURRENT : CALLS_CURRENT;
   if (!rows || !rows.length) { alert('Nothing to export yet.'); return; }
   var cols = kind === 'leads'
     ? ['received_at','first_name','last_name','phone','email','state','buyer_status','billable','revenue']
