@@ -457,10 +457,14 @@ function updateCombinedKPIs(){
   var billableLeads  = leadsInRange.filter(function(l){ return l.billable; });
   var rangeLabel = (DATE_FROM || DATE_TO) ? 'Selected Range' : 'All Time';
 
-  document.getElementById('k-bill').textContent     = billableCalls.length + billableLeads.length;
+  // Header CPA and payout count CALLS ONLY (1696 Filed + Signed), so the top
+  // numbers always equal the sum of the two sections below. Postings had its
+  // CPA line removed in v22, so a billable flag on a posting no longer has a
+  // section to live in and must not be added up here either - that was the
+  // 15 / $3,600 vs 14 / $3,100 mismatch (Kyler, Sep 16).
+  document.getElementById('k-bill').textContent     = billableCalls.length;
   document.getElementById('k-bill-sub').textContent = rangeLabel;
-  var totalPayout = billableCalls.reduce(function(s,c){ return s + parseFloat(c.payout_amount||0); }, 0)
-                   + billableLeads.reduce(function(s,l){ return s + parseFloat(l.revenue||0); }, 0);
+  var totalPayout = billableCalls.reduce(function(s,c){ return s + parseFloat(c.payout_amount||0); }, 0);
   document.getElementById('k-pay').textContent     = '$' + totalPayout.toFixed(2);
   document.getElementById('k-pay-sub').textContent = rangeLabel;
 
