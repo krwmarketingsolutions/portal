@@ -657,7 +657,7 @@ function loadCalls(){
     // rejected/3 pending we just set) was invisible on his portal, silently
     // replaced by his Signed data under the wrong label.
     var filedOnlyCalls = allCalls.filter(function(c){
-      return c.publisher_sub === (FILED_TAG_FOR[S.pub_id] || S.pub_id) && getDurationSeconds(c) > 0;
+      return c.publisher_sub === (FILED_TAG_FOR[S.pub_id] || S.pub_id) && (getDurationSeconds(c) > 0 || c.billable === true);
     });
     document.getElementById('signed-total').textContent = filedOnlyCalls.length;
     var signedBillable = filedOnlyCalls.filter(function(c){ return c.billable; });
@@ -833,7 +833,7 @@ function loadJSigned(){
     results.forEach(function(d){ if (d.ok && d.calls) allCalls = allCalls.concat(d.calls); });
 
     var signedOnlyCalls = allCalls.filter(function(c){
-      return c.publisher_sub === SIGNED_TAG_FOR[S.pub_id] && getDurationSeconds(c) > 0;
+      return c.publisher_sub === SIGNED_TAG_FOR[S.pub_id] && (getDurationSeconds(c) > 0 || c.billable === true);
     });
     document.getElementById('jsigned-total').textContent = signedOnlyCalls.length;
     var signedBillable = signedOnlyCalls.filter(function(c){ return c.billable; });
