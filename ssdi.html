@@ -418,9 +418,15 @@ var S = null;
 // publisher gets a second (or third) pub_id for a different line - list all
 // their IDs together, every ID in the group maps to the same full list.
 var PUBLISHER_FAMILIES = {
-  'SSDI-AZ-1696':      ['SSDI-AZ-1696', 'KRW-JOSHUA-SIGNED'],
-  'KRW-JOSHUA-SIGNED':  ['SSDI-AZ-1696', 'KRW-JOSHUA-SIGNED'],
+  'SSDI-AZ-1696':      ['SSDI-AZ-1696', 'KRW-JOSHUA-SIGNED', 'KRW-JOSHUA-CKX'],
+  'KRW-JOSHUA-SIGNED':  ['SSDI-AZ-1696', 'KRW-JOSHUA-SIGNED', 'KRW-JOSHUA-CKX'],
+  'KRW-JOSHUA-CKX':     ['SSDI-AZ-1696', 'KRW-JOSHUA-SIGNED', 'KRW-JOSHUA-CKX'],
 };
+// Extra publisher tags that also belong in a login's Signed section (a second signed line on the same portal)
+var SIGNED_EXTRA_FOR = {
+  'SSDI-AZ-1696': ['KRW-JOSHUA-CKX'], 'KRW-JOSHUA-SIGNED': ['KRW-JOSHUA-CKX'], 'KRW-JOSHUA-CKX': ['KRW-JOSHUA-CKX'],
+};
+function isSignedTag(pubId, tag){ return tag === SIGNED_TAG_FOR[pubId] || (SIGNED_EXTRA_FOR[pubId] || []).indexOf(tag) > -1; }
 // Which publisher_sub each section's box/table should filter to, per login.
 // AZ-1696's family has a genuinely separate Signed line (KRW-JOSHUA-SIGNED);
 // any other login (like SLC, which has no separate Signed line) just shows
@@ -430,10 +436,10 @@ var PUBLISHER_FAMILIES = {
 // SLC's own calls/leads, so both showed empty despite the data being real
 // and present) (Kyler, Sep 14).
 var FILED_TAG_FOR = {
-  'SSDI-AZ-1696': 'SSDI-AZ-1696', 'KRW-JOSHUA-SIGNED': 'SSDI-AZ-1696',
+  'SSDI-AZ-1696': 'SSDI-AZ-1696', 'KRW-JOSHUA-SIGNED': 'SSDI-AZ-1696', 'KRW-JOSHUA-CKX': 'SSDI-AZ-1696',
 };
 var SIGNED_TAG_FOR = {
-  'SSDI-AZ-1696': 'KRW-JOSHUA-SIGNED', 'KRW-JOSHUA-SIGNED': 'KRW-JOSHUA-SIGNED',
+  'SSDI-AZ-1696': 'KRW-JOSHUA-SIGNED', 'KRW-JOSHUA-SIGNED': 'KRW-JOSHUA-SIGNED', 'KRW-JOSHUA-CKX': 'KRW-JOSHUA-SIGNED',
 };
 function getFamilyIds(pubId){
   return PUBLISHER_FAMILIES[pubId] || [pubId];
@@ -873,7 +879,7 @@ function loadJSigned(){
     results.forEach(function(d){ if (d.ok && d.calls) allCalls = allCalls.concat(d.calls); });
 
     var signedOnlyCalls = allCalls.filter(function(c){
-      return c.publisher_sub === SIGNED_TAG_FOR[S.pub_id] && (getDurationSeconds(c) > 0 || c.billable === true);
+      return isSignedTag(S.pub_id, c.publisher_sub) && (getDurationSeconds(c) > 0 || c.billable === true);
     });
     document.getElementById('jsigned-total').textContent = signedOnlyCalls.length;
     var signedBillable = signedOnlyCalls.filter(function(c){ return c.billable; });
