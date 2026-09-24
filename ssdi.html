@@ -486,11 +486,16 @@ function updateCombinedKPIs(){
   var leadsWeek  = leads.filter(function(l){ return (l.received_at||'') >= wks; }).length;
   document.getElementById('k-week').textContent = callsWeek + leadsWeek;
 
-  var callsInRange = calls.filter(function(c){ return inDateRange(c.received_at || c.call_date); });
-  var leadsInRange  = leads.filter(function(l){ return inDateRange(l.received_at); });
+  // Top CPA / Payout cards: this calendar week (Mon-Sun) unless a custom range is set (Kyler, Sep 24)
+  var d0 = function(d){ return new Date(d.getFullYear(), d.getMonth(), d.getDate()); };
+  var nowW = new Date(), dowW = (nowW.getDay()+6)%7, wkMon = d0(new Date(nowW.getTime() - dowW*86400000)), wkSun = new Date(wkMon.getTime() + 6*86400000 + 86399999);
+  var inWeek = function(v){ var t = new Date(v).getTime(); return t >= wkMon.getTime() && t <= wkSun.getTime(); };
+  var useRange = !!(DATE_FROM || DATE_TO);
+  var callsInRange = calls.filter(function(c){ return useRange ? inDateRange(c.received_at || c.call_date) : inWeek(c.received_at || c.call_date); });
+  var leadsInRange  = leads.filter(function(l){ return useRange ? inDateRange(l.received_at) : inWeek(l.received_at); });
   var billableCalls = callsInRange.filter(function(c){ return c.billable; });
   var billableLeads  = leadsInRange.filter(function(l){ return l.billable; });
-  var rangeLabel = (DATE_FROM || DATE_TO) ? 'Selected Range' : 'All Time';
+  var rangeLabel = useRange ? 'Selected Range' : 'This Week (Mon–Sun)';
 
   // Header CPA and payout count CALLS ONLY (1696 Filed + Signed), so the top
   // numbers always equal the sum of the two sections below. Postings had its
