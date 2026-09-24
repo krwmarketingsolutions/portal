@@ -64,6 +64,15 @@ button, input, select{font-family:inherit;}
 .kpi .lbl{font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--ink-3);margin-bottom:7px;}
 .kpi .val{font-size:28px;font-weight:600;line-height:1;color:var(--ink);}
 .kpi .sub{font-size:12px;color:var(--ink-3);margin-top:5px;}
+.wk-card{background:var(--white);border:1px solid var(--line);border-top:3px solid var(--green,#1F4D36);padding:16px 18px;margin-bottom:22px;}
+.wk-card .wk-title{font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--ink-3);margin-bottom:10px;}
+.wk-table{width:100%;border-collapse:collapse;font-size:14px;}
+.wk-table th{text-align:left;font-size:11px;font-weight:600;letter-spacing:.05em;color:var(--ink-3);padding:6px 8px;border-bottom:1px solid var(--line);}
+.wk-table td{padding:8px;border-bottom:1px solid var(--line);color:var(--ink);}
+.wk-table td.r, .wk-table th.r{text-align:right;}
+.wk-table tr.cur td{font-weight:600;}
+.wk-table td.amt{font-weight:600;color:var(--green,#1F4D36);}
+.wk-table tr.tot td{border-top:2px solid var(--line);border-bottom:0;font-weight:600;}
 .v-green{color:var(--green);}
 
 /* ---------- performance summary (feature 3) ---------- */
@@ -204,6 +213,11 @@ tbody tr:hover td{background:var(--paper);}
       <div class="kpi"><div class="lbl">This Week</div><div class="val" id="k-week">—</div><div class="sub">last 7 days</div></div>
       <div class="kpi"><div class="lbl">CPA</div><div class="val v-green" id="k-bill">—</div><div class="sub" id="k-bill-sub">signed retainers</div></div>
       <div class="kpi"><div class="lbl">Total Payout</div><div class="val v-green" id="k-pay">—</div><div class="sub" id="k-pay-sub">billable only</div></div>
+    </div>
+
+    <div class="wk-card" id="wk-card" style="display:none">
+      <div class="wk-title">WEEKLY PAYOUT (MON–SUN)</div>
+      <table class="wk-table"><thead><tr><th>Week</th><th class="r">Billable</th><th class="r">Amount owed</th></tr></thead><tbody id="wk-body"></tbody></table>
     </div>
 
     <!-- Feature 3: performance summary -->
@@ -433,7 +447,28 @@ var LEADS_CURRENT = [];     // currently-loaded, date/billable-filtered leads (s
 var CALLS_CURRENT = [];     // same, for calls
 var JSIGNED_CURRENT = [];   // same, for the genuinely separate Signed line (only populated for logins that have one)
 
+function renderWeeklyPayout(){
+  var calls = (KPI_CALLS_DATA || []).filter(function(c){ return c.billable === true; });
+  var card = document.getElementById('wk-card'), body = document.getElementById('wk-body');
+  if (!card || !body) return;
+  var d0 = function(d){ return new Date(d.getFullYear(), d.getMonth(), d.getDate()); };
+  var now = new Date(), dow = (now.getDay()+6)%7, thisMon = d0(new Date(now.getTime() - dow*86400000));
+  var weeks = [];
+  for (var i = 0; i < 8; i++) {
+    var mon = new Date(thisMon.getTime() - i*7*86400000), sun = new Date(mon.getTime() + 6*86400000 + 86399999);
+    var rows = calls.filter(function(c){ var t = new Date(c.received_at || c.call_date).getTime(); return t >= mon.getTime() && t <= sun.getTime(); });
+    var amt = rows.reduce(function(a,c){ return a + parseFloat(c.payout_amount||0); }, 0);
+    weeks.push({ mon: mon, sun: sun, n: rows.length, amt: amt, cur: i === 0 });
+  }
+  var fm = function(d){ return d.toLocaleDateString([], {month:'short', day:'numeric'}); };
+  var total = weeks.reduce(function(a,w){ return a + w.amt; }, 0), totalN = weeks.reduce(function(a,w){ return a + w.n; }, 0);
+  body.innerHTML = weeks.map(function(w){
+    return '<tr class="' + (w.cur ? 'cur' : '') + '"><td>' + fm(w.mon) + ' – ' + fm(w.sun) + (w.cur ? ' (this week)' : '') + '</td><td class="r">' + w.n + '</td><td class="r amt">$' + w.amt.toFixed(2) + '</td></tr>';
+  }).join('') + '<tr class="tot"><td>Last 8 weeks</td><td class="r">' + totalN + '</td><td class="r amt">$' + total.toFixed(2) + '</td></tr>';
+  card.style.display = '';
+}
 function updateCombinedKPIs(){
+  renderWeeklyPayout();
   // Combines both the Signed (calls) and 1696 (leads) sources into the top
   // KPI strip, so a billable 1696 lead like James Aiken actually moves
   // these numbers, not just calls-table activity (Kyler, Sep 1).
