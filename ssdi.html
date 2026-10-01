@@ -294,7 +294,7 @@ tbody tr:hover td{background:var(--paper);}
       <div id="ltbl-wrap" style="display:none;overflow-x:auto">
         <table>
           <thead><tr>
-            <th>Date</th><th>Name</th><th>Phone</th><th>State</th><th>Status</th>
+            <th style="cursor:pointer;user-select:none" onclick="toggleDateSort('ltbl')" title="Click to sort by date">Date <span id="ltbl-date-arrow">↓</span></th><th>Name</th><th>Phone</th><th>State</th><th>Status</th>
           </tr></thead>
           <tbody id="ltbl"></tbody>
         </table>
@@ -324,7 +324,7 @@ tbody tr:hover td{background:var(--paper);}
       <div id="tbl-wrap" style="display:none;overflow-x:auto">
         <table>
           <thead><tr>
-            <th>Date</th><th>Caller Name</th><th>Caller ID</th><th style="cursor:pointer;user-select:none" onclick="toggleDurationSort()" title="Click to sort by duration">Duration <span id="dur-sort-arrow"></span></th><th>Status</th><th>Payout</th><th>Campaign</th>
+            <th style="cursor:pointer;user-select:none" onclick="toggleDateSort('tbl')" title="Click to sort by date">Date <span id="tbl-date-arrow">↓</span></th><th>Caller Name</th><th>Caller ID</th><th style="cursor:pointer;user-select:none" onclick="toggleDurationSort()" title="Click to sort by duration">Duration <span id="dur-sort-arrow"></span></th><th>Status</th><th>Payout</th><th>Campaign</th>
           </tr></thead>
           <tbody id="tbl"></tbody>
         </table>
@@ -354,7 +354,7 @@ tbody tr:hover td{background:var(--paper);}
       <div id="jtbl-wrap" style="display:none;overflow-x:auto">
         <table>
           <thead><tr>
-            <th>Date</th><th>Caller Name</th><th>Caller ID</th><th style="cursor:pointer;user-select:none" onclick="toggleJDurationSort()" title="Click to sort by duration">Duration <span id="jdur-sort-arrow"></span></th><th>Status</th><th>Payout</th><th>Campaign</th>
+            <th style="cursor:pointer;user-select:none" onclick="toggleDateSort('jtbl')" title="Click to sort by date">Date <span id="jtbl-date-arrow">↓</span></th><th>Caller Name</th><th>Caller ID</th><th style="cursor:pointer;user-select:none" onclick="toggleJDurationSort()" title="Click to sort by duration">Duration <span id="jdur-sort-arrow"></span></th><th>Status</th><th>Payout</th><th>Campaign</th>
           </tr></thead>
           <tbody id="jtbl"></tbody>
         </table>
@@ -756,6 +756,24 @@ function formatDuration(c){
   return m + ':' + (s < 10 ? '0' : '') + s;
 }
 
+// Date sort (patch 261): sort by the same date the row shows; default newest first.
+function recentKey(c){
+  var raw = c.source_system === 'sheet_import' ? (c.call_date || c.received_at) : (c.received_at || c.call_date);
+  var t = new Date(raw || 0).getTime();
+  return isNaN(t) ? 0 : t;
+}
+var DATE_ASC = { tbl: false, jtbl: false, ltbl: false };
+function setDateArrow(which, durActive){
+  var el = document.getElementById(which + '-date-arrow');
+  if (el) el.textContent = durActive ? '' : (DATE_ASC[which] ? '↑' : '↓');
+}
+function toggleDateSort(which){
+  DATE_ASC[which] = !DATE_ASC[which];
+  if (which === 'tbl')  { DURATION_SORT = null;  var a = document.getElementById('dur-sort-arrow');  if (a) a.textContent = ''; renderCallsTable(); }
+  if (which === 'jtbl') { JDURATION_SORT = null; var b = document.getElementById('jdur-sort-arrow'); if (b) b.textContent = ''; renderJSignedTable(); }
+  if (which === 'ltbl') { renderLeadsTable(); }
+}
+
 // Duration sort toggle for the "1696 Filed" (connected calls) table.
 // null = default (date, newest first), 'desc'/'asc' = by duration.
 var DURATION_SORT = null;
@@ -800,8 +818,9 @@ function renderCallsTable(){
   } else if (DURATION_SORT === 'asc') {
     calls.sort(function(a,b){ return getDurationSeconds(a) - getDurationSeconds(b); });
   } else {
-    calls.sort(function(a,b){ return new Date(b.received_at||b.call_date||0) - new Date(a.received_at||a.call_date||0); });
+    calls.sort(function(a,b){ return DATE_ASC.tbl ? recentKey(a) - recentKey(b) : recentKey(b) - recentKey(a); });
   }
+  setDateArrow('tbl', !!DURATION_SORT);
 
   var tbody = document.getElementById('tbl');
   tbody.innerHTML = '';
@@ -949,8 +968,9 @@ function renderJSignedTable(){
   } else if (JDURATION_SORT === 'asc') {
     calls.sort(function(a,b){ return getDurationSeconds(a) - getDurationSeconds(b); });
   } else {
-    calls.sort(function(a,b){ return new Date(b.received_at||b.call_date||0) - new Date(a.received_at||a.call_date||0); });
+    calls.sort(function(a,b){ return DATE_ASC.jtbl ? recentKey(a) - recentKey(b) : recentKey(b) - recentKey(a); });
   }
+  setDateArrow('jtbl', !!JDURATION_SORT);
 
   var tbody = document.getElementById('jtbl');
   tbody.innerHTML = '';
@@ -1076,7 +1096,8 @@ function renderLeadsTable(){
   }
   document.getElementById('lst-empty').style.display = 'none';
 
-  leads.sort(function(a,b){ return new Date(b.received_at||0) - new Date(a.received_at||0); });
+  leads.sort(function(a,b){ var x = new Date(a.received_at||0).getTime()||0, y = new Date(b.received_at||0).getTime()||0; return DATE_ASC.ltbl ? x - y : y - x; });
+  setDateArrow('ltbl', false);
 
   var tbody = document.getElementById('ltbl');
   tbody.innerHTML = '';
