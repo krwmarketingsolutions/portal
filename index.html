@@ -1693,6 +1693,7 @@
         <div class="view-toggle">
           <button class="view-btn on" id="vbtn-board" onclick="setOrView('board')">Board</button>
           <button class="view-btn" id="vbtn-list" onclick="setOrView('list')">List</button>
+          <button class="view-btn" id="vbtn-email" onclick="setOrView('email')">Email</button>
         </div>
       </div>
       <div class="or-scroll">
@@ -1705,6 +1706,17 @@
         </div>
         <div id="or-list" class="or-list-wrap" style="display:none">
           <table class="or-tbl"><thead><tr><th>Name</th><th>Company</th><th>Role</th><th>Vertical</th><th>Stage</th><th>Source</th><th>Last Contact</th><th>Follow-up</th><th>Potential</th><th></th></tr></thead><tbody id="or-list-body"></tbody></table>
+        </div>
+        <!-- patch 278: Email campaign view -->
+        <div id="or-email" class="or-list-wrap" style="display:none">
+          <div class="kpi-grid" style="grid-template-columns:repeat(5,minmax(0,1fr));margin:0 0 10px 0">
+            <div class="kpi-card"><div class="kpi-label">Mailable</div><div class="kpi-value" id="ork2-mail">—</div><div class="kpi-sub">contacts with an email</div></div>
+            <div class="kpi-card"><div class="kpi-label">Emailed</div><div class="kpi-value" id="ork2-sent">—</div><div class="kpi-sub" id="ork2-sent-sub"></div></div>
+            <div class="kpi-card"><div class="kpi-label">Replied</div><div class="kpi-value green" id="ork2-rep">—</div><div class="kpi-sub" id="ork2-rep-sub"></div></div>
+            <div class="kpi-card"><div class="kpi-label">Meetings</div><div class="kpi-value green" id="ork2-meet">—</div><div class="kpi-sub" id="ork2-meet-sub"></div></div>
+            <div class="kpi-card"><div class="kpi-label">Conversion</div><div class="kpi-value" id="ork2-conv" style="font-size:13px;line-height:1.5">—</div><div class="kpi-sub">emailed → replied → meeting</div></div>
+          </div>
+          <table class="or-tbl"><thead><tr><th>Contact</th><th>Company</th><th>Email</th><th>Vertical</th><th>Touches</th><th>Last sent</th><th>Status</th><th style="min-width:170px">Log</th></tr></thead><tbody id="or-email-body"></tbody></table>
         </div>
       </div>
     </div><!-- /page-outreach -->
@@ -3709,8 +3721,11 @@ function setOrView(v){
   orView=v;
   document.getElementById('or-board').style.display=v==='board'?'':'none';
   document.getElementById('or-list').style.display=v==='list'?'':'none';
+  var em=document.getElementById('or-email'); if(em)em.style.display=v==='email'?'':'none';
   document.getElementById('vbtn-board').classList.toggle('on',v==='board');
   document.getElementById('vbtn-list').classList.toggle('on',v==='list');
+  var eb=document.getElementById('vbtn-email'); if(eb)eb.classList.toggle('on',v==='email');
+  renderOutreach();
 }
 
 function getFiltered(){
@@ -3727,6 +3742,52 @@ function getFiltered(){
   });
 }
 
+// patch 278: email campaign view + one-click logging
+function orEmailOf(c){ var v=String(c.contact||'').trim(); return v.indexOf('@')>0?v:null; }
+function orMarkEmail(id,kind){
+  var c=orData.find(function(x){return x.id===id;}); if(!c)return;
+  var today=new Date().toISOString().split('T')[0];
+  if(kind==='sent'){ c.emailsSent=(c.emailsSent||0)+1; c.lastEmailAt=today; if(!c.emailStatus||c.emailStatus==='sent')c.emailStatus='sent'; c.lastContact=today; if(c.stage==='cold')c.stage='contacted'; }
+  if(kind==='replied'){ c.emailStatus='replied'; c.lastContact=today; if(c.stage==='cold'||c.stage==='contacted')c.stage='responded'; }
+  if(kind==='meeting'){ c.emailStatus='meeting'; c.lastContact=today; if(['cold','contacted','responded'].indexOf(c.stage)>-1)c.stage='intalks'; }
+  orSave(); renderOutreach(); if(typeof showToast==='function')showToast(c.name+' — '+kind+' logged');
+}
+function renderEmailTab(contacts){
+  var all=orData.filter(function(c){return orEmailOf(c);});
+  var sent=all.filter(function(c){return (c.emailsSent||0)>0;});
+  var rep=all.filter(function(c){return c.emailStatus==='replied'||c.emailStatus==='meeting';});
+  var meet=all.filter(function(c){return c.emailStatus==='meeting';});
+  function set(id,v,sub){ var e=document.getElementById(id); if(e)e.textContent=v; var sb=document.getElementById(id+'-sub'); if(sb&&sub!=null)sb.textContent=sub; }
+  set('ork2-mail',all.length,null);
+  set('ork2-sent',sent.length,(all.length?Math.round(100*sent.length/all.length):0)+'% of mailable');
+  set('ork2-rep',rep.length,(sent.length?Math.round(100*rep.length/sent.length):0)+'% reply rate');
+  set('ork2-meet',meet.length,(sent.length?Math.round(100*meet.length/sent.length):0)+'% of emailed');
+  set('ork2-conv',sent.length+' → '+rep.length+' → '+meet.length,null);
+  var tb=document.getElementById('or-email-body'); if(!tb)return;
+  var rows=(contacts||all).filter(function(c){return orEmailOf(c);});
+  if(!rows.length){ tb.innerHTML='<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--muted);font-family:Helvetica Neue,Arial,sans-serif">No contacts with an email match the filters — add emails to profiles to arm the campaign.</td></tr>'; return; }
+  tb.innerHTML='';
+  rows.forEach(function(c){
+    var em=orEmailOf(c), n=c.emailsSent||0, st=c.emailStatus||'';
+    var chip = st==='meeting' ? '<span class="stage-pill intalks"><span class="sp-dot"></span>Meeting set</span>'
+             : st==='replied' ? '<span class="stage-pill responded"><span class="sp-dot"></span>Replied</span>'
+             : n>0 ? '<span class="stage-pill contacted"><span class="sp-dot"></span>In sequence</span>'
+             : '<span class="stage-pill cold"><span class="sp-dot"></span>Not started</span>';
+    var tr=document.createElement('tr');
+    tr.innerHTML='<td style="font-weight:500">'+c.name+'</td>'+
+      '<td style="color:var(--muted)">'+(c.company||'—')+'</td>'+
+      '<td><a href="mailto:'+em+'" onclick="event.stopPropagation()" style="color:var(--green);text-decoration:none">'+em+'</a></td>'+
+      '<td style="color:var(--muted)">'+(c.vertical||'—')+'</td>'+
+      '<td style="text-align:center">'+n+'</td>'+
+      '<td style="color:var(--muted)">'+(c.lastEmailAt||'—')+'</td>'+
+      '<td>'+chip+'</td>'+
+      '<td><button class="lx-btn quiet sm" onclick="event.stopPropagation();orMarkEmail('+c.id+',\'sent\')">+ Sent</button> '+
+          '<button class="lx-btn quiet sm" onclick="event.stopPropagation();orMarkEmail('+c.id+',\'replied\')">Replied</button> '+
+          '<button class="lx-btn quiet sm" onclick="event.stopPropagation();orMarkEmail('+c.id+',\'meeting\')">Meeting</button></td>';
+    tr.addEventListener('click',function(e){ if(e.target.tagName!=='BUTTON'&&e.target.tagName!=='A')openContactModal(c.id); });
+    tb.appendChild(tr);
+  });
+}
 // patch 277: clickable card fields + outreach stats
 function orCompanyHtml(c){
   if(!c.company) return '';
@@ -3788,6 +3849,7 @@ function renderOutreach(){
   }
   renderOrStats();
   if(orView==='board')renderBoard(contacts);
+  else if(orView==='email')renderEmailTab(contacts);
   else renderList(contacts);
 }
 
