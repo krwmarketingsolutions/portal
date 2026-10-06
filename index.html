@@ -1670,10 +1670,24 @@
         <div class="header-bar-right"><div class="krw-badge">KRW</div><button class="btn btn-green" onclick="openContactModal(null)">+ Add Contact</button></div>
       </div>
       <div id="fu-bar" class="fu-bar"></div>
+      <!-- patch 277: outreach KPIs + charts -->
+      <div class="kpi-grid" id="or-kpis" style="grid-template-columns:repeat(6,minmax(0,1fr));margin:0 0 12px 0">
+        <div class="kpi-card"><div class="kpi-label">Pipeline</div><div class="kpi-value" id="ork-total">—</div><div class="kpi-sub" id="ork-total-sub"></div></div>
+        <div class="kpi-card"><div class="kpi-label">Cold</div><div class="kpi-value" id="ork-cold">—</div><div class="kpi-sub" id="ork-cold-sub"></div></div>
+        <div class="kpi-card"><div class="kpi-label">Worked</div><div class="kpi-value green" id="ork-worked">—</div><div class="kpi-sub" id="ork-worked-sub"></div></div>
+        <div class="kpi-card"><div class="kpi-label">Response rate</div><div class="kpi-value green" id="ork-resp">—</div><div class="kpi-sub" id="ork-resp-sub"></div></div>
+        <div class="kpi-card"><div class="kpi-label">In talks</div><div class="kpi-value" id="ork-talks">—</div><div class="kpi-sub" id="ork-talks-sub"></div></div>
+        <div class="kpi-card"><div class="kpi-label">Ready to deal</div><div class="kpi-value green" id="ork-ready">—</div><div class="kpi-sub" id="ork-ready-sub"></div></div>
+      </div>
+      <div style="display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap">
+        <div class="kpi-card" style="flex:1;min-width:300px"><div class="kpi-label">Stage funnel</div><div id="or-funnel"></div></div>
+        <div class="kpi-card" style="flex:1;min-width:300px"><div class="kpi-label">By vertical</div><div id="or-verts"></div></div>
+      </div>
       <div class="or-toolbar">
         <div class="or-left">
           <input class="or-search" id="or-search" type="text" placeholder="Search name, company, vertical..." oninput="renderOutreach()"/>
           <select class="or-sel" id="or-role" onchange="renderOutreach()"><option value="">All Roles</option><option value="buyer">Buyer</option><option value="seller">Seller</option><option value="both">Both</option></select>
+          <select class="or-sel" id="or-vert" onchange="renderOutreach()"><option value="">All Verticals</option><option value="MVA">MVA</option><option value="SSDI">SSDI</option><option value="OTHER">Other</option></select>
           <select class="or-sel" id="or-stage" onchange="renderOutreach()"><option value="">All Stages</option><option value="cold">Cold</option><option value="contacted">Contacted</option><option value="responded">Responded</option><option value="intalks">In Talks</option><option value="ready">Ready to Deal</option></select>
         </div>
         <div class="view-toggle">
@@ -3703,14 +3717,59 @@ function getFiltered(){
   var q=(document.getElementById('or-search').value||'').toLowerCase();
   var role=document.getElementById('or-role').value||'';
   var stage=document.getElementById('or-stage').value||'';
+  var vert=(document.getElementById('or-vert')||{value:''}).value||'';
   return orData.filter(function(c){
     if(role&&c.role!==role)return false;
     if(stage&&c.stage!==stage)return false;
+    if(vert){var vv=String(c.vertical||'').toUpperCase(); if(vert==='OTHER'){ if(vv.indexOf('MVA')>-1||vv.indexOf('SSDI')>-1)return false; } else if(vv.indexOf(vert)<0)return false;}
     if(q&&!(c.name.toLowerCase().includes(q)||(c.company||'').toLowerCase().includes(q)||(c.vertical||'').toLowerCase().includes(q)))return false;
     return true;
   });
 }
 
+// patch 277: clickable card fields + outreach stats
+function orCompanyHtml(c){
+  if(!c.company) return '';
+  var d=String(c.company).trim();
+  if(/^[a-z0-9][a-z0-9.-]*\.[a-z]{2,}$/i.test(d)) return '<div class="c-company"><a href="https://'+d+'" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:inherit;text-decoration:underline">'+d+'</a></div>';
+  return '<div class="c-company">'+d+'</div>';
+}
+function orContactHtml(c){
+  var v=String(c.contact||'').trim(); if(!v) return '';
+  if(v.indexOf('@')>0) return '<div class="c-company"><a href="mailto:'+v+'" onclick="event.stopPropagation()" style="color:var(--green);text-decoration:none">\u2709 '+v+'</a></div>';
+  var d=v.replace(/\D/g,'');
+  if(d.length>=10) return '<div class="c-company"><a href="tel:+1'+d.slice(-10)+'" onclick="event.stopPropagation()" style="color:var(--green);text-decoration:none">\u2706 '+v+'</a></div>';
+  return '<div class="c-company">'+v+'</div>';
+}
+function renderOrStats(){
+  var t=orData.length||0, by={};
+  STAGES.forEach(function(st){ by[st]=orData.filter(function(c){return c.stage===st;}).length; });
+  var worked=t-by.cold, resp=by.responded+by.intalks+by.ready;
+  var email=orData.filter(function(c){return String(c.contact||'').indexOf('@')>0;}).length;
+  function set(id,v,sub){ var e=document.getElementById(id); if(e)e.textContent=v; var sb=document.getElementById(id+'-sub'); if(sb&&sub!=null)sb.textContent=sub; }
+  set('ork-total',t,email+' with email on file');
+  set('ork-cold',by.cold,'untouched prospects');
+  set('ork-worked',(t?Math.round(100*worked/t):0)+'%',worked+' of '+t+' contacted or further');
+  set('ork-resp',(worked?Math.round(100*resp/worked):0)+'%',resp+' responded or further');
+  set('ork-talks',by.intalks,'active conversations');
+  set('ork-ready',by.ready,'ready to deal');
+  function bars(el,items,wide){
+    if(!el)return;
+    var mx=1; items.forEach(function(it){ if(it[1]>mx)mx=it[1]; });
+    el.innerHTML=items.map(function(it){
+      var w=Math.max(Math.round(100*it[1]/mx),2);
+      var lbl=it.length>2?it[1]+' \u00b7 '+it[2]+'%':String(it[1]);
+      return '<div style="display:flex;align-items:center;gap:8px;margin:5px 0">'+
+        '<div style="width:92px;font-size:11px;color:var(--muted);text-align:right;font-family:Helvetica Neue,Arial,sans-serif">'+it[0]+'</div>'+
+        '<div style="flex:1;background:var(--border);border-radius:3px;height:14px"><div style="width:'+w+'%;height:14px;border-radius:3px;background:var(--green)"></div></div>'+
+        '<div style="width:'+(wide?70:34)+'px;font-size:11px;font-weight:600">'+lbl+'</div></div>';
+    }).join('');
+  }
+  bars(document.getElementById('or-funnel'), STAGES.map(function(st){ return [STAGE_LABELS[st], by[st]]; }), false);
+  var vb={MVA:0,SSDI:0,Other:0};
+  orData.forEach(function(c){ var v=String(c.vertical||'').toUpperCase(); if(v.indexOf('MVA')>-1)vb.MVA++; else if(v.indexOf('SSDI')>-1)vb.SSDI++; else vb.Other++; });
+  bars(document.getElementById('or-verts'), Object.keys(vb).map(function(k){ return [k, vb[k], t?Math.round(100*vb[k]/t):0]; }), true);
+}
 function roleBadge(r){var m={buyer:'buyer',seller:'seller',both:'both'};var l={buyer:'Buyer',seller:'Seller',both:'Buyer + Seller'};return '<span class="c-tag '+m[r]+'">'+l[r]+'</span>';}
 function stagePill(s){return '<span class="stage-pill '+s+'"><span class="sp-dot"></span>'+STAGE_LABELS[s]+'</span>';}
 
@@ -3727,6 +3786,7 @@ function renderOutreach(){
     fb.textContent=msgs.join('  ·  ');
     fb.className='fu-bar'+(msgs.length?' show':'');
   }
+  renderOrStats();
   if(orView==='board')renderBoard(contacts);
   else renderList(contacts);
 }
@@ -3777,7 +3837,7 @@ function renderBoard(contacts){
         '<span class="drag-handle" title="Drag to move">⠿</span>'+
         '<button class="card-del" onclick="event.stopPropagation();deleteContact('+c.id+')">×</button>'+
         '<div class="c-name">'+c.name+(stale?'<span class="stale-badge">'+da+'d</span>':'')+'</div>'+
-        (c.company?'<div class="c-company">'+c.company+'</div>':'')+
+        orCompanyHtml(c)+orContactHtml(c)+
         '<div class="c-tags">'+roleBadge(c.role)+(c.vertical?'<span class="c-tag">'+c.vertical.split(',')[0].trim()+'</span>':'')+'<span class="c-tag">'+c.source+'</span></div>'+
         (c.offer?'<div class="c-offer">'+c.offer.substring(0,70)+(c.offer.length>70?'...':'')+'</div>':'')+
         '<div class="c-meta"><span class="c-date'+(od?' od':'')+'">'+( c.followup?'Follow-up: '+c.followup:(c.lastContact?'Last: '+c.lastContact:'No contact'))+'</span>'+(c.potential>0?'<span class="c-pot">~$'+Number(c.potential).toLocaleString()+'</span>':'')+'</div>';
@@ -3818,7 +3878,7 @@ function renderList(contacts){
     var stale=isStale(c),od=isOverdue(c);
     var tr=document.createElement('tr');
     tr.innerHTML='<td style="font-weight:500">'+c.name+(stale?'<span class="stale-badge">stale</span>':'')+'</td>'+
-      '<td style="color:var(--muted)">'+(c.company||'—')+'</td>'+
+      '<td>'+(orCompanyHtml(c)||'<span style="color:var(--muted)">—</span>')+'</td>'+
       '<td>'+roleBadge(c.role)+'</td>'+
       '<td style="color:var(--muted)">'+(c.vertical||'—')+'</td>'+
       '<td>'+stagePill(c.stage)+'</td>'+
