@@ -3656,10 +3656,36 @@ var OR_DEFAULT=[
   {id:5,name:'Adil Ameen',company:'',role:'seller',vertical:'FE Inbounds',stage:'intalks',source:'LinkedIn',lastContact:'2025-06-25',followup:'',contact:'',potential:3000,offer:'FE Inbound seller',notes:'Set up Teams meeting'},
 ];
 var orData=(function(){try{var s=localStorage.getItem(OR_KEY);if(s)return JSON.parse(s);}catch(e){}return JSON.parse(JSON.stringify(OR_DEFAULT));})();
+// patch 276: the Outreach board lives on the server now (table outreach_contacts).
+// The local copy above only paints instantly; the server is the source of truth.
+var OR_API='https://krw-backend-production.up.railway.app';
+var OR_API_KEY_='64tgzb5ostadx1azjio9crdlduw4vf29';
+var orLoaded=false;
+function orFetch(){
+  fetch(OR_API+'/outreach/contacts',{headers:{'x-api-key':OR_API_KEY_}})
+  .then(function(r){return r.json();})
+  .then(function(d){
+    if(!d.ok)throw new Error(d.error||'load failed');
+    if(d.contacts.length){ orData=d.contacts; }
+    else if(orData.length){ orPush(); }   // first ever load: migrate this browser's contacts up
+    orLoaded=true;
+    try{localStorage.setItem(OR_KEY,JSON.stringify(orData));}catch(e){}
+    var pg=document.getElementById('page-outreach');
+    if(pg&&pg.style.display!=='none')renderOutreach();
+  })
+  .catch(function(e){ console.warn('[Outreach] server load failed, using local copy:', e.message); orLoaded=true; });
+}
+function orPush(){
+  fetch(OR_API+'/outreach/contacts',{method:'PUT',headers:{'Content-Type':'application/json','x-api-key':OR_API_KEY_},body:JSON.stringify({contacts:orData})})
+  .then(function(r){return r.json();})
+  .then(function(d){ if(!d.ok)console.warn('[Outreach] server save failed:',d.error); })
+  .catch(function(e){ console.warn('[Outreach] server save failed:', e.message); });
+}
+orFetch();
 var orView='board';
 var editingId=null;
 
-function orSave(){try{localStorage.setItem(OR_KEY,JSON.stringify(orData));}catch(e){}}
+function orSave(){try{localStorage.setItem(OR_KEY,JSON.stringify(orData));}catch(e){} if(orLoaded){orPush();}else{setTimeout(orSave,1500);}}
 function orNextId(){return orData.length?Math.max.apply(null,orData.map(function(c){return c.id;}))+1:1;}
 function daysSince(d){if(!d)return null;return Math.floor((new Date()-new Date(d))/86400000);}
 function isStale(c){var d=daysSince(c.lastContact);return d!==null&&d>=7;}
