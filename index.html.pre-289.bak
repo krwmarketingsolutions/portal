@@ -2337,7 +2337,8 @@
             <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:10px">System Credentials</div>
             <div style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;line-height:2">
               <div><span style="color:var(--muted)">Railway URL</span><br><code style="font-size:11px;background:var(--subtle);padding:2px 6px;border-radius:3px">krw-backend-production.up.railway.app</code></div>
-              <div style="margin-top:8px"><span style="color:var(--muted)">API keys</span><br><span style="font-size:11px;color:var(--muted)">Kept on the server only &mdash; this page is public, so keys are no longer shown or stored here. <a onclick="krwLogout()" style="color:var(--green);cursor:pointer;text-decoration:underline">Sign out</a></span></div>
+              <div style="margin-top:8px"><span style="color:var(--muted)">Lead API Key</span><br><code style="font-size:11px;background:var(--subtle);padding:2px 6px;border-radius:3px">krwleads2026secure</code></div>
+              <div style="margin-top:8px"><span style="color:var(--muted)">Dashboard API Key</span><br><code style="font-size:11px;background:var(--subtle);padding:2px 6px;border-radius:3px">64tgzb5ostadx1azjio9crdlduw4vf29</code></div>
               <div style="margin-top:8px"><span style="color:var(--muted)">Publisher Form</span><br><code style="font-size:11px;background:var(--subtle);padding:2px 6px;border-radius:3px">krwmarketingsolutions.github.io/forms</code></div>
             </div>
           </div>
@@ -3102,109 +3103,6 @@ SELECT required_fields FROM campaigns WHERE slug = 'SLUG';</pre>
 
 
 <script>
-/* ── patch 289: login instead of a key baked into this public page ─────────
-   This file is served from GitHub Pages, so anything in it is readable by
-   anyone. The admin key is gone; the dashboard now signs in and uses a
-   signed 12-hour token that lives only in this browser.                     */
-var KRW_API_HOST = 'krw-backend-production.up.railway.app';
-var KRW_TOKEN = '';
-try { KRW_TOKEN = localStorage.getItem('krw_token') || ''; } catch (e) {}
-
-(function () {
-  var _fetch = window.fetch;
-  window.fetch = function (url, opts) {
-    try {
-      if (String(url).indexOf(KRW_API_HOST) > -1 && KRW_TOKEN) {
-        opts = opts || {};
-        var h = {};
-        if (opts.headers) { for (var k in opts.headers) h[k] = opts.headers[k]; }
-        h['Authorization'] = 'Bearer ' + KRW_TOKEN;
-        delete h['x-api-key'];
-        opts.headers = h;
-      }
-    } catch (e) {}
-    return _fetch.call(this, url, opts);
-  };
-})();
-
-/* The lead key is what publishers post with. It used to be written into this
-   page; now it is fetched once, after sign-in, and only an admin token can
-   get it. */
-var KRW_LEAD_KEY = '';
-function krwLoadConfig() {
-  if (!KRW_TOKEN) return;
-  fetch('https://' + KRW_API_HOST + '/auth/config')
-    .then(function (r) { return r.json(); })
-    .then(function (j) { if (j && j.ok) KRW_LEAD_KEY = j.lead_key || ''; })
-    .catch(function () {});
-}
-function krwLogout() {
-  try { localStorage.removeItem('krw_token'); } catch (e) {}
-  location.reload();
-}
-function krwShowLogin(msg) {
-  if (document.getElementById('krw-login')) {
-    if (msg) document.getElementById('krw-login-msg').textContent = msg;
-    return;
-  }
-  var d = document.createElement('div');
-  d.id = 'krw-login';
-  d.setAttribute('style', 'position:fixed;inset:0;z-index:99999;background:#F3EEE3;display:flex;align-items:center;' +
-    'justify-content:center;font-family:\'Source Serif 4\',Georgia,serif');
-  d.innerHTML =
-    '<form id="krw-login-form" style="background:#FBF8F1;border:1px solid #CFC5B0;border-top:3px solid #1F4D36;' +
-      'padding:34px 38px;width:380px;max-width:92vw">' +
-      '<div style="font-family:Helvetica Neue,Arial,sans-serif;font-size:22px;font-weight:700;letter-spacing:.04em;color:#1F4D36">KRW</div>' +
-      '<h2 style="font-size:24px;font-weight:600;margin:10px 0 6px;color:#1E2A22">Deal Dashboard</h2>' +
-      '<p style="font-size:14px;color:#4E5A52;margin:0 0 18px;line-height:1.5">Sign in to load your data.</p>' +
-      '<input id="krw-pw" type="password" autocomplete="current-password" placeholder="Password" ' +
-        'style="font:inherit;font-size:15px;width:100%;padding:9px 11px;border:1px solid #B9AE95;border-radius:3px;' +
-        'background:#fff;color:#1E2A22;margin-bottom:12px">' +
-      '<button type="submit" style="font:inherit;font-size:15px;width:100%;background:#1F4D36;color:#F3EEE3;' +
-        'border:0;border-radius:3px;padding:9px 16px;cursor:pointer">Sign in</button>' +
-      '<div id="krw-login-msg" style="font-size:13.5px;color:#8E3B2F;margin-top:12px;min-height:18px"></div>' +
-    '</form>';
-  document.body.appendChild(d);
-  if (msg) document.getElementById('krw-login-msg').textContent = msg;
-  var f = document.getElementById('krw-login-form');
-  f.addEventListener('submit', function (ev) {
-    ev.preventDefault();
-    var pw = document.getElementById('krw-pw').value;
-    var m = document.getElementById('krw-login-msg');
-    m.style.color = '#4E5A52'; m.textContent = 'Checking...';
-    fetch('https://' + KRW_API_HOST + '/auth/login', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password: pw })
-    }).then(function (r) { return r.json(); }).then(function (j) {
-      if (!j.ok || !j.token) throw new Error(j.error || 'Sign in failed');
-      try { localStorage.setItem('krw_token', j.token); } catch (e) {}
-      m.style.color = '#1F4D36'; m.textContent = 'Signed in, loading...';
-      location.reload();
-    }).catch(function (e) {
-      m.style.color = '#8E3B2F';
-      m.textContent = e.message === 'Failed to fetch' ? 'Could not reach the server.' : e.message;
-    });
-  });
-  setTimeout(function () { var p = document.getElementById('krw-pw'); if (p) p.focus(); }, 60);
-}
-
-// Gate the page: no usable token means nothing loads behind the overlay.
-(function () {
-  function gate() {
-    if (!KRW_TOKEN) { krwShowLogin(''); return; }
-    fetch('https://' + KRW_API_HOST + '/auth/check')
-      .then(function (r) { return r.json(); })
-      .then(function (j) {
-        if (!j.ok || j.role !== 'admin') { KRW_TOKEN = ''; krwShowLogin('That session expired. Sign in again.'); }
-        else krwLoadConfig();
-      })
-      .catch(function () {});
-  }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', gate);
-  else gate();
-})();
-</script>
-<script>
 // ── Publisher data ────────────────────────────────
 var PUBLISHERS_KEY = 'krw_publishers_v1';
 
@@ -3956,7 +3854,7 @@ var orData=(function(){try{var s=localStorage.getItem(OR_KEY);if(s)return JSON.p
 // patch 276: the Outreach board lives on the server now (table outreach_contacts).
 // The local copy above only paints instantly; the server is the source of truth.
 var OR_API='https://krw-backend-production.up.railway.app';
-var OR_API_KEY_='';   // patch 289: the token does this now
+var OR_API_KEY_='64tgzb5ostadx1azjio9crdlduw4vf29';
 var orLoaded=false;
 function orFetch(){
   fetch(OR_API+'/outreach/contacts',{headers:{'x-api-key':OR_API_KEY_}})
@@ -4779,7 +4677,7 @@ function initCalendar(){
 // ════════════════════════════════════════════════
 // ── Revenue API config ─────────────────────────────────────────────
 var REV_API_URL = 'https://krw-backend-production.up.railway.app';
-var REV_API_KEY = '';   // patch 289: the token does this now
+var REV_API_KEY = '64tgzb5ostadx1azjio9crdlduw4vf29';
 var revAutoRefresh = null;
 
 // Keep revConfig as alias so existing code still works
@@ -5793,7 +5691,7 @@ async function fetchLeadsFeed() {
 function exportLeadsCSV() {
   if (!REV_API_URL || !REV_API_KEY) { showToast('Connect to Railway first'); return; }
   var campaign = leadsActiveCampaign || 'depo';
-  var url = REV_API_URL + '/leads/export/' + campaign + '?token=' + encodeURIComponent(KRW_TOKEN);
+  var url = REV_API_URL + '/leads/export/' + campaign + '?api_key=' + encodeURIComponent(REV_API_KEY);
   window.open(url, '_blank');
 }
 
@@ -6422,7 +6320,7 @@ function exportLeadsCSV(){
 
   // Also save to Railway if connected
   if(!REV_API_URL||!REV_API_KEY){ return; } // saved locally, that's fine
-  window.open(REV_API_URL+'/leads/export/'+(leadsActiveCampaign||'depo')+'?token='+encodeURIComponent(KRW_TOKEN),'_blank');
+  window.open(REV_API_URL+'/leads/export/'+(leadsActiveCampaign||'depo')+'?api_key='+encodeURIComponent(REV_API_KEY),'_blank');
 }
 
 // ── Campaign manager ──────────────────────────────────────────
@@ -8246,7 +8144,7 @@ function exportLeadsCSV(){
 
   // Also save to Railway if connected
   if(!REV_API_URL||!REV_API_KEY){ return; } // saved locally, that's fine
-  window.open(REV_API_URL+'/leads/export/'+(leadsActiveCampaign||'depo')+'?token='+encodeURIComponent(KRW_TOKEN),'_blank');
+  window.open(REV_API_URL+'/leads/export/'+(leadsActiveCampaign||'depo')+'?api_key='+encodeURIComponent(REV_API_KEY),'_blank');
 }
 
 // ── Campaign manager ──────────────────────────────────────────
@@ -8788,7 +8686,7 @@ function generatePostingInstructions(){
 
   var formUrl = 'https://krwmarketingsolutions.github.io/forms?campaign='+campaignSlug+'&sub='+sub;
   var apiUrl  = 'https://krw-backend-production.up.railway.app/lead/'+campaignSlug;
-  var apiKey  = KRW_LEAD_KEY || '(sign in to show the lead key)';   // patch 289
+  var apiKey  = 'krwleads2026secure';
   var labels  = camp.field_labels || {};
 
   function fl(name){
