@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta http-equiv="Cache-Control" content="no-cache, must-revalidate"/>
+<meta http-equiv="Pragma" content="no-cache"/>
 <title>KRW Deal Dashboard</title>
 <link rel="manifest" href="manifest.json"/>
 <meta name="theme-color" content="#1F4D2E"/>
@@ -3101,6 +3103,36 @@ SELECT required_fields FROM campaigns WHERE slug = 'SLUG';</pre>
 
 
 
+<script>
+/* patch 297: the page keeps itself current.
+   A home-screen app on iOS can sit on a cached copy of this file for a long
+   time. version.txt is fetched with no-store so it is always the real one;
+   if it does not match the build running here, reload once. */
+var KRW_BUILD = '20261007-191051';
+(function () {
+  var reloaded = false;
+  function checkBuild() {
+    if (reloaded) return;
+    fetch('version.txt?t=' + Date.now(), { cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.text() : null; })
+      .then(function (t) {
+        if (!t) return;
+        var latest = String(t).trim();
+        if (latest && latest !== KRW_BUILD) {
+          reloaded = true;                       // one reload, never a loop
+          var u = location.href.split('#')[0].split('?')[0];
+          location.replace(u + '?v=' + encodeURIComponent(latest));
+        }
+      })
+      .catch(function () {});                    // offline is not an error here
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', checkBuild);
+  else checkBuild();
+  // the moment a suspended home-screen app comes back
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) checkBuild(); });
+  window.addEventListener('focus', checkBuild);
+})();
+</script>
 <script>
 /* ── patch 289: login instead of a key baked into this public page ─────────
    This file is served from GitHub Pages, so anything in it is readable by
