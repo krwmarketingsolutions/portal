@@ -3110,11 +3110,20 @@ var KRW_API_HOST = 'krw-backend-production.up.railway.app';
 var KRW_TOKEN = '';
 try { KRW_TOKEN = localStorage.getItem('krw_token') || ''; } catch (e) {}
 
+// patch 294: drop a dead session and ask for a sign-in, rather than
+// letting every call fail quietly behind a dashboard full of zeros.
+function krwDropToken(msg) {
+  try { localStorage.removeItem('krw_token'); } catch (e) {}
+  KRW_TOKEN = '';
+  krwShowLogin(msg || 'That session expired. Sign in again.');
+}
 (function () {
   var _fetch = window.fetch;
   window.fetch = function (url, opts) {
+    var isApi = false;
     try {
-      if (String(url).indexOf(KRW_API_HOST) > -1 && KRW_TOKEN) {
+      isApi = String(url).indexOf(KRW_API_HOST) > -1;
+      if (isApi && KRW_TOKEN) {
         opts = opts || {};
         var h = {};
         if (opts.headers) { for (var k in opts.headers) h[k] = opts.headers[k]; }
@@ -3123,7 +3132,16 @@ try { KRW_TOKEN = localStorage.getItem('krw_token') || ''; } catch (e) {}
         opts.headers = h;
       }
     } catch (e) {}
-    return _fetch.call(this, url, opts);
+    var p = _fetch.call(this, url, opts);
+    if (!isApi) return p;
+    return p.then(function (r) {
+      // one 401/403 means this token is finished - say so immediately
+      if ((r.status === 401 || r.status === 403) && KRW_TOKEN
+          && String(url).indexOf('/auth/login') < 0) {
+        krwDropToken('Your session is no longer valid. Sign in again.');
+      }
+      return r;
+    });
   };
 })();
 
@@ -3191,14 +3209,24 @@ function krwShowLogin(msg) {
 // Gate the page: no usable token means nothing loads behind the overlay.
 (function () {
   function gate() {
+    // patch 294: ?signout forces a clean sign-in without the dev console
+    if (location.search.indexOf('signout') > -1) {
+      try { localStorage.removeItem('krw_token'); } catch (e) {}
+      KRW_TOKEN = ''; krwShowLogin('Signed out. Sign in to load your data.'); return;
+    }
     if (!KRW_TOKEN) { krwShowLogin(''); return; }
     fetch('https://' + KRW_API_HOST + '/auth/check')
       .then(function (r) { return r.json(); })
       .then(function (j) {
-        if (!j.ok || j.role !== 'admin') { KRW_TOKEN = ''; krwShowLogin('That session expired. Sign in again.'); }
+        if (!j.ok || j.role !== 'admin') { krwDropToken('That session expired. Sign in again.'); }
         else krwLoadConfig();
       })
-      .catch(function () {});
+      // patch 294: this used to be an empty catch, which left the page sitting
+      // on a token the server rejects - no login, no error, just zeros.
+      .catch(function (e) {
+        krwShowLogin('Could not reach the server to check your session. '
+          + 'If this keeps happening, sign in again.');
+      });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', gate);
   else gate();
