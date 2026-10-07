@@ -4,12 +4,6 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>KRW Deal Dashboard</title>
-<link rel="manifest" href="manifest.json"/>
-<meta name="theme-color" content="#1F4D2E"/>
-<meta name="apple-mobile-web-app-capable" content="yes"/>
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-<meta name="apple-mobile-web-app-title" content="KRW"/>
-<link rel="apple-touch-icon" href="icon-192.png"/>
 <style>
 
   :root {
@@ -906,29 +900,6 @@
   .pi-section-title{font-family:'Helvetica Neue',Arial,sans-serif;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:6px}
   .pi-code{background:var(--subtle);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.75rem 1rem;font-family:'Courier New',monospace;font-size:12px;line-height:1.6;color:var(--text);white-space:pre-wrap;word-break:break-all}
   .pi-output{background:var(--subtle);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1rem 1.25rem;font-family:'Helvetica Neue',Arial,sans-serif;font-size:13px;line-height:1.8;white-space:pre-wrap}
-
-  /* ═══ MOBILE ONLY — everything below only applies under 768px, zero effect on desktop ═══ */
-  @media (max-width: 768px) {
-    /* "Zoom out" the main content area so multi-column layouts fit without
-       squeezing or horizontal scrolling. Sidebar/nav is a separate sibling
-       element, untouched, since that's already working well. Using zoom
-       (not transform:scale) since it correctly reflows layout space rather
-       than just shrinking visually on top of unchanged space. */
-    .page-area { zoom: 0.72; }
-
-    /* Any inline-styled grid (KPI cards, Billable Queue counts, etc.) still
-       collapses to a single column even at the zoomed-out size, since a
-       4-across grid at 72% size is still cramped on a phone screen. */
-    [style*="grid-template-columns:repeat"] { grid-template-columns: 1fr !important; }
-
-    /* Every table gets guaranteed horizontal scroll, in case any table
-       wrapper is missing overflow-x. */
-    table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-
-    /* Slightly larger tap targets on buttons/inputs, since the zoom-out
-       above would otherwise make them too small to tap accurately. */
-    button, .btn, input, select { min-height: 38px; }
-  }
 
 </style>
 </head>
@@ -1903,7 +1874,7 @@
             <div style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;line-height:2">
               <div><span style="color:var(--muted)">Railway URL</span><br><code style="font-size:11px;background:var(--subtle);padding:2px 6px;border-radius:3px">krw-backend-production.up.railway.app</code></div>
               <div style="margin-top:8px"><span style="color:var(--muted)">Lead API Key</span><br><code style="font-size:11px;background:var(--subtle);padding:2px 6px;border-radius:3px">krwleads2026secure</code></div>
-              <div style="margin-top:8px"><span style="color:var(--muted)">Dashboard API Key</span><br><code style="font-size:11px;background:var(--subtle);padding:2px 6px;border-radius:3px"></code></div>
+              <div style="margin-top:8px"><span style="color:var(--muted)">Dashboard API Key</span><br><code style="font-size:11px;background:var(--subtle);padding:2px 6px;border-radius:3px">64tgzb5ostadx1azjio9crdlduw4vf29</code></div>
               <div style="margin-top:8px"><span style="color:var(--muted)">Publisher Form</span><br><code style="font-size:11px;background:var(--subtle);padding:2px 6px;border-radius:3px">krwmarketingsolutions.github.io/forms</code></div>
             </div>
           </div>
@@ -4120,7 +4091,7 @@ function initCalendar(){
 // ════════════════════════════════════════════════
 // ── Revenue API config ─────────────────────────────────────────────
 var REV_API_URL = 'https://krw-backend-production.up.railway.app';
-var REV_API_KEY = '';
+var REV_API_KEY = '64tgzb5ostadx1azjio9crdlduw4vf29';
 var revAutoRefresh = null;
 
 // Keep revConfig as alias so existing code still works

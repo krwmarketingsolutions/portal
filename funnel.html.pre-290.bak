@@ -164,7 +164,7 @@
 
 <script>
 var API_URL = 'https://krw-backend-production.up.railway.app';
-var API_KEY = '';
+var API_KEY = '64tgzb5ostadx1azjio9crdlduw4vf29';
 var PERIOD = 'week';
 var CUSTOM_FROM = null;
 var CUSTOM_TO = null;

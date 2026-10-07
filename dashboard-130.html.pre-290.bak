@@ -4,12 +4,6 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>KRW Deal Dashboard</title>
-<link rel="manifest" href="manifest.json"/>
-<meta name="theme-color" content="#1F4D2E"/>
-<meta name="apple-mobile-web-app-capable" content="yes"/>
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-<meta name="apple-mobile-web-app-title" content="KRW"/>
-<link rel="apple-touch-icon" href="icon-192.png"/>
 <style>
 
   :root {
@@ -907,29 +901,6 @@
   .pi-code{background:var(--subtle);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.75rem 1rem;font-family:'Courier New',monospace;font-size:12px;line-height:1.6;color:var(--text);white-space:pre-wrap;word-break:break-all}
   .pi-output{background:var(--subtle);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1rem 1.25rem;font-family:'Helvetica Neue',Arial,sans-serif;font-size:13px;line-height:1.8;white-space:pre-wrap}
 
-  /* ═══ MOBILE ONLY — everything below only applies under 768px, zero effect on desktop ═══ */
-  @media (max-width: 768px) {
-    /* "Zoom out" the main content area so multi-column layouts fit without
-       squeezing or horizontal scrolling. Sidebar/nav is a separate sibling
-       element, untouched, since that's already working well. Using zoom
-       (not transform:scale) since it correctly reflows layout space rather
-       than just shrinking visually on top of unchanged space. */
-    .page-area { zoom: 0.72; }
-
-    /* Any inline-styled grid (KPI cards, Billable Queue counts, etc.) still
-       collapses to a single column even at the zoomed-out size, since a
-       4-across grid at 72% size is still cramped on a phone screen. */
-    [style*="grid-template-columns:repeat"] { grid-template-columns: 1fr !important; }
-
-    /* Every table gets guaranteed horizontal scroll, in case any table
-       wrapper is missing overflow-x. */
-    table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-
-    /* Slightly larger tap targets on buttons/inputs, since the zoom-out
-       above would otherwise make them too small to tap accurately. */
-    button, .btn, input, select { min-height: 38px; }
-  }
-
 </style>
 </head>
 <body>
@@ -1776,14 +1747,7 @@
                 <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)">Billable Approval Queue</div>
                 <div style="font-size:11px;color:var(--muted);margin-top:2px">Ringfuel marks a 1696 call billable, it lands here — nothing reaches a publisher until you Approve it</div>
               </div>
-              <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-                <input type="date" id="bq-date-from" style="padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:var(--surface)">
-                <span style="color:var(--muted);font-size:11px">to</span>
-                <input type="date" id="bq-date-to" style="padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:var(--surface)">
-                <button class="btn" style="padding:5px 10px;font-size:11px" onclick="applyBqDateRange()">Apply</button>
-                <button class="btn" style="padding:5px 10px;font-size:11px" onclick="clearBqDateRange()">Clear</button>
-                <button class="btn" style="padding:5px 10px;font-size:11px" onclick="fetchBillableQueue()">↻</button>
-              </div>
+              <button class="btn" style="padding:5px 10px;font-size:11px" onclick="fetchBillableQueue()">↻</button>
             </div>
             <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">
               <div style="background:#fafbfd;border:1px solid var(--border);border-radius:8px;padding:10px 14px">
@@ -1903,7 +1867,7 @@
             <div style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;line-height:2">
               <div><span style="color:var(--muted)">Railway URL</span><br><code style="font-size:11px;background:var(--subtle);padding:2px 6px;border-radius:3px">krw-backend-production.up.railway.app</code></div>
               <div style="margin-top:8px"><span style="color:var(--muted)">Lead API Key</span><br><code style="font-size:11px;background:var(--subtle);padding:2px 6px;border-radius:3px">krwleads2026secure</code></div>
-              <div style="margin-top:8px"><span style="color:var(--muted)">Dashboard API Key</span><br><code style="font-size:11px;background:var(--subtle);padding:2px 6px;border-radius:3px"></code></div>
+              <div style="margin-top:8px"><span style="color:var(--muted)">Dashboard API Key</span><br><code style="font-size:11px;background:var(--subtle);padding:2px 6px;border-radius:3px">64tgzb5ostadx1azjio9crdlduw4vf29</code></div>
               <div style="margin-top:8px"><span style="color:var(--muted)">Publisher Form</span><br><code style="font-size:11px;background:var(--subtle);padding:2px 6px;border-radius:3px">krwmarketingsolutions.github.io/forms</code></div>
             </div>
           </div>
@@ -4120,7 +4084,7 @@ function initCalendar(){
 // ════════════════════════════════════════════════
 // ── Revenue API config ─────────────────────────────────────────────
 var REV_API_URL = 'https://krw-backend-production.up.railway.app';
-var REV_API_KEY = '';
+var REV_API_KEY = '64tgzb5ostadx1azjio9crdlduw4vf29';
 var revAutoRefresh = null;
 
 // Keep revConfig as alias so existing code still works
@@ -8709,29 +8673,6 @@ async function fetchCallsFeed(){
 }
 
 // ── Billable Approval Queue ─────────────────────────────────
-var BQ_DATE_FROM = null, BQ_DATE_TO = null;
-
-function applyBqDateRange(){
-  var f = document.getElementById('bq-date-from').value;
-  var t = document.getElementById('bq-date-to').value;
-  BQ_DATE_FROM = f ? new Date(f+'T00:00:00') : null;
-  BQ_DATE_TO   = t ? new Date(t+'T23:59:59') : null;
-  fetchBillableQueue();
-}
-function clearBqDateRange(){
-  document.getElementById('bq-date-from').value = '';
-  document.getElementById('bq-date-to').value = '';
-  BQ_DATE_FROM = null; BQ_DATE_TO = null;
-  fetchBillableQueue();
-}
-function bqInRange(dateVal){
-  if (!BQ_DATE_FROM && !BQ_DATE_TO) return true;
-  var d = new Date(dateVal||0);
-  if (BQ_DATE_FROM && d < BQ_DATE_FROM) return false;
-  if (BQ_DATE_TO && d > BQ_DATE_TO) return false;
-  return true;
-}
-
 async function fetchBillableQueue(){
   var pendingEl = document.getElementById('bq-pending-list');
   var heldEl = document.getElementById('bq-held-list');
@@ -8740,16 +8681,12 @@ async function fetchBillableQueue(){
     var d = await r.json();
     if(!d.ok) throw new Error(d.error||'Failed to load');
 
-    var allItems = d.items.filter(function(i){ return bqInRange(i.received_at); });
-    var countsInRange = { pending:0, approved:0, held:0 };
-    allItems.forEach(function(i){ if(countsInRange[i.status]!==undefined) countsInRange[i.status]++; });
+    document.getElementById('bq-count-pending').textContent  = d.counts.pending;
+    document.getElementById('bq-count-approved').textContent = d.counts.approved;
+    document.getElementById('bq-count-held').textContent     = d.counts.held;
 
-    document.getElementById('bq-count-pending').textContent  = countsInRange.pending;
-    document.getElementById('bq-count-approved').textContent = countsInRange.approved;
-    document.getElementById('bq-count-held').textContent     = countsInRange.held;
-
-    var pending = allItems.filter(function(i){ return i.status==='pending'; });
-    var held    = allItems.filter(function(i){ return i.status==='held'; });
+    var pending = d.items.filter(function(i){ return i.status==='pending'; });
+    var held    = d.items.filter(function(i){ return i.status==='held'; });
 
     pendingEl.innerHTML = pending.length ? pending.map(function(i){
       var name = ((i.first_name||'')+' '+(i.last_name||'')).trim() || '—';

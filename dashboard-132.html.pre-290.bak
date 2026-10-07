@@ -1903,7 +1903,7 @@
             <div style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;line-height:2">
               <div><span style="color:var(--muted)">Railway URL</span><br><code style="font-size:11px;background:var(--subtle);padding:2px 6px;border-radius:3px">krw-backend-production.up.railway.app</code></div>
               <div style="margin-top:8px"><span style="color:var(--muted)">Lead API Key</span><br><code style="font-size:11px;background:var(--subtle);padding:2px 6px;border-radius:3px">krwleads2026secure</code></div>
-              <div style="margin-top:8px"><span style="color:var(--muted)">Dashboard API Key</span><br><code style="font-size:11px;background:var(--subtle);padding:2px 6px;border-radius:3px"></code></div>
+              <div style="margin-top:8px"><span style="color:var(--muted)">Dashboard API Key</span><br><code style="font-size:11px;background:var(--subtle);padding:2px 6px;border-radius:3px">64tgzb5ostadx1azjio9crdlduw4vf29</code></div>
               <div style="margin-top:8px"><span style="color:var(--muted)">Publisher Form</span><br><code style="font-size:11px;background:var(--subtle);padding:2px 6px;border-radius:3px">krwmarketingsolutions.github.io/forms</code></div>
             </div>
           </div>
@@ -4120,7 +4120,7 @@ function initCalendar(){
 // ════════════════════════════════════════════════
 // ── Revenue API config ─────────────────────────────────────────────
 var REV_API_URL = 'https://krw-backend-production.up.railway.app';
-var REV_API_KEY = '';
+var REV_API_KEY = '64tgzb5ostadx1azjio9crdlduw4vf29';
 var revAutoRefresh = null;
 
 // Keep revConfig as alias so existing code still works

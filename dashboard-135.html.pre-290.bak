@@ -916,6 +916,14 @@
        than just shrinking visually on top of unchanged space. */
     .page-area { zoom: 0.72; }
 
+    /* Sidebar is a fixed 210px width regardless of screen size - on a
+       ~375-430px phone that's over half the screen. Same zoom technique
+       as above shrinks it proportionally (text + icons together) rather
+       than forcing a narrow fixed width that could wrap the nav labels
+       awkwardly. Kyler confirmed nav itself works well - this only fixes
+       its screen-share, not its layout or function. */
+    .sidebar { zoom: 0.7; }
+
     /* Any inline-styled grid (KPI cards, Billable Queue counts, etc.) still
        collapses to a single column even at the zoomed-out size, since a
        4-across grid at 72% size is still cramped on a phone screen. */
@@ -1684,6 +1692,61 @@
       </div>
       <div class="leads-scroll" style="padding:1.5rem 2.5rem">
 
+        <!-- Billable Approval Queue - moved to top, this is the priority view (Kyler, Sep 1) -->
+        <div style="background:var(--surface);border:2px solid #15803d;border-radius:var(--radius);padding:1.25rem 1.5rem;margin-bottom:1.5rem">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px">
+            <div>
+              <div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text)">Billable SSDI Leads</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:2px">Ringfuel marks a 1696 call billable, it lands here — nothing reaches a publisher until you Approve it</div>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+              <input type="date" id="bq-date-from" style="padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:var(--surface)">
+              <span style="color:var(--muted);font-size:11px">to</span>
+              <input type="date" id="bq-date-to" style="padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:var(--surface)">
+              <button class="btn" style="padding:5px 10px;font-size:11px" onclick="applyBqDateRange()">Apply</button>
+              <button class="btn" style="padding:5px 10px;font-size:11px" onclick="clearBqDateRange()">Clear</button>
+              <button class="btn" style="padding:5px 10px;font-size:11px" onclick="fetchBillableQueue()">↻</button>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">
+            <div style="background:#fafbfd;border:1px solid var(--border);border-radius:8px;padding:10px 14px">
+              <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">Pending</div>
+              <div id="bq-count-pending" style="font-size:22px;font-weight:700;color:#a16207">—</div>
+            </div>
+            <div style="background:#fafbfd;border:1px solid var(--border);border-radius:8px;padding:10px 14px">
+              <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">Approved</div>
+              <div id="bq-count-approved" style="font-size:22px;font-weight:700;color:#15803d">—</div>
+              <div id="bq-approved-revenue" style="font-size:11px;color:var(--muted);margin-top:2px">$0 total</div>
+            </div>
+            <div style="background:#fafbfd;border:1px solid var(--border);border-radius:8px;padding:10px 14px">
+              <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">Held (private)</div>
+              <div id="bq-count-held" style="font-size:22px;font-weight:700;color:#6b7280">—</div>
+              <div id="bq-held-revenue" style="font-size:11px;color:var(--muted);margin-top:2px">$0 total</div>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+            <div>
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:6px">Pending Approval</div>
+              <div id="bq-pending-list" style="border:1px solid var(--border);border-radius:8px;overflow:hidden">
+                <div style="padding:1.5rem;text-align:center;color:var(--muted);font-size:12px">Loading...</div>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:6px">Held — Private, Never Sent to Publishers</div>
+              <div id="bq-held-list" style="border:1px solid var(--border);border-radius:8px;overflow:hidden;background:#fafafa">
+                <div style="padding:1.5rem;text-align:center;color:var(--muted);font-size:12px">Loading...</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top:16px">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:6px">Approved — Only shows items confirmed via a real postback</div>
+            <div id="bq-approved-list" style="border:1px solid var(--border);border-radius:8px;overflow:hidden">
+              <div style="padding:1.5rem;text-align:center;color:var(--muted);font-size:12px">Loading...</div>
+            </div>
+          </div>
+        </div>
+
         <!-- KPI Strip -->
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.5rem" id="calls-kpi-strip">
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem">
@@ -1726,7 +1789,7 @@
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)">
             <div style="padding:.85rem 1rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
               <div style="display:flex;align-items:center;gap:10px">
-                <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)">Daily Billables</div>
+                <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)">Billable SSDI Leads</div>
                 <div style="display:flex;background:var(--subtle);border-radius:20px;padding:2px">
                   <button id="billables-view-cpa" onclick="setBillablesView('cpa')" style="padding:4px 12px;border:none;border-radius:18px;font-size:11px;font-weight:600;cursor:pointer;background:#0f1c3f;color:#fff">SSDI CPA</button>
                   <button id="billables-view-cpq" onclick="setBillablesView('cpq')" style="padding:4px 12px;border:none;border-radius:18px;font-size:11px;font-weight:600;cursor:pointer;background:transparent;color:var(--muted)">SSDI CPQ</button>
@@ -1769,50 +1832,6 @@
             </div>
           </div>
 
-          <!-- Billable Approval Queue -->
-          <div style="border-top:1px solid var(--border);margin-top:1rem;padding-top:1rem">
-            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px">
-              <div>
-                <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)">Billable Approval Queue</div>
-                <div style="font-size:11px;color:var(--muted);margin-top:2px">Ringfuel marks a 1696 call billable, it lands here — nothing reaches a publisher until you Approve it</div>
-              </div>
-              <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-                <input type="date" id="bq-date-from" style="padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:var(--surface)">
-                <span style="color:var(--muted);font-size:11px">to</span>
-                <input type="date" id="bq-date-to" style="padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:var(--surface)">
-                <button class="btn" style="padding:5px 10px;font-size:11px" onclick="applyBqDateRange()">Apply</button>
-                <button class="btn" style="padding:5px 10px;font-size:11px" onclick="clearBqDateRange()">Clear</button>
-                <button class="btn" style="padding:5px 10px;font-size:11px" onclick="fetchBillableQueue()">↻</button>
-              </div>
-            </div>
-            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">
-              <div style="background:#fafbfd;border:1px solid var(--border);border-radius:8px;padding:10px 14px">
-                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">Pending</div>
-                <div id="bq-count-pending" style="font-size:22px;font-weight:700;color:#a16207">—</div>
-              </div>
-              <div style="background:#fafbfd;border:1px solid var(--border);border-radius:8px;padding:10px 14px">
-                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">Approved</div>
-                <div id="bq-count-approved" style="font-size:22px;font-weight:700;color:#15803d">—</div>
-              </div>
-              <div style="background:#fafbfd;border:1px solid var(--border);border-radius:8px;padding:10px 14px">
-                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">Held (private)</div>
-                <div id="bq-count-held" style="font-size:22px;font-weight:700;color:#6b7280">—</div>
-              </div>
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-              <div>
-                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:6px">Pending Approval</div>
-                <div id="bq-pending-list" style="border:1px solid var(--border);border-radius:8px;overflow:hidden">
-                  <div style="padding:1.5rem;text-align:center;color:var(--muted);font-size:12px">Loading...</div>
-                </div>
-              </div>
-              <div>
-                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:6px">Held — Private, Never Sent to Publishers</div>
-                <div id="bq-held-list" style="border:1px solid var(--border);border-radius:8px;overflow:hidden;background:#fafafa">
-                  <div style="padding:1.5rem;text-align:center;color:var(--muted);font-size:12px">Loading...</div>
-                </div>
-              </div>
-            </div>
           </div>
 
         </div>
@@ -1903,7 +1922,7 @@
             <div style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;line-height:2">
               <div><span style="color:var(--muted)">Railway URL</span><br><code style="font-size:11px;background:var(--subtle);padding:2px 6px;border-radius:3px">krw-backend-production.up.railway.app</code></div>
               <div style="margin-top:8px"><span style="color:var(--muted)">Lead API Key</span><br><code style="font-size:11px;background:var(--subtle);padding:2px 6px;border-radius:3px">krwleads2026secure</code></div>
-              <div style="margin-top:8px"><span style="color:var(--muted)">Dashboard API Key</span><br><code style="font-size:11px;background:var(--subtle);padding:2px 6px;border-radius:3px"></code></div>
+              <div style="margin-top:8px"><span style="color:var(--muted)">Dashboard API Key</span><br><code style="font-size:11px;background:var(--subtle);padding:2px 6px;border-radius:3px">64tgzb5ostadx1azjio9crdlduw4vf29</code></div>
               <div style="margin-top:8px"><span style="color:var(--muted)">Publisher Form</span><br><code style="font-size:11px;background:var(--subtle);padding:2px 6px;border-radius:3px">krwmarketingsolutions.github.io/forms</code></div>
             </div>
           </div>
@@ -4120,7 +4139,7 @@ function initCalendar(){
 // ════════════════════════════════════════════════
 // ── Revenue API config ─────────────────────────────────────────────
 var REV_API_URL = 'https://krw-backend-production.up.railway.app';
-var REV_API_KEY = '';
+var REV_API_KEY = '64tgzb5ostadx1azjio9crdlduw4vf29';
 var revAutoRefresh = null;
 
 // Keep revConfig as alias so existing code still works
@@ -8735,6 +8754,7 @@ function bqInRange(dateVal){
 async function fetchBillableQueue(){
   var pendingEl = document.getElementById('bq-pending-list');
   var heldEl = document.getElementById('bq-held-list');
+  var approvedEl = document.getElementById('bq-approved-list');
   try{
     var r = await fetch(REV_API_URL+'/billable-queue',{headers:{'x-api-key':REV_API_KEY}});
     var d = await r.json();
@@ -8748,8 +8768,23 @@ async function fetchBillableQueue(){
     document.getElementById('bq-count-approved').textContent = countsInRange.approved;
     document.getElementById('bq-count-held').textContent     = countsInRange.held;
 
-    var pending = allItems.filter(function(i){ return i.status==='pending'; });
-    var held    = allItems.filter(function(i){ return i.status==='held'; });
+    var pending  = allItems.filter(function(i){ return i.status==='pending'; });
+    var held     = allItems.filter(function(i){ return i.status==='held'; });
+    var approved = allItems.filter(function(i){ return i.status==='approved'; });
+
+    var heldRevenue = held.reduce(function(s,i){ return s + parseFloat(i.amount||0); }, 0);
+    document.getElementById('bq-held-revenue').textContent = '$' + heldRevenue.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) + ' total';
+
+    var approvedRevenue = approved.reduce(function(s,i){ return s + parseFloat(i.amount||0); }, 0);
+    document.getElementById('bq-approved-revenue').textContent = '$' + approvedRevenue.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) + ' total';
+
+    // Filed = 1696 (Ringfuel-sourced), Signed = Josh's Trackdrive line.
+    // Only 1696 can actually reach this queue today - Signed calls have no
+    // approval step wired up yet - but this labels correctly either way,
+    // ready for whenever that's built (Kyler, Sep 1).
+    function sourceLabel(pubSub){
+      return pubSub === 'KRW-JOSHUA-SIGNED' ? 'Signed' : 'Filed';
+    }
 
     pendingEl.innerHTML = pending.length ? pending.map(function(i){
       var name = ((i.first_name||'')+' '+(i.last_name||'')).trim() || '—';
@@ -8768,6 +8803,17 @@ async function fetchBillableQueue(){
         '<div style="font-size:12px;font-weight:600;color:var(--muted)">'+name+' · '+(i.publisher_sub||'Unmatched')+'</div>'+
         '<div style="font-size:11px;color:var(--muted);font-family:monospace">'+i.cid+' · $'+parseFloat(i.amount).toFixed(2)+'</div></div>';
     }).join('') : '<div style="padding:1.5rem;text-align:center;color:var(--muted);font-size:12px">None held</div>';
+
+    approvedEl.innerHTML = approved.length ? approved.map(function(i){
+      var name = ((i.first_name||'')+' '+(i.last_name||'')).trim() || '—';
+      var label = sourceLabel(i.publisher_sub);
+      var badgeColor = label === 'Signed' ? '#2563eb' : '#15803d';
+      return '<div style="padding:10px 12px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:8px">'+
+        '<div><div style="font-size:12px;font-weight:600">'+name+' · '+(i.publisher_sub||'Unmatched')+' · '+(i.state||'—')+'</div>'+
+        '<div style="font-size:11px;color:var(--muted);font-family:monospace">'+i.cid+' · $'+parseFloat(i.amount).toFixed(2)+'</div></div>'+
+        '<span style="background:'+badgeColor+';color:#fff;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600">'+label+'</span>'+
+        '</div>';
+    }).join('') : '<div style="padding:1.5rem;text-align:center;color:var(--muted);font-size:12px">Nothing approved yet</div>';
   }catch(e){
     pendingEl.innerHTML = '<div style="padding:1rem;text-align:center;color:var(--red);font-size:12px">Error: '+e.message+'</div>';
   }

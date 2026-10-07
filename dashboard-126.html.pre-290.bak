@@ -4,12 +4,6 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>KRW Deal Dashboard</title>
-<link rel="manifest" href="manifest.json"/>
-<meta name="theme-color" content="#1F4D2E"/>
-<meta name="apple-mobile-web-app-capable" content="yes"/>
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-<meta name="apple-mobile-web-app-title" content="KRW"/>
-<link rel="apple-touch-icon" href="icon-192.png"/>
 <style>
 
   :root {
@@ -907,29 +901,6 @@
   .pi-code{background:var(--subtle);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.75rem 1rem;font-family:'Courier New',monospace;font-size:12px;line-height:1.6;color:var(--text);white-space:pre-wrap;word-break:break-all}
   .pi-output{background:var(--subtle);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1rem 1.25rem;font-family:'Helvetica Neue',Arial,sans-serif;font-size:13px;line-height:1.8;white-space:pre-wrap}
 
-  /* ═══ MOBILE ONLY — everything below only applies under 768px, zero effect on desktop ═══ */
-  @media (max-width: 768px) {
-    /* "Zoom out" the main content area so multi-column layouts fit without
-       squeezing or horizontal scrolling. Sidebar/nav is a separate sibling
-       element, untouched, since that's already working well. Using zoom
-       (not transform:scale) since it correctly reflows layout space rather
-       than just shrinking visually on top of unchanged space. */
-    .page-area { zoom: 0.72; }
-
-    /* Any inline-styled grid (KPI cards, Billable Queue counts, etc.) still
-       collapses to a single column even at the zoomed-out size, since a
-       4-across grid at 72% size is still cramped on a phone screen. */
-    [style*="grid-template-columns:repeat"] { grid-template-columns: 1fr !important; }
-
-    /* Every table gets guaranteed horizontal scroll, in case any table
-       wrapper is missing overflow-x. */
-    table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-
-    /* Slightly larger tap targets on buttons/inputs, since the zoom-out
-       above would otherwise make them too small to tap accurately. */
-    button, .btn, input, select { min-height: 38px; }
-  }
-
 </style>
 </head>
 <body>
@@ -968,9 +939,10 @@
       <div class="nav-item" id="nav-ssdi" onclick="showPage('ssdi')">
         <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 10.5c0 .3-.1.6-.2.9-.1.3-.3.5-.5.7-.4.4-.8.6-1.3.6-.3 0-.7-.1-1-.2s-.6-.3-.9-.5c-1.5-1-2.8-2.3-3.8-3.8-.2-.3-.4-.6-.5-.9S4.6 6.6 4.6 6.3c0-.5.2-.9.5-1.3.2-.2.4-.4.7-.5.3-.1.5-.2.9-.2.1 0 .2 0 .3.1.1.1.2.2.3.3l1 1.5c.1.1.2.3.2.4 0 .1 0 .3-.1.4l-.3.4c-.1.1-.1.2-.1.3 0 .1 0 .1.1.2.2.4.5.8.8 1.1.3.3.7.6 1.1.8.1 0 .1.1.2.1.1 0 .2-.1.3-.2l.3-.3c.1-.1.3-.2.4-.2.1 0 .3 0 .4.1l1.5 1c.2.1.3.2.3.3 0 .1.1.2.1.3z"/></svg>SSDI
       </div>
-      <a class="nav-item" id="nav-funnel" href="https://krwmarketingsolutions.github.io/portal/funnel.html" target="_blank" style="text-decoration:none;color:inherit;display:flex">
+      <div class="nav-item" id="nav-funnel" onclick="showPage('funnel')">
         <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 2h14l-5 6.5V14l-4-1.5V8.5z"/></svg>Funnel
-      </a>
+      </div>
+      </div>
 <div class="nav-item" id="nav-settings" onclick="showPage('settings')">
         <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2.5"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3 3l1.4 1.4M11.6 11.6L13 13M13 3l-1.4 1.4M4.4 11.6L3 13"/></svg>Settings
       </div>
@@ -1664,6 +1636,57 @@
 
       </div></div>
 
+    <!-- ═══ FUNNEL PAGE ═══ -->
+    <div class="page" id="page-funnel" style="display:none;background:#FAF7EE">
+      <style>
+        #page-funnel{--fn-cream:#FAF7EE;--fn-sage-pale:#E8F0DD;--fn-forest:#1F4D2E;--fn-green:#5A9B5C;--fn-leaf:#9BC98E;--fn-ink:#2B2A26;--fn-muted:#8A8577;--fn-border:#DCE4CC;--fn-white:#FFFFFF;}
+        #page-funnel .fn-mono{font-family:'SF Mono','JetBrains Mono',ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums}
+        #page-funnel .fn-head{font-family:'Helvetica Neue',Arial,sans-serif;font-weight:700;letter-spacing:-.01em}
+        #page-funnel .fn-section{margin-bottom:56px}
+        #page-funnel .fn-section-title{display:flex;align-items:baseline;gap:12px;margin-bottom:4px}
+        #page-funnel .fn-section-title h3{font-family:'Helvetica Neue',Arial,sans-serif;font-size:20px;font-weight:700;color:var(--fn-forest);letter-spacing:-.01em}
+        #page-funnel .fn-section-sub{font-size:12px;color:var(--fn-muted);margin-bottom:22px}
+        #page-funnel .fn-node{background:var(--fn-white);border:1.5px solid var(--fn-border);border-radius:12px;padding:14px 16px;cursor:pointer;transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease;position:relative}
+        #page-funnel .fn-node:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(31,77,46,0.12);border-color:var(--fn-green)}
+        #page-funnel .fn-node-name{font-family:'Helvetica Neue',Arial,sans-serif;font-size:13px;font-weight:600;color:var(--fn-ink);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        #page-funnel .fn-node-stat{font-size:22px;font-weight:700;color:var(--fn-forest)}
+        #page-funnel .fn-node-stat-label{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--fn-muted);margin-top:2px}
+        #page-funnel .fn-node-rate{position:absolute;top:12px;right:12px;font-size:10px;font-weight:700;padding:3px 7px;border-radius:20px}
+        #page-funnel .fn-node.paused{opacity:.45;filter:grayscale(1)}
+        #page-funnel .fn-node.paused:hover{transform:none;box-shadow:none;border-color:var(--fn-border)}
+        #page-funnel .fn-rate-good{background:var(--fn-sage-pale);color:var(--fn-forest)}
+        #page-funnel .fn-rate-mid{background:#FBF0D9;color:#8A6D1F}
+        #page-funnel .fn-rate-low{background:#FBE4E0;color:#A13F2F}
+        #page-funnel .fn-outcome-bar{background:linear-gradient(90deg,var(--fn-forest),var(--fn-green));border-radius:14px;padding:20px 28px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 10px 28px rgba(31,77,46,0.18)}
+        #page-funnel .fn-outcome-bar .big{color:#fff;font-size:32px;font-weight:700}
+        #page-funnel .fn-outcome-bar .lbl{color:rgba(255,255,255,.75);font-size:11px;text-transform:uppercase;letter-spacing:.07em}
+        #page-funnel .fn-period-btn{font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;padding:6px 14px;border-radius:20px;border:1px solid var(--fn-border);background:var(--fn-white);color:var(--fn-muted);cursor:pointer;transition:all .15s}
+        #page-funnel .fn-period-btn.active{background:var(--fn-forest);border-color:var(--fn-forest);color:#fff}
+        #page-funnel .fn-empty{text-align:center;padding:40px;color:var(--fn-muted);font-size:13px}
+        #page-funnel .fn-connector{width:2px;height:40px;margin:0 auto;position:relative;background:repeating-linear-gradient(180deg,var(--fn-leaf) 0 6px,transparent 6px 14px);animation:fnFlow .9s linear infinite}
+        #page-funnel .fn-connector.wide{width:3px;background:repeating-linear-gradient(180deg,var(--fn-green) 0 6px,transparent 6px 14px)}
+        @keyframes fnFlow{to{background-position:0 -20px}}
+      </style>
+
+      <div class="header-bar" style="background:var(--fn-cream);border-bottom-color:var(--fn-border)">
+        <div class="header-bar-left">
+          <h2 class="fn-head" style="color:var(--fn-forest)">Funnel</h2>
+          <p style="color:var(--fn-muted)">Live traffic flow · Publisher → Buyer → Outcome</p>
+        </div>
+        <div class="header-bar-right" style="display:flex;align-items:center;gap:8px">
+          <button class="fn-period-btn" id="fn-period-today" onclick="setFunnelPeriod('today')">Today</button>
+          <button class="fn-period-btn active" id="fn-period-week" onclick="setFunnelPeriod('week')">This Week</button>
+          <button class="fn-period-btn" id="fn-period-month" onclick="setFunnelPeriod('month')">This Month</button>
+        </div>
+      </div>
+
+      <div style="flex:1;overflow-y:auto;padding:32px 40px;background:var(--fn-cream)">
+        <div id="fn-content">
+          <div class="fn-empty">Loading funnel data…</div>
+        </div>
+      </div>
+    </div>
+
     <!-- ═══ CALLS PAGE ═══ -->
     <div class="page" id="page-ssdi" style="display:none">
       <div class="header-bar">
@@ -1769,54 +1792,9 @@
             </div>
           </div>
 
-          <!-- Billable Approval Queue -->
-          <div style="border-top:1px solid var(--border);margin-top:1rem;padding-top:1rem">
-            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px">
-              <div>
-                <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)">Billable Approval Queue</div>
-                <div style="font-size:11px;color:var(--muted);margin-top:2px">Ringfuel marks a 1696 call billable, it lands here — nothing reaches a publisher until you Approve it</div>
-              </div>
-              <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-                <input type="date" id="bq-date-from" style="padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:var(--surface)">
-                <span style="color:var(--muted);font-size:11px">to</span>
-                <input type="date" id="bq-date-to" style="padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:var(--surface)">
-                <button class="btn" style="padding:5px 10px;font-size:11px" onclick="applyBqDateRange()">Apply</button>
-                <button class="btn" style="padding:5px 10px;font-size:11px" onclick="clearBqDateRange()">Clear</button>
-                <button class="btn" style="padding:5px 10px;font-size:11px" onclick="fetchBillableQueue()">↻</button>
-              </div>
-            </div>
-            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">
-              <div style="background:#fafbfd;border:1px solid var(--border);border-radius:8px;padding:10px 14px">
-                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">Pending</div>
-                <div id="bq-count-pending" style="font-size:22px;font-weight:700;color:#a16207">—</div>
-              </div>
-              <div style="background:#fafbfd;border:1px solid var(--border);border-radius:8px;padding:10px 14px">
-                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">Approved</div>
-                <div id="bq-count-approved" style="font-size:22px;font-weight:700;color:#15803d">—</div>
-              </div>
-              <div style="background:#fafbfd;border:1px solid var(--border);border-radius:8px;padding:10px 14px">
-                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">Held (private)</div>
-                <div id="bq-count-held" style="font-size:22px;font-weight:700;color:#6b7280">—</div>
-              </div>
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-              <div>
-                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:6px">Pending Approval</div>
-                <div id="bq-pending-list" style="border:1px solid var(--border);border-radius:8px;overflow:hidden">
-                  <div style="padding:1.5rem;text-align:center;color:var(--muted);font-size:12px">Loading...</div>
-                </div>
-              </div>
-              <div>
-                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:6px">Held — Private, Never Sent to Publishers</div>
-                <div id="bq-held-list" style="border:1px solid var(--border);border-radius:8px;overflow:hidden;background:#fafafa">
-                  <div style="padding:1.5rem;text-align:center;color:var(--muted);font-size:12px">Loading...</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
         </div>
       </div>
+
       <!-- SSDI LEADS SECTION (Lssdi-shore — Shoreline Media / Nexus-7) -->
       <div style="margin-top:1.5rem">
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
@@ -1903,7 +1881,7 @@
             <div style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;line-height:2">
               <div><span style="color:var(--muted)">Railway URL</span><br><code style="font-size:11px;background:var(--subtle);padding:2px 6px;border-radius:3px">krw-backend-production.up.railway.app</code></div>
               <div style="margin-top:8px"><span style="color:var(--muted)">Lead API Key</span><br><code style="font-size:11px;background:var(--subtle);padding:2px 6px;border-radius:3px">krwleads2026secure</code></div>
-              <div style="margin-top:8px"><span style="color:var(--muted)">Dashboard API Key</span><br><code style="font-size:11px;background:var(--subtle);padding:2px 6px;border-radius:3px"></code></div>
+              <div style="margin-top:8px"><span style="color:var(--muted)">Dashboard API Key</span><br><code style="font-size:11px;background:var(--subtle);padding:2px 6px;border-radius:3px">64tgzb5ostadx1azjio9crdlduw4vf29</code></div>
               <div style="margin-top:8px"><span style="color:var(--muted)">Publisher Form</span><br><code style="font-size:11px;background:var(--subtle);padding:2px 6px;border-radius:3px">krwmarketingsolutions.github.io/forms</code></div>
             </div>
           </div>
@@ -3132,6 +3110,121 @@ function showPage(pg) {
   if (pg === 'leads') initLeads();
   if (pg === 'invoice') initInvoice();
   if (pg === 'leads') initLeads();
+  if (pg === 'funnel') initFunnel();
+}
+
+// ════════════════════════════════════════
+//  FUNNEL
+// ════════════════════════════════════════
+var FN_PERIOD = 'week';
+var FN_LOADED = false;
+
+function setFunnelPeriod(p) {
+  FN_PERIOD = p;
+  ['today','week','month'].forEach(function(x){
+    var el = document.getElementById('fn-period-'+x);
+    if (el) el.classList.toggle('active', x === p);
+  });
+  fetchFunnelData();
+}
+
+function initFunnel() {
+  if (!FN_LOADED) { fetchFunnelData(); FN_LOADED = true; }
+}
+
+function fnRateClass(accepted, forwarded) {
+  if (!forwarded) return 'fn-rate-mid';
+  var rate = accepted / forwarded;
+  if (rate >= 0.15) return 'fn-rate-good';
+  if (rate >= 0.05) return 'fn-rate-mid';
+  return 'fn-rate-low';
+}
+
+function fnGoToLeadsCampaign(campaign) {
+  showPage('leads');
+  setTimeout(function(){ if (typeof setLeadsCampaign === 'function') setLeadsCampaign(campaign); }, 80);
+}
+
+async function fetchFunnelData() {
+  var content = document.getElementById('fn-content');
+  content.innerHTML = '<div class="fn-empty">Loading funnel data…</div>';
+  try {
+    var r = await fetch(REV_API_URL + '/dashboard/funnel?period=' + FN_PERIOD, { headers: { 'x-api-key': REV_API_KEY } });
+    var d = await r.json();
+    if (!d.ok) throw new Error(d.error || 'Failed to load');
+    renderFunnelSection('mva', 'MVA', d.mva, {
+      'KRW-KANTHONY-RS': 'mva-funnel', 'KRW-MVA-2026-8RT': 'mva-funnel', 'KRW-NYC-MVA': 'mva-nyc-split'
+    });
+    renderFunnelSection('ssdi', 'SSDI', d.ssdi, {
+      'SSDI-AZ-1696': 'ssdi-1696', 'KRW-JOSHUA-SIGNED': 'ssdi-signed', 'SSDI-SLC-1696': 'ssdi-1696'
+    });
+  } catch(e) {
+    content.innerHTML = '<div class="fn-empty">Could not load funnel data. <button class="btn" onclick="fetchFunnelData()">Retry</button></div>';
+  }
+}
+
+function renderFunnelSection(key, label, data, campaignMap) {
+  var content = document.getElementById('fn-content');
+  var existing = document.getElementById('fn-sec-'+key);
+  var pubIds = Object.keys(data.publishers);
+  var buyerNames = Object.keys(data.buyers);
+
+  var totalReceived = 0, totalAccepted = 0, totalRevenue = 0;
+  pubIds.forEach(function(id){ totalReceived += data.publishers[id].received; totalAccepted += data.publishers[id].accepted; totalRevenue += data.publishers[id].revenue; });
+
+  var maxReceived = Math.max.apply(null, pubIds.map(function(id){ return data.publishers[id].received; }).concat([1]));
+
+  // Publisher nodes
+  var pubNodesHtml = pubIds.map(function(id, i){
+    var p = data.publishers[id];
+    var isPaused = p.received === 0;
+    var campaign = campaignMap[id] || '';
+    return '<div class="fn-node' + (isPaused ? ' paused' : '') + '" id="fn-pub-' + key + '-' + i + '" onclick="' + (isPaused ? '' : "fnGoToLeadsCampaign('" + campaign + "')") + '">' +
+      '<div class="fn-node-name">' + p.name + '</div>' +
+      '<div class="fn-node-stat fn-mono">' + p.received + '</div>' +
+      '<div class="fn-node-stat-label">' + (isPaused ? 'inactive' : 'received') + '</div>' +
+      '</div>';
+  }).join('');
+
+  // Buyer nodes
+  var buyerNodesHtml = buyerNames.length ? buyerNames.map(function(name, i){
+    var b = data.buyers[name];
+    var rate = b.received ? (b.accepted / b.received) : 0;
+    return '<div class="fn-node" id="fn-buy-' + key + '-' + i + '">' +
+      '<div class="fn-node-rate ' + fnRateClass(b.accepted, b.received) + '">' + Math.round(rate*100) + '%</div>' +
+      '<div class="fn-node-name">' + name + '</div>' +
+      '<div class="fn-node-stat fn-mono">' + b.received + '</div>' +
+      '<div class="fn-node-stat-label">received</div>' +
+      '</div>';
+  }).join('') : '<div class="fn-empty" style="grid-column:1/-1">No traffic reached a buyer this period</div>';
+
+  var sectionHtml =
+    '<div class="fn-section" id="fn-sec-' + key + '">' +
+      '<div class="fn-section-title"><h3>' + label + '</h3></div>' +
+      '<div class="fn-section-sub">' + pubIds.length + ' publishers tracked · ' + totalReceived + ' leads received</div>' +
+
+      '<div style="display:grid;grid-template-columns:repeat(' + Math.max(pubIds.length,1) + ',1fr);gap:14px;margin-bottom:8px">' + pubNodesHtml + '</div>' +
+
+      '<div class="fn-connector"></div>' +
+
+      '<div style="display:grid;grid-template-columns:repeat(' + Math.max(buyerNames.length,1) + ',1fr);gap:14px;margin-bottom:8px;max-width:' + Math.min(buyerNames.length,pubIds.length)*260 + 'px;margin-left:auto;margin-right:auto">' + buyerNodesHtml + '</div>' +
+
+      '<div class="fn-connector wide"></div>' +
+
+      '<div class="fn-outcome-bar">' +
+        '<div><div class="lbl">Accepted / Billable</div><div class="big fn-mono">' + totalAccepted + '</div></div>' +
+        '<div style="text-align:right"><div class="lbl">Revenue</div><div class="big fn-mono">$' + totalRevenue.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0}) + '</div></div>' +
+      '</div>' +
+    '</div>';
+
+  if (existing) {
+    existing.outerHTML = sectionHtml;
+  } else {
+    content.innerHTML = (content.querySelector('.fn-empty') ? '' : content.innerHTML) + sectionHtml;
+  }
+  // Clear the initial loading message on first render
+  var loadingMsg = content.querySelector('.fn-empty');
+  if (loadingMsg && content.children.length > 1) loadingMsg.remove();
 }
 
 // ════════════════════════════════════════
@@ -4120,7 +4213,7 @@ function initCalendar(){
 // ════════════════════════════════════════════════
 // ── Revenue API config ─────────────────────────────────────────────
 var REV_API_URL = 'https://krw-backend-production.up.railway.app';
-var REV_API_KEY = '';
+var REV_API_KEY = '64tgzb5ostadx1azjio9crdlduw4vf29';
 var revAutoRefresh = null;
 
 // Keep revConfig as alias so existing code still works
@@ -8409,7 +8502,6 @@ function initCallsTab(){
   loadDidPills();
   fetchCallsFeed();
   fetchCallsKPIs();
-  fetchBillableQueue();
 }
 
 // ── SSDI Leads Feed (Lssdi-shore) ─────────────────
@@ -8706,89 +8798,6 @@ async function fetchCallsFeed(){
   }catch(e){
     if(tbody) tbody.innerHTML = '<tr><td colspan="7" style="padding:1rem;text-align:center;color:var(--red)">Error loading calls: '+e.message+'</td></tr>';
   }
-}
-
-// ── Billable Approval Queue ─────────────────────────────────
-var BQ_DATE_FROM = null, BQ_DATE_TO = null;
-
-function applyBqDateRange(){
-  var f = document.getElementById('bq-date-from').value;
-  var t = document.getElementById('bq-date-to').value;
-  BQ_DATE_FROM = f ? new Date(f+'T00:00:00') : null;
-  BQ_DATE_TO   = t ? new Date(t+'T23:59:59') : null;
-  fetchBillableQueue();
-}
-function clearBqDateRange(){
-  document.getElementById('bq-date-from').value = '';
-  document.getElementById('bq-date-to').value = '';
-  BQ_DATE_FROM = null; BQ_DATE_TO = null;
-  fetchBillableQueue();
-}
-function bqInRange(dateVal){
-  if (!BQ_DATE_FROM && !BQ_DATE_TO) return true;
-  var d = new Date(dateVal||0);
-  if (BQ_DATE_FROM && d < BQ_DATE_FROM) return false;
-  if (BQ_DATE_TO && d > BQ_DATE_TO) return false;
-  return true;
-}
-
-async function fetchBillableQueue(){
-  var pendingEl = document.getElementById('bq-pending-list');
-  var heldEl = document.getElementById('bq-held-list');
-  try{
-    var r = await fetch(REV_API_URL+'/billable-queue',{headers:{'x-api-key':REV_API_KEY}});
-    var d = await r.json();
-    if(!d.ok) throw new Error(d.error||'Failed to load');
-
-    var allItems = d.items.filter(function(i){ return bqInRange(i.received_at); });
-    var countsInRange = { pending:0, approved:0, held:0 };
-    allItems.forEach(function(i){ if(countsInRange[i.status]!==undefined) countsInRange[i.status]++; });
-
-    document.getElementById('bq-count-pending').textContent  = countsInRange.pending;
-    document.getElementById('bq-count-approved').textContent = countsInRange.approved;
-    document.getElementById('bq-count-held').textContent     = countsInRange.held;
-
-    var pending = allItems.filter(function(i){ return i.status==='pending'; });
-    var held    = allItems.filter(function(i){ return i.status==='held'; });
-
-    pendingEl.innerHTML = pending.length ? pending.map(function(i){
-      var name = ((i.first_name||'')+' '+(i.last_name||'')).trim() || '—';
-      return '<div style="padding:10px 12px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:8px">'+
-        '<div><div style="font-size:12px;font-weight:600">'+name+' · '+(i.publisher_sub||'Unmatched')+'</div>'+
-        '<div style="font-size:11px;color:var(--muted);font-family:monospace">'+i.cid+' · $'+parseFloat(i.amount).toFixed(2)+'</div></div>'+
-        '<div style="display:flex;gap:6px">'+
-        '<button class="btn" style="padding:4px 10px;font-size:11px;background:#15803d;color:#fff;border-color:#15803d" onclick="approveBillable('+i.id+')">Approve</button>'+
-        '<button class="btn" style="padding:4px 10px;font-size:11px" onclick="holdBillable('+i.id+')">Hold</button>'+
-        '</div></div>';
-    }).join('') : '<div style="padding:1.5rem;text-align:center;color:var(--muted);font-size:12px">Nothing pending</div>';
-
-    heldEl.innerHTML = held.length ? held.map(function(i){
-      var name = ((i.first_name||'')+' '+(i.last_name||'')).trim() || '—';
-      return '<div style="padding:10px 12px;border-bottom:1px solid var(--border)">'+
-        '<div style="font-size:12px;font-weight:600;color:var(--muted)">'+name+' · '+(i.publisher_sub||'Unmatched')+'</div>'+
-        '<div style="font-size:11px;color:var(--muted);font-family:monospace">'+i.cid+' · $'+parseFloat(i.amount).toFixed(2)+'</div></div>';
-    }).join('') : '<div style="padding:1.5rem;text-align:center;color:var(--muted);font-size:12px">None held</div>';
-  }catch(e){
-    pendingEl.innerHTML = '<div style="padding:1rem;text-align:center;color:var(--red);font-size:12px">Error: '+e.message+'</div>';
-  }
-}
-
-async function approveBillable(id){
-  try{
-    var r = await fetch(REV_API_URL+'/billable-queue/'+id+'/approve',{method:'POST',headers:{'x-api-key':REV_API_KEY}});
-    var d = await r.json();
-    if(!d.ok) throw new Error(d.error||'Failed');
-    fetchBillableQueue();
-  }catch(e){ alert('Could not approve: '+e.message); }
-}
-
-async function holdBillable(id){
-  try{
-    var r = await fetch(REV_API_URL+'/billable-queue/'+id+'/hold',{method:'POST',headers:{'x-api-key':REV_API_KEY}});
-    var d = await r.json();
-    if(!d.ok) throw new Error(d.error||'Failed');
-    fetchBillableQueue();
-  }catch(e){ alert('Could not hold: '+e.message); }
 }
 
 // ── Publisher List ─────────────────────────────────

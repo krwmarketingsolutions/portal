@@ -163,8 +163,43 @@
 <div class="toast" id="toast"></div>
 
 <script>
+/* patch 290: this page is public too. It no longer carries a key; it reuses
+   the dashboard's sign-in token, which lives on this same origin. */
+var KRW_API_HOST = 'krw-backend-production.up.railway.app';
+var KRW_TOKEN = '';
+try { KRW_TOKEN = localStorage.getItem('krw_token') || ''; } catch (e) {}
+(function () {
+  var _f = window.fetch;
+  window.fetch = function (u, o) {
+    try {
+      if (String(u).indexOf(KRW_API_HOST) > -1 && KRW_TOKEN) {
+        o = o || {};
+        var h = {}; if (o.headers) { for (var k in o.headers) h[k] = o.headers[k]; }
+        h['Authorization'] = 'Bearer ' + KRW_TOKEN; delete h['x-api-key'];
+        o.headers = h;
+      }
+    } catch (e) {}
+    return _f.call(this, u, o);
+  };
+  function gate() {
+    if (KRW_TOKEN) return;
+    var d = document.createElement('div');
+    d.setAttribute('style', 'position:fixed;inset:0;z-index:99999;background:#F3EEE3;color:#1E2A22;' +
+      'display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;' +
+      'font-family:\'Source Serif 4\',Georgia,serif;font-size:17px;line-height:1.6');
+    d.innerHTML = '<div><div style="font-family:Helvetica Neue,Arial,sans-serif;font-size:22px;' +
+      'font-weight:700;letter-spacing:.04em;color:#1F4D36;margin-bottom:10px">KRW</div>' +
+      'Sign in on the dashboard first, then reopen this page.<br>' +
+      '<a href="./" style="color:#1F4D36">Open the dashboard</a></div>';
+    document.body.appendChild(d);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', gate);
+  else gate();
+})();
+</script>
+<script>
 var API_URL = 'https://krw-backend-production.up.railway.app';
-var API_KEY = '64tgzb5ostadx1azjio9crdlduw4vf29';
+var API_KEY = '';   // patch 290: token instead
 var PERIOD = 'week';
 var CUSTOM_FROM = null;
 var CUSTOM_TO = null;
