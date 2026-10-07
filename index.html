@@ -3984,7 +3984,7 @@ var orData=(function(){try{var s=localStorage.getItem(OR_KEY);if(s)return JSON.p
 // patch 276: the Outreach board lives on the server now (table outreach_contacts).
 // The local copy above only paints instantly; the server is the source of truth.
 var OR_API='https://krw-backend-production.up.railway.app';
-var OR_API_KEY_='';   // patch 289: the token does this now
+var OR_API_KEY_='via-login-token';   // patch 296: MUST be truthy - 38 guards read this as "configured". Not a credential; the interceptor swaps in the login token.
 var orLoaded=false;
 function orFetch(){
   fetch(OR_API+'/outreach/contacts',{headers:{'x-api-key':OR_API_KEY_}})
@@ -4807,7 +4807,7 @@ function initCalendar(){
 // ════════════════════════════════════════════════
 // ── Revenue API config ─────────────────────────────────────────────
 var REV_API_URL = 'https://krw-backend-production.up.railway.app';
-var REV_API_KEY = '';   // patch 289: the token does this now
+var REV_API_KEY = 'via-login-token';   // patch 296: MUST be truthy - 38 guards read this as "configured". Not a credential; the interceptor swaps in the login token.
 var revAutoRefresh = null;
 
 // Keep revConfig as alias so existing code still works
