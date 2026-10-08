@@ -1857,6 +1857,7 @@
               <div id="oz-tpl-editor" style="display:grid;gap:10px;margin-top:10px"></div>
               <button class="lx-btn" style="margin-top:8px" onclick="ozSaveTemplates()">Save templates</button>
             </details>
+            <div id="oz-ab" style="margin-bottom:14px"></div>
             <div class="lx-stats" id="or-estats" style="grid-template-columns:repeat(5,1fr);margin-bottom:16px"></div>
             <div class="lx-tablewrap">
               <table class="lx-tbl">
@@ -3123,7 +3124,7 @@ SELECT required_fields FROM campaigns WHERE slug = 'SLUG';</pre>
    A home-screen app on iOS can sit on a cached copy of this file for a long
    time. version.txt is fetched with no-store so it is always the real one;
    if it does not match the build running here, reload once. */
-var KRW_BUILD = '20261007-180654';
+var KRW_BUILD = '20261007-210336';
 (function () {
   var reloaded = false;
   function checkBuild() {
@@ -10148,6 +10149,8 @@ var OZ_TPL_DEFAULT={
  intro:{s:'Quick intro from KRW Marketing Solutions',b:'Hi {{first_name}},\n\nKyler here, founder of KRW Marketing Solutions. We generate our own injury leads, consent verified and delivered in real time, and our intake team can sign the retainers so {{firm}} takes signed cases, not just leads.\n\nWorth 15 minutes? Grab a time here:\n'+OZ_BOOK_LINK+'\n\nKyler'},
  follow:{s:'Following up, {{first_name}}',b:'Hi {{first_name}},\n\nCircling back in case my last note got buried. Short version: we generate our own injury leads and can deliver them as signed cases. If {{firm}} is taking on volume this quarter I would love 15 minutes.\n\n'+OZ_BOOK_LINK+'\n\nKyler'},
  bump:{s:'Last one from me, {{first_name}}',b:'Hi {{first_name}},\n\nLast one from me, I will keep it to one line. If new signed injury cases are interesting for {{firm}}, grab 15 minutes whenever works and I will show you exactly how we run it.\n\n'+OZ_BOOK_LINK+'\n\nKyler'},
+ intro_a:{s:'Signed MVA cases for {{firm}}',b:'Hi {{first_name}},\n\nKyler here, founder of KRW Marketing Solutions. Quick version: we generate our own MVA leads, and our intake professionals work them and sign the retainer for you. What lands on your desk is a fully signed car accident case, not a list of numbers to chase.\n\nLive transfers or signed packets, whatever fits how {{firm}} runs intake. Worth 15 minutes?\n'+OZ_BOOK_LINK+'\n\nKyler'},
+ intro_d:{s:'Fully signed MVA cases, no chasing',b:'Hi {{first_name}},\n\nOne sentence pitch: we generate MVA leads with our own ads, our intake team signs the retainer, and {{firm}} gets a finished car accident case by transfer or packet instead of a phone number that never answers.\n\nIf that is interesting, grab 15 minutes here:\n'+OZ_BOOK_LINK+'\n\nKyler'},
  li_follow:{s:'',b:'Hey {{first_name}}, just floating this back up. Happy to show you how the signed case side works whenever you have 15 minutes. No pressure either way.\n\n'+OZ_BOOK_LINK}
 };
 var OZ_TPL={intro:null,follow:null,bump:null,li_follow:null};
@@ -10166,11 +10169,11 @@ function ozRenderTplEditor(){
     return '<div><div style="font-weight:600;margin-bottom:4px">'+label+'</div>'+
       (hasSubj?'<input id="tpl-s-'+k+'" style="width:100%;margin-bottom:4px;padding:6px;border:1px solid var(--lx-line)" value="'+ozEsc(t.s||'')+'">':'')+
       '<textarea id="tpl-b-'+k+'" rows="5" style="width:100%;padding:6px;border:1px solid var(--lx-line)">'+ozEsc(t.b||'')+'</textarea></div>'; }
-  box.innerHTML=fld('intro','1st email — intro (subject, then body)',true)+fld('follow','2nd email — follow up',true)+fld('bump','3rd+ email — bump',true)+fld('li_follow','LinkedIn follow up (copied to clipboard, not emailed)',false)+
+  box.innerHTML=fld('intro_a','1st email — INTRO A (in the A/B test)',true)+fld('intro_d','1st email — INTRO D (in the A/B test)',true)+fld('follow','2nd email — follow up',true)+fld('bump','3rd+ email — bump',true)+fld('li_follow','LinkedIn follow up (copied to clipboard, not emailed)',false)+
    '<div style="font-size:12px;color:var(--lx-ink-2)">Merge fields: {{first_name}} {{name}} {{firm}}</div>';
 }
 function ozSaveTemplates(){
-  var out={};['intro','follow','bump','li_follow'].forEach(function(k){
+  var out={};['intro','intro_a','intro_d','follow','bump','li_follow'].forEach(function(k){
     var s=document.getElementById('tpl-s-'+k), b=document.getElementById('tpl-b-'+k);
     out[k]={s:s?s.value:'',b:b?b.value:''}; if(out[k].b)OZ_TPL[k]=out[k];
   });
@@ -10182,7 +10185,13 @@ function ozTplFill(t,c){ var first=String(c.name||'').split(' ')[0]; return Stri
 function ozEmailSmart(id){
   var c=orData.find(function(x){return x.id===id;}); if(!c)return;
   var em=ozEmail(c); if(!em){ if(typeof showToast==='function')showToast('No email on file for '+c.name); return; }
-  var n=c.emailsSent||0, key=n===0?'intro':(n===1?'follow':'bump');
+  var n=c.emailsSent||0, key;
+  if(n===0){
+    // patch 316: A/B rotation on the first touch, balanced across contacts
+    if(!c.introVariant) c.introVariant=ozPickIntroVariant();
+    key=c.introVariant==='A'?'intro_a':'intro_d';
+    if(!ozTplGet(key)||!ozTplGet(key).b) key='intro';
+  } else key=(n===1?'follow':'bump');
   var t=ozTplGet(key);
   window.location.href='mailto:'+encodeURIComponent(em)+'?subject='+encodeURIComponent(ozTplFill(t.s||'',c))+'&body='+encodeURIComponent(ozTplFill(t.b||'',c));
   setTimeout(function(){ orMarkEmail(id,'sent'); },500);
@@ -10217,6 +10226,24 @@ function renderLinkedIn(){
       '</td></tr>';
   }).join('')||'<tr><td colspan="5" class="lx-empty">No LinkedIn contacts yet. The draft agent adds them automatically when lawyers accept your connection.</td></tr>';
 }
+// ── patch 316: intro A/B test ────────────────────────────────────────────────
+function ozPickIntroVariant(){
+  var a=0,d=0;
+  orData.forEach(function(c){ if(c.introVariant==='A')a++; else if(c.introVariant==='D')d++; });
+  if(a===d) return Math.random()<0.5?'A':'D';
+  return a<d?'A':'D';
+}
+function ozAbResponded(c){ return c.emailStatus==='replied'||['responded','intalks','meeting','ready'].indexOf(c.stage)>-1; }
+function ozRenderAb(){
+  var box=document.getElementById('oz-ab'); if(!box)return;
+  var st={A:{s:0,r:0},D:{s:0,r:0}};
+  orData.forEach(function(c){ var v=c.introVariant; if(!st[v])return; st[v].s++; if(ozAbResponded(c))st[v].r++; });
+  if(!st.A.s&&!st.D.s){ box.innerHTML='<div style="font-size:13px;color:var(--lx-ink-2);border:1px dashed var(--lx-line);padding:10px 14px">Intro A/B test armed. First emails rotate between Intro A and Intro D automatically; replies score here.</div>'; return; }
+  function cell(v,o){ var rate=o.s?Math.round(100*o.r/o.s):0;
+    return '<div style="flex:1;background:var(--lx-white);border:1px solid var(--lx-line);padding:10px 14px"><b>Intro '+v+'</b><div style="font-size:13px;color:var(--lx-ink-2)">'+o.s+' sent · '+o.r+' repl'+(o.r===1?'y':'ies')+' · <b>'+rate+'%</b></div></div>'; }
+  var lead=''; if(st.A.s>=5&&st.D.s>=5){ var ra=st.A.r/st.A.s, rd=st.D.r/st.D.s; if(ra!==rd) lead='<div style="font-size:12px;color:var(--lx-green-2);margin-top:4px">Intro '+(ra>rd?'A':'D')+' is leading</div>'; }
+  box.innerHTML='<div style="display:flex;gap:8px">'+cell('A',st.A)+cell('D',st.D)+'</div>'+lead;
+}
 ozLoadTemplates();
 // ── end patch 313 core ───────────────────────────────────────────────────────
 
@@ -10231,7 +10258,7 @@ function setOrView(v){
 }
 function renderOutreach(){
   if(typeof orData==='undefined')return;
-  renderOrStats(); renderOrToday(); renderLinkedIn();   // patch 313
+  renderOrStats(); renderOrToday(); renderLinkedIn(); if(typeof ozRenderAb==='function')ozRenderAb();   // patch 313/316
   var list=getFiltered();
   var cnt=document.getElementById('or-count');
   if(cnt)cnt.textContent=list.length+' of '+orData.length+' shown';
