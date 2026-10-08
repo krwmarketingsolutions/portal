@@ -1386,6 +1386,7 @@
   .oz-col[data-stage="contacted"]{border-top-color:var(--lx-brown)}
   .oz-col[data-stage="responded"]{border-top-color:var(--lx-brown)}
   .oz-col[data-stage="intalks"]{border-top-color:var(--lx-green-2)}
+  .oz-col[data-stage="meeting"]{border-top-color:var(--lx-green-2)} /* patch 313 */
   .oz-col[data-stage="ready"]{border-top-color:var(--lx-green)}
   .oz-col.drop{background:var(--lx-green-soft)}
   .oz-colhd{display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding:10px 13px;border-bottom:1px solid var(--lx-line)}
@@ -1411,6 +1412,7 @@
   .oz-pill.responded{background:var(--lx-brown-soft);color:var(--lx-brown);border-color:var(--lx-brown)}
   .oz-pill.intalks{background:var(--lx-green-soft);color:var(--lx-green-2);border-color:#C4D3C8}
   .oz-pill.ready{background:var(--lx-green);color:var(--lx-paper);border-color:var(--lx-green)}
+  .oz-pill.meeting{background:var(--lx-green-2);color:var(--lx-paper);border-color:var(--lx-green-2)} /* patch 313 */
   .oz-pill.seq{background:var(--lx-paper-2);color:var(--lx-ink-2);border-color:var(--lx-line)}
   .oz-pill.rep{background:var(--lx-green-soft);color:var(--lx-green);border-color:#C4D3C8}
   .oz-pill.meet{background:var(--lx-green);color:var(--lx-paper);border-color:var(--lx-green)}
@@ -1800,6 +1802,14 @@
           <div id="or-today"></div>
         </div>
 
+        <!-- LINKEDIN OUTREACH (patch 313) -->
+        <div class="lx-section">
+          <div class="lx-sechead"><h3>LinkedIn outreach</h3><span id="or-li-sub" style="font-size:14px;color:var(--lx-ink-2)"></span></div>
+          <p class="lx-lede">Everyone you have messaged on LinkedIn, fed automatically by the draft agent. Move people along as they respond.</p>
+          <div id="or-li-strip" style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:12px"></div>
+          <div class="lx-tablewrap"><table class="lx-tbl"><thead><tr><th>Contact</th><th>Firm</th><th>Messaged</th><th>Stage</th><th style="min-width:300px">Move them along</th></tr></thead><tbody id="or-li-body"></tbody></table></div>
+        </div>
+
         <!-- PIPELINE -->
         <div class="lx-section">
           <h3>Pipeline</h3>
@@ -1813,7 +1823,7 @@
             </div>
             <select class="lx-winsel" id="or-role" onchange="renderOutreach()"><option value="">Every role</option><option value="buyer">Buyers</option><option value="seller">Sellers</option><option value="both">Both</option></select>
             <select class="lx-winsel" id="or-vert" onchange="renderOutreach()"><option value="">Every vertical</option><option value="MVA">MVA</option><option value="SSDI">SSDI</option><option value="OTHER">Other</option></select>
-            <select class="lx-winsel" id="or-stage" onchange="renderOutreach()"><option value="">Every stage</option><option value="cold">Cold</option><option value="contacted">Contacted</option><option value="responded">Responded</option><option value="intalks">In talks</option><option value="ready">Ready to deal</option></select>
+            <select class="lx-winsel" id="or-stage" onchange="renderOutreach()"><option value="">Every stage</option><option value="cold">Cold</option><option value="contacted">Contacted</option><option value="responded">Responded</option><option value="intalks">In talks</option><option value="meeting">Meeting set</option><option value="ready">Ready to deal</option></select>
             <div class="lx-meta"><span id="or-count">—</span></div>
           </div>
 
@@ -1843,6 +1853,10 @@
           </div>
 
           <div id="or-email" style="display:none">
+            <details style="margin-bottom:14px;border:1px solid var(--lx-line);background:var(--lx-white);padding:10px 14px"><summary style="cursor:pointer;font-weight:600">Email templates — intro, follow up, bump (click to edit)</summary>
+              <div id="oz-tpl-editor" style="display:grid;gap:10px;margin-top:10px"></div>
+              <button class="lx-btn" style="margin-top:8px" onclick="ozSaveTemplates()">Save templates</button>
+            </details>
             <div class="lx-stats" id="or-estats" style="grid-template-columns:repeat(5,1fr);margin-bottom:16px"></div>
             <div class="lx-tablewrap">
               <table class="lx-tbl">
@@ -3109,7 +3123,7 @@ SELECT required_fields FROM campaigns WHERE slug = 'SLUG';</pre>
    A home-screen app on iOS can sit on a cached copy of this file for a long
    time. version.txt is fetched with no-store so it is always the real one;
    if it does not match the build running here, reload once. */
-var KRW_BUILD = '20261007-173559';
+var KRW_BUILD = '20261007-180654';
 (function () {
   var reloaded = false;
   function checkBuild() {
@@ -4004,8 +4018,8 @@ function renderHomeOrStages() {
 //  OUTREACH
 // ════════════════════════════════════════
 var OR_KEY='krw_outreach_v1';
-var STAGES=['cold','contacted','responded','intalks','ready'];
-var STAGE_LABELS={cold:'Cold',contacted:'Contacted',responded:'Responded',intalks:'In Talks',ready:'Ready to Deal'};
+var STAGES=['cold','contacted','responded','intalks','meeting','ready'];   // patch 313: Meeting set
+var STAGE_LABELS={cold:'Cold',contacted:'Contacted',responded:'Responded',intalks:'In Talks',meeting:'Meeting set',ready:'Ready to Deal'};
 var OR_DEFAULT=[
   {id:1,name:'Hamza K',company:'',role:'seller',vertical:'Solar CPL, FE CPL, ACA CPA',stage:'contacted',source:'LinkedIn',lastContact:'2025-06-12',followup:'',contact:'',potential:0,offer:'BIG SELLER — ACA 600/day at $22/120',notes:''},
   {id:2,name:'Marc Harari',company:'',role:'both',vertical:'All Verticals',stage:'contacted',source:'LinkedIn',lastContact:'2025-06-25',followup:'',contact:'',potential:5000,offer:'Seller of all Verticals',notes:''},
@@ -10080,6 +10094,11 @@ function renderOrToday(){
       else if(dd===0) items.push({c:c,rank:2,when:'Today',sub:'follow-up due',cls:'now'});
       return;
     }
+    // patch 313: LinkedIn follow-up autopilot - messaged 4+ days ago, no reply yet
+    if(String(c.source||'')==='LinkedIn' && c.stage==='contacted' && c.sentAt){
+      var dls=ozDays(c.sentAt);
+      if(dls!==null && dls>=4){ items.push({c:c,rank:2.5,when:dls+'d no reply',sub:'LinkedIn follow up due',cls:'late',li:1}); return; }
+    }
     if(ozStale(c)){ var d=ozDays(c.lastContact); items.push({c:c,rank:3+(100-Math.min(d,99))/1000,when:d+'d quiet',sub:c.lastContact,cls:''}); }
   });
   items.sort(function(a,b){return a.rank-b.rank;});
@@ -10093,7 +10112,8 @@ function renderOrToday(){
       '<span class="oz-who" onclick="openContactModal('+c.id+')"><b>'+ozEsc(c.name)+'</b>'+
         '<span class="sub">'+ozEsc([ozSub(c),em].filter(Boolean).join(' · ')||'no firm or email on file')+'</span></span>'+
       '<span class="oz-do">'+
-        (em?'<a class="lx-btn quiet sm" href="mailto:'+ozEsc(em)+'" onclick="event.stopPropagation()">Email</a>':'')+
+        (em?'<button class="lx-btn quiet sm" onclick="event.stopPropagation();ozEmailSmart('+c.id+')">Email</button>':'')+
+        (it.li?'<button class="lx-btn quiet sm" onclick="event.stopPropagation();ozCopyFollow('+c.id+')">Copy follow up</button>':'')+
         (c.sentAt?ozSentBadge(c):'<button class="lx-btn quiet sm" onclick="event.stopPropagation();ozMarkSent('+c.id+')">Sent the message</button>')+
         '<button class="lx-btn quiet sm" onclick="event.stopPropagation();ozTouch('+c.id+')">Logged a touch</button>'+
         '<button class="lx-btn quiet sm" onclick="event.stopPropagation();ozSnooze('+c.id+',7)">Snooze 7d</button>'+
@@ -10122,6 +10142,84 @@ function ozMarkSent(id){
 }
 function ozSentBadge(c){ return c.sentAt?'<span class="oz-sentbadge" title="Message sent '+ozEsc(c.sentAt)+'">&#10003; Sent '+ozEsc(c.sentAt)+'</span>':''; }
 
+// ── patch 313: templates + smart email + LinkedIn panel ─────────────────────
+var OZ_BOOK_LINK='https://bookings.cloud.microsoft/bookwithme/user/a41e13f5915449d1bc15024d4c9a2987@krwmarketingsolutions.com/meetingtype/t26Ab5zztESUctqAbUGKoA2?bookingcode=6ab7cf76-c715-4034-9f76-473e9e1085ff&anonymous&ismsaljsauthenabled&ep=mcard';
+var OZ_TPL_DEFAULT={
+ intro:{s:'Quick intro from KRW Marketing Solutions',b:'Hi {{first_name}},\n\nKyler here, founder of KRW Marketing Solutions. We generate our own injury leads, consent verified and delivered in real time, and our intake team can sign the retainers so {{firm}} takes signed cases, not just leads.\n\nWorth 15 minutes? Grab a time here:\n'+OZ_BOOK_LINK+'\n\nKyler'},
+ follow:{s:'Following up, {{first_name}}',b:'Hi {{first_name}},\n\nCircling back in case my last note got buried. Short version: we generate our own injury leads and can deliver them as signed cases. If {{firm}} is taking on volume this quarter I would love 15 minutes.\n\n'+OZ_BOOK_LINK+'\n\nKyler'},
+ bump:{s:'Last one from me, {{first_name}}',b:'Hi {{first_name}},\n\nLast one from me, I will keep it to one line. If new signed injury cases are interesting for {{firm}}, grab 15 minutes whenever works and I will show you exactly how we run it.\n\n'+OZ_BOOK_LINK+'\n\nKyler'},
+ li_follow:{s:'',b:'Hey {{first_name}}, just floating this back up. Happy to show you how the signed case side works whenever you have 15 minutes. No pressure either way.\n\n'+OZ_BOOK_LINK}
+};
+var OZ_TPL={intro:null,follow:null,bump:null,li_follow:null};
+function ozTplGet(k){ var t=OZ_TPL[k]; return (t&&t.b)?t:OZ_TPL_DEFAULT[k]; }
+function ozLoadTemplates(){
+  try{
+    fetch(REV_API_URL+'/outreach/templates').then(function(r){return r.json();}).then(function(j){
+      if(j&&j.ok&&j.templates){ for(var k in j.templates){ if(j.templates[k]&&j.templates[k].b)OZ_TPL[k]=j.templates[k]; } }
+      ozRenderTplEditor();
+    }).catch(function(){ozRenderTplEditor();});
+  }catch(e){}
+}
+function ozRenderTplEditor(){
+  var box=document.getElementById('oz-tpl-editor'); if(!box)return;
+  function fld(k,label,hasSubj){ var t=ozTplGet(k);
+    return '<div><div style="font-weight:600;margin-bottom:4px">'+label+'</div>'+
+      (hasSubj?'<input id="tpl-s-'+k+'" style="width:100%;margin-bottom:4px;padding:6px;border:1px solid var(--lx-line)" value="'+ozEsc(t.s||'')+'">':'')+
+      '<textarea id="tpl-b-'+k+'" rows="5" style="width:100%;padding:6px;border:1px solid var(--lx-line)">'+ozEsc(t.b||'')+'</textarea></div>'; }
+  box.innerHTML=fld('intro','1st email — intro (subject, then body)',true)+fld('follow','2nd email — follow up',true)+fld('bump','3rd+ email — bump',true)+fld('li_follow','LinkedIn follow up (copied to clipboard, not emailed)',false)+
+   '<div style="font-size:12px;color:var(--lx-ink-2)">Merge fields: {{first_name}} {{name}} {{firm}}</div>';
+}
+function ozSaveTemplates(){
+  var out={};['intro','follow','bump','li_follow'].forEach(function(k){
+    var s=document.getElementById('tpl-s-'+k), b=document.getElementById('tpl-b-'+k);
+    out[k]={s:s?s.value:'',b:b?b.value:''}; if(out[k].b)OZ_TPL[k]=out[k];
+  });
+  fetch(REV_API_URL+'/outreach/templates',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({templates:out})})
+    .then(function(r){return r.json();}).then(function(j){if(typeof showToast==='function')showToast(j&&j.ok?'Templates saved everywhere':'Save failed');})
+    .catch(function(){if(typeof showToast==='function')showToast('Save failed');});
+}
+function ozTplFill(t,c){ var first=String(c.name||'').split(' ')[0]; return String(t||'').split('{{first_name}}').join(first).split('{{name}}').join(c.name||'').split('{{firm}}').join(c.company||'your firm'); }
+function ozEmailSmart(id){
+  var c=orData.find(function(x){return x.id===id;}); if(!c)return;
+  var em=ozEmail(c); if(!em){ if(typeof showToast==='function')showToast('No email on file for '+c.name); return; }
+  var n=c.emailsSent||0, key=n===0?'intro':(n===1?'follow':'bump');
+  var t=ozTplGet(key);
+  window.location.href='mailto:'+encodeURIComponent(em)+'?subject='+encodeURIComponent(ozTplFill(t.s||'',c))+'&body='+encodeURIComponent(ozTplFill(t.b||'',c));
+  setTimeout(function(){ orMarkEmail(id,'sent'); },500);
+}
+function ozClip(t,msg){ try{ navigator.clipboard.writeText(t).then(function(){if(typeof showToast==='function')showToast(msg);},function(){window.prompt('Copy this:',t);}); }catch(e){ window.prompt('Copy this:',t); } }
+function ozCopyLi(id){ var c=orData.find(function(x){return x.id===id;}); if(!c)return; if(!c.liMessage){if(typeof showToast==='function')showToast('No saved message for '+c.name);return;} ozClip(c.liMessage,c.name+' — message copied'); }
+function ozCopyFollow(id){ var c=orData.find(function(x){return x.id===id;}); if(!c)return; ozClip(ozTplFill(ozTplGet('li_follow').b,c),c.name+' — follow up copied'); }
+function ozSetStage(id,st){ var c=orData.find(function(x){return x.id===id;}); if(!c)return; c.stage=st; c.lastContact=ozToday(); c.followup=''; if(st==='meeting')c.meetingAt=ozToday(); orSave(); renderOutreach(); if(typeof showToast==='function')showToast(c.name+' → '+(STAGE_LABELS[st]||st)); }
+function renderLinkedIn(){
+  var strip=document.getElementById('or-li-strip'), tb=document.getElementById('or-li-body'); if(!strip||!tb)return;
+  var li=orData.filter(function(c){return String(c.source||'')==='LinkedIn';});
+  var adv=['responded','intalks','meeting','ready'];
+  var messaged=li.filter(function(c){return c.sentAt||c.stage!=='cold';});
+  var responded=li.filter(function(c){return adv.indexOf(c.stage)>-1;});
+  var talks=li.filter(function(c){return c.stage==='intalks';});
+  var meet=li.filter(function(c){return c.stage==='meeting'||c.stage==='ready';});
+  var rate=messaged.length?Math.round(100*responded.length/messaged.length):0;
+  function tile(n,l){return '<div style="background:var(--lx-white);border:1px solid var(--lx-line);padding:10px 6px;text-align:center"><div style="font-size:22px;font-weight:700">'+n+'</div><div style="font-size:10px;letter-spacing:1px;color:var(--lx-ink-2)">'+l+'</div></div>';}
+  strip.innerHTML=tile(messaged.length,'MESSAGED')+tile(responded.length,'RESPONDED')+tile(talks.length,'IN TALKS')+tile(meet.length,'MEETINGS')+tile(rate+'%','RESPONSE RATE');
+  var sub=document.getElementById('or-li-sub'); if(sub)sub.textContent=li.length?li.length+' contacts':'';
+  var rows=li.slice().sort(function(a,b){return String(b.sentAt||b.liDraftAt||'').localeCompare(String(a.sentAt||a.liDraftAt||''));});
+  tb.innerHTML=rows.map(function(c){
+    var ds=c.sentAt?ozDays(c.sentAt):null;
+    function sb(st,label){return c.stage===st?'<span class="oz-pill '+st+'">'+label+'</span>':'<button class="lx-btn quiet sm" onclick="ozSetStage('+c.id+',\''+st+'\')">'+label+'</button>';}
+    return '<tr><td><span class="big" style="cursor:pointer" onclick="openContactModal('+c.id+')">'+ozEsc(c.name)+'</span></td>'+
+      '<td>'+(c.company?ozEsc(c.company):'<span style="color:var(--lx-ink-3)">—</span>')+'</td>'+
+      '<td>'+(c.sentAt?ozEsc(c.sentAt)+'<span class="sm">'+ds+'d ago</span>':(c.liDraftAt?'<span class="sm">draft ready</span>':'<span style="color:var(--lx-ink-3)">not yet</span>'))+'</td>'+
+      '<td><span class="oz-pill '+c.stage+'">'+(STAGE_LABELS[c.stage]||c.stage)+'</span></td>'+
+      '<td>'+(c.sentAt?'':'<button class="lx-btn quiet sm" onclick="ozMarkSent('+c.id+')">Mark sent</button> ')+
+        sb('responded','Responded')+' '+sb('intalks','In talks')+' '+sb('meeting','Meeting set')+' '+
+        (c.liMessage?'<button class="lx-btn quiet sm" onclick="ozCopyLi('+c.id+')">Copy message</button>':'')+
+      '</td></tr>';
+  }).join('')||'<tr><td colspan="5" class="lx-empty">No LinkedIn contacts yet. The draft agent adds them automatically when lawyers accept your connection.</td></tr>';
+}
+ozLoadTemplates();
+// ── end patch 313 core ───────────────────────────────────────────────────────
+
 // ── views ─────────────────────────────────────────────────────────────────
 function setOrView(v){
   orView=v;
@@ -10133,7 +10231,7 @@ function setOrView(v){
 }
 function renderOutreach(){
   if(typeof orData==='undefined')return;
-  renderOrStats(); renderOrToday();
+  renderOrStats(); renderOrToday(); renderLinkedIn();   // patch 313
   var list=getFiltered();
   var cnt=document.getElementById('or-count');
   if(cnt)cnt.textContent=list.length+' of '+orData.length+' shown';
