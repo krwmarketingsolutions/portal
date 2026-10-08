@@ -295,6 +295,7 @@
   .stage-pill{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:10px;font-family:'Helvetica Neue',Arial,sans-serif;white-space:nowrap}
   .stage-pill .sp-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;background:currentColor;opacity:.7}
   .stage-pill.cold{background:var(--subtle);color:var(--muted);border:1px solid var(--border)}
+  .oz-sentbadge{display:inline-block;font-size:11.5px;font-weight:600;color:#1f4d36;background:#eef7eb;border:1px solid #bcd9bc;border-radius:999px;padding:1px 9px;white-space:nowrap} /* patch 311 */
   .stage-pill.contacted{background:var(--blue-bg);color:#185FA5}
   .stage-pill.responded{background:var(--orange-bg);color:var(--orange-text)}
   .stage-pill.intalks{background:#f3eafe;color:#7c3fb5}
@@ -3108,7 +3109,7 @@ SELECT required_fields FROM campaigns WHERE slug = 'SLUG';</pre>
    A home-screen app on iOS can sit on a cached copy of this file for a long
    time. version.txt is fetched with no-store so it is always the real one;
    if it does not match the build running here, reload once. */
-var KRW_BUILD = '20261007-191051';
+var KRW_BUILD = '20261007-173559';
 (function () {
   var reloaded = false;
   function checkBuild() {
@@ -10093,6 +10094,7 @@ function renderOrToday(){
         '<span class="sub">'+ozEsc([ozSub(c),em].filter(Boolean).join(' · ')||'no firm or email on file')+'</span></span>'+
       '<span class="oz-do">'+
         (em?'<a class="lx-btn quiet sm" href="mailto:'+ozEsc(em)+'" onclick="event.stopPropagation()">Email</a>':'')+
+        (c.sentAt?ozSentBadge(c):'<button class="lx-btn quiet sm" onclick="event.stopPropagation();ozMarkSent('+c.id+')">Sent the message</button>')+
         '<button class="lx-btn quiet sm" onclick="event.stopPropagation();ozTouch('+c.id+')">Logged a touch</button>'+
         '<button class="lx-btn quiet sm" onclick="event.stopPropagation();ozSnooze('+c.id+',7)">Snooze 7d</button>'+
       '</span></li>';
@@ -10110,6 +10112,15 @@ function ozSnooze(id,days){
   c.followup=new Date(Date.now()+days*86400000).toISOString().split('T')[0];
   orSave(); renderOutreach(); if(typeof showToast==='function')showToast(c.name+' — snoozed '+days+' days');
 }
+// patch 311: one tap to say "I actually sent them the message"
+function ozMarkSent(id){
+  var c=orData.find(function(x){return x.id===id;}); if(!c)return;
+  c.sentAt=ozToday(); c.lastContact=ozToday();
+  if(c.stage==='cold')c.stage='contacted';
+  if(!c.followup)c.followup=new Date(Date.now()+4*86400000).toISOString().split('T')[0];
+  orSave(); renderOutreach(); if(typeof showToast==='function')showToast(c.name+' — marked sent');
+}
+function ozSentBadge(c){ return c.sentAt?'<span class="oz-sentbadge" title="Message sent '+ozEsc(c.sentAt)+'">&#10003; Sent '+ozEsc(c.sentAt)+'</span>':''; }
 
 // ── views ─────────────────────────────────────────────────────────────────
 function setOrView(v){
@@ -10160,7 +10171,7 @@ function renderBoard(contacts){
       var card=document.createElement('div');
       card.className='oz-card'; card.setAttribute('draggable','true');
       card.innerHTML='<button class="x" title="Delete" onclick="event.stopPropagation();deleteContact('+c.id+')">×</button>'+
-        '<div class="nm">'+ozEsc(c.name)+'</div>'+
+        '<div class="nm">'+ozEsc(c.name)+' '+(c.sentAt?ozSentBadge(c):'<button class="lx-btn quiet sm" style="padding:1px 8px;font-size:11px" onclick="event.stopPropagation();ozMarkSent('+c.id+')">Mark sent</button>')+'</div>'+
         (ozSub(c)?'<div class="co">'+ozEsc(ozSub(c))+'</div>':'')+
         (em?'<div class="em">'+ozEsc(em)+'</div>':'')+
         '<div class="ft"><span'+(late?' class="late"':'')+'>'+(c.followup?(late?'Due '+c.followup:'Follow-up '+c.followup):(d!==null?d+'d since touch':'No contact yet'))+'</span>'+
@@ -10197,7 +10208,7 @@ function renderList(contacts){
       '<td><span class="oz-pill '+c.stage+'">'+STAGE_LABELS[c.stage]+'</span></td>'+
       '<td class="num">'+(c.lastContact?ozEsc(c.lastContact)+'<span class="sm">'+d+'d ago</span>':'<span style="color:var(--lx-ink-3)">never</span>')+'</td>'+
       '<td class="num"'+(late?' style="color:var(--lx-red);font-weight:600"':'')+'>'+(c.followup?ozEsc(c.followup):'<span style="color:var(--lx-ink-3)">—</span>')+'</td>'+
-      '<td><button class="lx-btn quiet sm" onclick="event.stopPropagation();ozTouch('+c.id+')">Touch</button></td>';
+      '<td>'+(c.sentAt?ozSentBadge(c):'<button class="lx-btn quiet sm" onclick="event.stopPropagation();ozMarkSent('+c.id+')">Sent</button>')+' <button class="lx-btn quiet sm" onclick="event.stopPropagation();ozTouch('+c.id+')">Touch</button></td>';
     tr.addEventListener('click',function(e){ if(e.target.tagName!=='BUTTON'&&e.target.tagName!=='A')openContactModal(c.id); });
     tb.appendChild(tr);
   });
