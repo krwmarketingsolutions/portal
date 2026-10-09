@@ -302,6 +302,30 @@ tbody tr:hover td{background:var(--paper);}
       </div>
     </div>
 
+    <!-- patch 322: MVA Transfers (Josh only) -->
+    <div class="card" id="mva-card" style="display:none">
+      <div class="card-hdr">
+        <div>
+          <div class="card-title">MVA Transfers</div>
+          <div class="card-sub">Live transfers routed to your intake team — status updates as they are worked</div>
+        </div>
+        <div class="filters">
+          <button class="rbtn" onclick="loadMvaTransfers()">↻</button>
+        </div>
+      </div>
+      <div id="mva-load" class="st"><div class="spin"></div><div class="st-t">Loading your transfers...</div></div>
+      <div id="mva-empty" class="st" style="display:none"><div class="st-ico">📥</div><div class="st-t">No transfers yet</div><div class="st-s">Transfers will appear here as they come in</div></div>
+      <div id="mva-err" class="st" style="display:none"><div class="st-ico">⚠️</div><div class="st-t">Could not load transfers</div><div class="st-s" id="mva-err-msg"></div></div>
+      <div id="mvtbl-wrap" style="display:none;overflow-x:auto">
+        <table>
+          <thead><tr>
+            <th>Date</th><th>Name</th><th>Phone</th><th>State</th><th>Status</th>
+          </tr></thead>
+          <tbody id="mvtbl"></tbody>
+        </table>
+      </div>
+    </div>
+
     <div class="card">
       <div class="card-hdr" onclick="toggleSection('sec-signed')" style="cursor:pointer;user-select:none">
         <div>
@@ -666,6 +690,7 @@ function showPortal(){
   document.getElementById('kpi-boxes-grid').style.gridTemplateColumns = showSigned ? '1fr 1fr 1fr' : '1fr 1fr';
   setTimeout(loadCalls, 100);
   setTimeout(loadLeads, 100);
+  setTimeout(loadMvaTransfers, 100);
   if (showSigned) setTimeout(loadJSigned, 100);
 }
 
@@ -1284,6 +1309,62 @@ function toggleNotif(key){
 }
 function openSettings(){ document.getElementById('settings-modal').classList.add('open'); }
 function closeSettings(){ document.getElementById('settings-modal').classList.remove('open'); }
+// patch 322: MVA Transfers box. Reads Josh's standalone KRW-JOSHUA-MVA line only,
+// so it never mixes with the SSDI sections. Shown only for Josh's logins.
+var JOSH_MVA_IDS = ['SSDI-AZ-1696','SSDI-SLC-1696','KRW-JOSHUA-SIGNED','KRW-JOSHUA-CKX'];
+function loadMvaTransfers(){
+  if (!S) return;
+  var pid = String(S.pub_id || '').toUpperCase();
+  if (JOSH_MVA_IDS.map(function(x){return x.toUpperCase();}).indexOf(pid) === -1) return;
+  var card = document.getElementById('mva-card'); if (card) card.style.display = '';
+  document.getElementById('mva-load').style.display  = '';
+  document.getElementById('mva-empty').style.display = 'none';
+  document.getElementById('mva-err').style.display   = 'none';
+  document.getElementById('mvtbl-wrap').style.display = 'none';
+  var url = API + '/leads/feed?portal_id=KRW-JOSHUA-MVA&days=9999&limit=5000&api_key=' + API_KEY;
+  fetch(url)
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    if (!d.ok) throw new Error(d.error || 'Server error');
+    var leads = d.leads || [];
+    document.getElementById('mva-load').style.display = 'none';
+    if (!leads.length) { document.getElementById('mva-empty').style.display = ''; return; }
+    leads.sort(function(a,b){ return new Date(b.received_at||0) - new Date(a.received_at||0); });
+    var tbody = document.getElementById('mvtbl');
+    tbody.innerHTML = '';
+    leads.forEach(function(l){
+      var dateObj = l.received_at ? new Date(l.received_at) : null;
+      var date = dateObj
+        ? dateObj.toLocaleDateString('en-US', {month:'2-digit',day:'2-digit',year:'numeric'}) +
+          ' <span style="color:var(--ink-3);font-size:11px">' + dateObj.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:true,timeZone:'America/New_York'}) + '</span>'
+        : '—';
+      var name = ((l.first_name||'') + ' ' + (l.last_name||'')).trim() || '—';
+      var disp = l.disp_status || l.status || 'Pending';
+      var note = l.disp_note || '';
+      var sl = String(disp).toLowerCase();
+      var badge = sl.indexOf('sign') === 0 || sl.indexOf('accept') === 0 || sl === 'retained'
+        ? '<span class="badge b-cpa">✓ ' + disp + '</span>'
+        : sl.indexOf('reject') === 0
+        ? '<span class="badge b-no">' + disp + '</span>'
+        : '<span class="badge b-pending">⏳ ' + disp + '</span>';
+      var noteHtml = note ? '<div style="color:var(--ink-3);font-size:11px;margin-top:2px">' + note + '</div>' : '';
+      var tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td>' + date + '</td>' +
+        '<td style="font-weight:500">' + name + '</td>' +
+        '<td style="font-family:monospace;font-size:12px;color:var(--ink-3)">' + (l.phone || '—') + '</td>' +
+        '<td>' + (l.state || '—') + '</td>' +
+        '<td>' + badge + noteHtml + '</td>';
+      tbody.appendChild(tr);
+    });
+    document.getElementById('mvtbl-wrap').style.display = '';
+  })
+  .catch(function(e){
+    document.getElementById('mva-load').style.display = 'none';
+    document.getElementById('mva-err').style.display  = '';
+    document.getElementById('mva-err-msg').textContent = e.message;
+  });
+}
 </script>
 </body>
 </html>
