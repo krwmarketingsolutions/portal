@@ -2124,9 +2124,19 @@
         <div class="lx-section">
           <div class="lx-sechead"><h3>Billable approvals</h3><span id="lx-ap-sub" style="font-size:14px;color:var(--lx-ink-2)"></span></div>
           <p class="lx-lede">MVA, Rideshare and Roblox cases a buyer reported as signed or retained. Approve marks the lead billable and shows the payout on the publisher's portal; Hold keeps it private. SSDI has its own box on the SSDI page.</p>
+          <div id="lx-bq-controls" style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin:2px 0 14px">
+            <div id="lx-bq-presets" style="display:flex;gap:4px;flex-wrap:wrap">
+              <button class="lx-btn quiet sm" data-r="week" onclick="lxBqSetRange('week')">This week</button>
+              <button class="lx-btn quiet sm" data-r="biweek" onclick="lxBqSetRange('biweek')">2 weeks</button>
+              <button class="lx-btn quiet sm" data-r="month" onclick="lxBqSetRange('month')">This month</button>
+              <button class="lx-btn sm" data-r="all" onclick="lxBqSetRange('all')">All time</button>
+            </div>
+            <button class="lx-btn quiet sm" id="lx-bq-viewtoggle" onclick="lxBqToggleBuyers()" style="margin-left:auto">Buyers owed &rarr;</button>
+          </div>
+          <div id="lx-bq-buyers" style="display:none;margin-bottom:14px"></div>
           <div class="ss-bigs" id="lx-ap-bigs" style="margin-bottom:14px"></div>
           <div class="ss-pending" id="lx-ap-pending"></div>
-          <div class="ss-resolved">
+          <div class="ss-resolved" id="lx-ap-resolved">
             <details class="ss-fold"><summary><span>Approved</span><b id="lx-ap-approved-sum"></b></summary><div class="lx-mini" id="lx-ap-approved"></div></details>
             <details class="ss-fold"><summary><span>Held</span><b id="lx-ap-held-sum"></b></summary><div class="lx-mini" id="lx-ap-held"></div></details>
           </div>
@@ -10975,6 +10985,12 @@ function exportLeadsCSV(){
 // ---------- MVA / mass tort approval box (shares billable_queue with SSDI; split by the lead's vertical)
 LX.queue=[];
 function lxIsMvaItem(i){ return !!i.lead_id && (i.vertical||'').toUpperCase()!=='SSDI'; }
+var LX_BQ_RANGE='all', LX_BQ_VIEW='approvals';
+function lxBqWindowStart(){ var n=new Date(); if(LX_BQ_RANGE==='week'){ var d=new Date(n); var day=(d.getDay()+6)%7; d.setHours(0,0,0,0); d.setDate(d.getDate()-day); return d; } if(LX_BQ_RANGE==='biweek'){ var d=new Date(n); d.setHours(0,0,0,0); d.setDate(d.getDate()-13); return d; } if(LX_BQ_RANGE==='month'){ return new Date(n.getFullYear(),n.getMonth(),1); } return null; }
+function lxBqIn(i){ var s=lxBqWindowStart(); if(!s) return true; return new Date(i.received_at).getTime()>=s.getTime(); }
+function lxBqSetRange(r){ LX_BQ_RANGE=r; var box=document.getElementById('lx-bq-presets'); if(box) box.querySelectorAll('button').forEach(function(b){ b.className='lx-btn '+(b.getAttribute('data-r')===r?'':'quiet ')+'sm'; }); lxRenderQueue(); }
+function lxBqToggleBuyers(){ LX_BQ_VIEW=(LX_BQ_VIEW==='buyers')?'approvals':'buyers'; var t=document.getElementById('lx-bq-viewtoggle'); if(t) t.textContent=(LX_BQ_VIEW==='buyers')?'← Back to approvals':'Buyers owed →'; lxRenderQueue(); }
+function lxBqMarkPaid(buyer,amt,n){ if(!confirm('Mark '+n+' case'+(n===1?'':'s')+' from '+buyer+' as paid ($'+Math.round(amt).toLocaleString()+')? This clears them from what '+buyer+' owes you.')) return; fetch(REV_API_URL+'/billable-queue/mark-paid',{method:'POST',headers:{'x-api-key':REV_API_KEY,'Content-Type':'application/json'},body:JSON.stringify({buyer:buyer})}).then(function(r){return r.json();}).then(function(d){ if(d&&d.ok){ showToast('Marked paid · '+buyer+' · $'+Math.round(d.amount).toLocaleString()); lxFetchQueue(); } else { showToast('Could not mark paid: '+((d&&d.error)||'error')); } }).catch(function(e){ showToast('Could not mark paid: '+e.message); }); }
 async function lxFetchQueue(){
   if(!window.REV_API_URL||!window.REV_API_KEY) return;
   try{ var r=await fetch(REV_API_URL+'/billable-queue',{headers:{'x-api-key':REV_API_KEY}}); var d=await r.json(); if(d.ok){ LX.queue=(d.items||[]).filter(lxIsMvaItem); lxRenderQueue(); } }catch(e){}
@@ -10984,10 +11000,24 @@ function lxRenderQueue(){
   var pend=LX.queue.filter(function(i){return i.status==='pending';}), app=LX.queue.filter(function(i){return i.status==='approved';}), held=LX.queue.filter(function(i){return i.status==='held';});
   var sum=function(a){return a.reduce(function(s,i){return s+(parseFloat(i.amount)||0);},0);};
   var money=function(n){return '$'+Math.round(n).toLocaleString();};
+  var appR=app.filter(lxBqIn), heldR=held.filter(lxBqIn), inR=LX.queue.filter(lxBqIn);
+  var rlab=(LX_BQ_RANGE==='week'?'this week':LX_BQ_RANGE==='biweek'?'last 2 weeks':LX_BQ_RANGE==='month'?'this month':'all time');
   var bigs=document.getElementById('lx-ap-bigs');
   if(bigs) bigs.innerHTML='<div class="ss-big"><div class="lab">Waiting for you</div><div class="val">'+pend.length+'</div><div class="sub"><b>'+money(sum(pend))+'</b> if you approve everything</div></div>'+
-    '<div class="ss-big paid"><div class="lab">Approved</div><div class="val">'+money(sum(app))+'</div><div class="sub"><b>'+app.length+'</b> cases, buyer revenue</div></div>'+
-    '<div class="ss-big held"><div class="lab">Held</div><div class="val">'+money(sum(held))+'</div><div class="sub"><b>'+held.length+'</b> held</div></div>';
+    '<div class="ss-big"><div class="lab">Came in</div><div class="val">'+inR.length+'</div><div class="sub">'+rlab+'</div></div>'+
+    '<div class="ss-big paid"><div class="lab">Approved</div><div class="val">'+money(sum(appR))+'</div><div class="sub"><b>'+appR.length+'</b> cases, '+rlab+'</div></div>'+
+    '<div class="ss-big held"><div class="lab">Held</div><div class="val">'+money(sum(heldR))+'</div><div class="sub"><b>'+heldR.length+'</b> held</div></div>';
+  var buyersEl=document.getElementById('lx-bq-buyers'), pendEl=document.getElementById('lx-ap-pending'), resEl=document.getElementById('lx-ap-resolved');
+  var showBuyers=(LX_BQ_VIEW==='buyers');
+  if(buyersEl) buyersEl.style.display=showBuyers?'':'none';
+  if(pendEl) pendEl.style.display=showBuyers?'none':'';
+  if(resEl) resEl.style.display=showBuyers?'none':'';
+  if(showBuyers&&buyersEl){
+    var owedBy={}; app.forEach(function(i){ var b=i.buyer||'Unspecified'; if(!owedBy[b]) owedBy[b]={owed:0,n:0}; owedBy[b].owed+=parseFloat(i.amount)||0; owedBy[b].n++; });
+    var names=Object.keys(owedBy).sort(function(a,b){return owedBy[b].owed-owedBy[a].owed;});
+    var totalOwed=names.reduce(function(s,b){return s+owedBy[b].owed;},0);
+    buyersEl.innerHTML='<div class="ss-big" style="margin-bottom:12px"><div class="lab">Total outstanding</div><div class="val">'+money(totalOwed)+'</div><div class="sub">across '+names.length+' buyer'+(names.length===1?'':'s')+', approved and unpaid</div></div>'+(names.length?'<div class="ss-rows">'+names.map(function(b){ var o=owedBy[b]; return '<div class="ss-row" style="align-items:center"><div class="n">'+lxEsc(b)+'<small>'+o.n+' case'+(o.n===1?'':'s')+' owed</small></div><div class="a">'+money(o.owed)+'</div><div class="d"><button class="lx-btn quiet sm" onclick="lxBqMarkPaid(\''+b+'\','+o.owed+','+o.n+')">Mark paid</button></div></div>'; }).join('')+'</div>':'<div class="hm-mutedbox">Nothing outstanding right now.</div>');
+  }
   var sub=document.getElementById('lx-ap-sub'); if(sub) sub.textContent=pend.length?pend.length+' waiting':'Nothing waiting';
   var camp=function(i){ return '<span class="lx-pill camp">'+lxEsc(String(i.campaign||i.vertical||'').toUpperCase())+'</span>'; };
   host.innerHTML=pend.length?pend.map(function(i){ var name=((i.first_name||'')+' '+(i.last_name||'')).trim()||('Lead '+i.lead_id);
