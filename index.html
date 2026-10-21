@@ -2687,6 +2687,25 @@ SELECT required_fields FROM campaigns WHERE slug = 'SLUG';</pre>
         }
       }
 
+      /* patch 340: the Invoicing page is a fixed-height flex column with
+         overflow-y:hidden, so this section's content was clipped with no way
+         to scroll to it. Let the page scroll as one document, and stop the
+         Trackdrive body below from claiming a full flex share of a scrolling
+         column (which would collapse it). Idempotent; leaves the markup alone
+         if it is ever rewritten. */
+      function fsEnablePageScroll(){
+        var pg = document.getElementById('page-invoice');
+        if(!pg || pg.getAttribute('data-fs-scroll')) return;
+        pg.style.overflowY = 'auto';
+        Array.prototype.forEach.call(pg.children, function(c){
+          if(c.style && c.style.flex === '1' && c.style.overflow === 'hidden'){
+            c.style.flex = '0 0 auto';
+            if(!c.style.minHeight || c.style.minHeight === '0px') c.style.minHeight = '420px';
+          }
+        });
+        pg.setAttribute('data-fs-scroll','1');
+      }
+
       function renderFundingSection(d){
         var ready = d.ready_to_invoice||{total:0,by_buyer:[]};
         var wait  = d.awaiting_payment||{total:0,overdue_total:0,by_invoice:[]};
@@ -2717,6 +2736,7 @@ SELECT required_fields FROM campaigns WHERE slug = 'SLUG';</pre>
         fsRenderPnl(d.pnl||null);
         fsRenderMargins(d.margins||[]);
         fsRenderConversion(d.conversion||[]);
+        fsEnablePageScroll();
       }
 
       function fsCard(label, amount, sub, cls){
@@ -2906,7 +2926,7 @@ SELECT required_fields FROM campaigns WHERE slug = 'SLUG';</pre>
           var prev = window.showPage;
           window.showPage = function(p){
             var r = prev.apply(this, arguments);
-            if(p === 'invoice'){ try{ fetchFundingSummary(); }catch(e){} }
+            if(p === 'invoice'){ try{ fsEnablePageScroll(); fetchFundingSummary(); }catch(e){} }
             return r;
           };
           window.__fsWrapped = true;
