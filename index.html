@@ -2625,7 +2625,7 @@ SELECT required_fields FROM campaigns WHERE slug = 'SLUG';</pre>
 
         <div class="lx-section">
           <div class="lx-sechead"><h3>By buyer</h3></div>
-          <p class="lx-lede">What each buyer owes, and what is still waiting on your approval. Held and pending are not counted as owed.</p>
+          <p class="lx-lede">What each buyer owes. A case counts as owed from the moment a buyer sheet marks it billable; approving it is what puts the payout on the publisher's portal.</p>
           <div class="lx-mini" id="fs-buyers"></div>
         </div>
 
@@ -2726,7 +2726,10 @@ SELECT required_fields FROM campaigns WHERE slug = 'SLUG';</pre>
       function renderFundingSection(d){
         var ready = d.ready_to_invoice||{total:0,by_buyer:[]};
         var wait  = d.awaiting_payment||{total:0,overdue_total:0,by_invoice:[]};
-        var unc   = d.unconfirmed||{total:0,held:{total:0,count:0},pending:{total:0,count:0}};
+        /* patch 347: patch 346 renamed this. It is owed money awaiting approval
+           for the publisher portal, not money in doubt. */
+        var unc   = d.awaiting_approval || d.unconfirmed ||
+                    {total:0,held:{total:0,count:0},pending:{total:0,count:0}};
         var rc = (ready.by_buyer||[]).reduce(function(s,b){return s+b.count;},0);
 
         document.getElementById('fs-cards').innerHTML =
@@ -2735,8 +2738,8 @@ SELECT required_fields FROM campaigns WHERE slug = 'SLUG';</pre>
           fsCard('Overdue', wait.overdue_total,
                  wait.overdue_total>0 ? ('oldest '+fsPlural(wait.oldest_overdue_days||0,'day')) : 'nothing late',
                  wait.overdue_total>0?'bad':'muted') +
-          fsCard('Not confirmed yet', unc.total,
-                 fsMoney(unc.held.total)+' held · '+fsMoney(unc.pending.total)+' awaiting you', 'muted');
+          fsCard('Awaiting your approval', unc.total,
+                 'already counted as owed · approve to update the pub portal', 'warn');
 
         var top = (d.by_buyer||[])[0];
         if(!top){ document.getElementById('fs-line').textContent = 'No MVA cases signed yet.'; }
@@ -2790,6 +2793,9 @@ SELECT required_fields FROM campaigns WHERE slug = 'SLUG';</pre>
           var status = c.overdue ? '<span class="fs-tag late">'+c.days_overdue+'d late</span>'
                      : c.invoiced ? '<span class="fs-tag ok">invoiced</span>'
                      : '<span class="fs-tag hold">not invoiced</span>';
+          /* patch 347: owed either way, but this one still needs approving
+             before the publisher sees the payout. */
+          if (c.awaiting_approval) status += ' <span class="fs-tag hold">unapproved</span>';
           rows += '<tr>'+
             '<td data-l="Lead">'+fsEsc(c.name||'—')+(c.source==='manual'?' <span class="fs-tag hold">added</span>':'')+'</td>'+
             '<td data-l="Phone">'+fsEsc(c.cid||'—')+'</td>'+
@@ -2825,7 +2831,7 @@ SELECT required_fields FROM campaigns WHERE slug = 'SLUG';</pre>
             '<td class="n" data-l="Ready">'+(b.ready?fsMoney(b.ready):'—')+'</td>'+
             '<td class="n" data-l="Invoiced">'+(b.invoiced_unpaid?fsMoney(b.invoiced_unpaid):'—')+'</td>'+
             '<td class="n" data-l="Overdue">'+(b.overdue?'<span class="fs-tag late">'+fsMoney(b.overdue)+'</span>':'—')+'</td>'+
-            '<td class="n" data-l="Not confirmed">'+(b.unconfirmed?'<span class="fs-tag hold">'+fsMoney(b.unconfirmed)+'</span>':'—')+'</td>'+
+            '<td class="n" data-l="Unapproved">'+(b.unconfirmed?'<span class="fs-tag hold">'+fsMoney(b.unconfirmed)+'</span>':'—')+'</td>'+
             '<td class="n big" data-l="Owed">'+fsMoney(b.total_owed)+'</td>'+
             '<td class="n" data-l="">'+(r&&r.count
               ? '<button class="lx-btn sm" onclick="fsConfirmInvoice('+fsEsc(JSON.stringify(r.buyer))+')">Invoice '+r.count+'</button>'
@@ -2834,13 +2840,13 @@ SELECT required_fields FROM campaigns WHERE slug = 'SLUG';</pre>
         });
         document.getElementById('fs-buyers').innerHTML = fsWrap(
           '<th>Buyer</th><th class="n">Cases</th><th class="n">Ready</th><th class="n">Invoiced</th>'+
-          '<th class="n">Overdue</th><th class="n">Not confirmed</th><th class="n">Owed</th><th></th>',
+          '<th class="n">Overdue</th><th class="n">Unapproved</th><th class="n">Owed</th><th></th>',
           body,
           '<td data-l="">Total</td><td class="n" data-l="Cases">'+tot.cases+'</td>'+
           '<td class="n" data-l="Ready">'+fsMoney(tot.ready)+'</td>'+
           '<td class="n" data-l="Invoiced">'+fsMoney(tot.inv)+'</td>'+
           '<td class="n" data-l="Overdue">'+fsMoney(tot.over)+'</td>'+
-          '<td class="n" data-l="Not confirmed">'+fsMoney(tot.unc)+'</td>'+
+          '<td class="n" data-l="Unapproved">'+fsMoney(tot.unc)+'</td>'+
           '<td class="n" data-l="Owed">'+fsMoney(tot.owed)+'</td><td></td>');
       }
 
