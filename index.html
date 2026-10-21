@@ -902,7 +902,7 @@
 
 
   /* ══ LEADS PAGE (v147 — retainer look) ═════════════════════ */
-  #page-leads, #page-home, #page-ssdi{
+  #page-leads, #page-home, #page-ssdi, #fs-section{
     --lx-paper:#F3EEE3; --lx-paper-2:#EAE3D3; --lx-ink:#1E2A22; --lx-ink-2:#4E5A52; --lx-ink-3:#8A9089;
     --lx-green:#1F4D36; --lx-green-2:#2E6B4B; --lx-green-soft:#D9E4DB; --lx-brown:#8C6A44; --lx-brown-soft:#E7D9C5;
     --lx-red:#8E3B2F; --lx-red-soft:#EDD3CC; --lx-line:#CFC5B0; --lx-line-2:#B9AE95; --lx-white:#FBF8F1;
@@ -2539,96 +2539,140 @@ SELECT required_fields FROM campaigns WHERE slug = 'SLUG';</pre>
         </div>
       </div>
 
-      <!-- ═══ patch 337: MVA MONEY SECTION ═══ -->
+      <!-- ═══ patch 339: MVA MONEY (Leads design language) ═══ -->
       <style>
-        .fs-wrap{padding:1rem 1.25rem;border-bottom:1px solid var(--border);flex-shrink:0}
-        .fs-line{font-size:14px;color:var(--text);margin-bottom:.9rem;line-height:1.5}
-        .fs-line b{font-weight:600}
-        .fs-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:1rem}
-        .fs-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:.85rem 1rem}
-        .fs-card.ready{border-left:3px solid var(--orange)}
-        .fs-card.wait{border-left:3px solid var(--blue)}
-        .fs-card.over{border-left:3px solid var(--red)}
-        .fs-card.over.hot{background:#FDF3F3}
-        .fs-k{font-family:'Helvetica Neue',Arial,sans-serif;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:5px}
-        .fs-v{font-size:22px}
-        .fs-v.ready{color:var(--orange-text)} .fs-v.wait{color:var(--blue)} .fs-v.over{color:var(--red)}
-        .fs-sub{font-family:'Helvetica Neue',Arial,sans-serif;font-size:11px;color:var(--muted);margin-top:2px}
-        .fs-h{font-family:'Helvetica Neue',Arial,sans-serif;font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:1rem 0 .5rem}
-        .fs-tbl{width:100%;border-collapse:collapse;font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px}
-        .fs-tbl th{text-align:left;font-weight:500;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.06em;padding:6px 8px;border-bottom:1px solid var(--border)}
-        .fs-tbl td{padding:8px;border-bottom:1px solid var(--border);vertical-align:middle}
-        .fs-tbl tr:last-child td{border-bottom:0}
-        .fs-tbl .num{text-align:right;font-variant-numeric:tabular-nums}
-        .fs-row-over{border-left:3px solid var(--red)}
-        .fs-pill{display:inline-block;padding:2px 7px;border-radius:999px;font-size:10px;font-weight:500}
-        .fs-pill.over{background:#F7E4E4;color:var(--red)}
-        .fs-pill.ok{background:var(--green-bg);color:var(--green-text)}
-        .fs-two{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
-        .fs-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:.5rem .75rem}
-        .fs-empty{font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;color:var(--muted);padding:1.25rem;text-align:center;opacity:.7}
-        .fs-mask{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:900;align-items:center;justify-content:center;padding:1rem}
-        .fs-mask.on{display:flex}
-        .fs-modal{background:var(--surface);border-radius:var(--radius);padding:1.25rem;max-width:380px;width:100%}
-        .fs-modal h3{margin:0 0 .75rem;font-size:15px}
-        .fs-modal dl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:0 0 1rem;font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px}
-        .fs-modal dt{color:var(--muted)} .fs-modal dd{margin:0;text-align:right;font-variant-numeric:tabular-nums}
-        .fs-acts{display:flex;gap:8px;justify-content:flex-end}
-        @media(max-width:640px){
-          .fs-cards{grid-template-columns:1fr}
-          .fs-two{grid-template-columns:1fr}
-          .fs-tbl thead{display:none}
-          .fs-tbl tr{display:block;border-bottom:1px solid var(--border);padding:8px 0}
-          .fs-tbl td{display:flex;justify-content:space-between;gap:14px;border:0;padding:3px 8px}
-          .fs-tbl td:before{content:attr(data-l);color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.06em;flex:0 0 auto;white-space:nowrap}
-          .fs-tbl td:empty{display:none}
-          .fs-tbl .num{text-align:right}
+        /* Only layout lives here. Every colour, face and rule comes from the
+           Leads tokens, inherited because #fs-section joins their selector. */
+        #fs-section{padding:0 40px 40px;font-family:"Source Serif 4",Georgia,"Times New Roman",serif}
+        #fs-section .lx-section:first-child{margin-top:22px}
+        #fs-section .lx-stats{grid-template-columns:repeat(4,1fr)}
+        #fs-section .lx-stat{cursor:default}
+        #fs-section .lx-stat:hover{transform:none;box-shadow:none;border-color:var(--lx-line)}
+        #fs-section .lx-stat .n{font-size:34px}
+        #fs-section .lx-stat.warn{border-top-color:var(--lx-brown)}
+        #fs-section .lx-stat.bad{border-top-color:var(--lx-red)}
+        #fs-section .lx-stat.bad .n{color:var(--lx-red)}
+        #fs-section .lx-stat.muted .n{color:var(--lx-ink-2)}
+        .fs-t{width:100%;border-collapse:collapse;font-size:14.5px}
+        .fs-t th{text-align:left;font-weight:600;font-size:13px;color:var(--lx-ink-2);
+                 padding:9px 14px;border-bottom:1px solid var(--lx-line);white-space:nowrap}
+        .fs-t td{padding:10px 14px;border-bottom:1px solid var(--lx-line);vertical-align:middle}
+        .fs-t tr:last-child td{border-bottom:0}
+        .fs-t tbody tr:hover{background:var(--lx-paper)}
+        .fs-t .n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+        .fs-t .big{font-weight:600}
+        .fs-t tr.late td:first-child{box-shadow:inset 3px 0 0 var(--lx-red)}
+        .fs-t tfoot td{padding:10px 14px;border-top:2px solid var(--lx-line-2);font-weight:600}
+        .fs-tag{font-size:12.5px;padding:1px 8px;border-radius:2px;white-space:nowrap}
+        .fs-tag.late{background:var(--lx-red-soft);color:var(--lx-red)}
+        .fs-tag.ok{background:var(--lx-green-soft);color:var(--lx-green)}
+        .fs-tag.hold{background:var(--lx-brown-soft);color:var(--lx-brown)}
+        .fs-pos{color:var(--lx-green)} .fs-neg{color:var(--lx-red)}
+        .fs-grid2{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+        .fs-none{padding:22px 14px;color:var(--lx-ink-3);font-size:14.5px}
+        .fs-note{font-size:13px;color:var(--lx-ink-3);margin-top:8px;max-width:70ch}
+        #fs-mask{display:none;position:fixed;inset:0;background:rgba(30,42,34,.42);z-index:900;
+                 align-items:center;justify-content:center;padding:16px}
+        #fs-mask.on{display:flex}
+        #fs-mask .box{background:var(--lx-white);border:1px solid var(--lx-line-2);padding:24px;max-width:400px;width:100%;
+                      font-family:"Source Serif 4",Georgia,serif;color:var(--lx-ink)}
+        #fs-mask h3{font-size:20px;margin:0 0 4px;font-weight:600}
+        #fs-mask p{font-size:14px;color:var(--lx-ink-2);margin:0 0 16px}
+        #fs-mask dl{display:grid;grid-template-columns:auto 1fr;gap:8px 18px;margin:0 0 20px;font-size:15px}
+        #fs-mask dt{color:var(--lx-ink-2)} #fs-mask dd{margin:0;text-align:right;font-variant-numeric:tabular-nums}
+        #fs-mask .acts{display:flex;gap:10px;justify-content:flex-end}
+        @media(max-width:820px){
+          #fs-section{padding:0 18px 32px}
+          #fs-section .lx-stats{grid-template-columns:1fr 1fr}
+          .fs-grid2{grid-template-columns:1fr}
+        }
+        @media(max-width:560px){
+          #fs-section .lx-stats{grid-template-columns:1fr}
+          .fs-t thead{display:none}
+          .fs-t tr{display:block;padding:10px 0;border-bottom:1px solid var(--lx-line)}
+          .fs-t td{display:flex;justify-content:space-between;gap:16px;border:0;padding:4px 14px}
+          .fs-t td:before{content:attr(data-l);color:var(--lx-ink-2);font-size:13px;flex:0 0 auto}
+          .fs-t td:empty{display:none}
+          .fs-t tfoot td{border:0}
         }
       </style>
 
-      <div class="fs-wrap" id="fs-section">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:.6rem">
-          <span class="fs-h" style="margin:0">MVA money</span>
-          <div style="flex:1"></div>
-          <button class="inv-refresh-btn" onclick="fetchFundingSummary()">↻ Refresh</button>
+      <div id="fs-section">
+        <div class="lx-section">
+          <div class="lx-sechead">
+            <h3>MVA money</h3>
+            <button class="lx-btn quiet sm" onclick="fetchFundingSummary()">Refresh</button>
+          </div>
+          <p class="lx-lede" id="fs-line">Loading…</p>
+          <div class="lx-stats" id="fs-cards"></div>
         </div>
-        <div class="fs-line" id="fs-line">Loading…</div>
-        <div class="fs-cards">
-          <div class="fs-card ready"><div class="fs-k">Ready to invoice</div><div class="fs-v ready" id="fs-ready">$0</div><div class="fs-sub" id="fs-ready-sub">—</div></div>
-          <div class="fs-card wait"><div class="fs-k">Waiting on payment</div><div class="fs-v wait" id="fs-wait">$0</div><div class="fs-sub" id="fs-wait-sub">—</div></div>
-          <div class="fs-card over" id="fs-over-card"><div class="fs-k">Overdue</div><div class="fs-v over" id="fs-over">$0</div><div class="fs-sub" id="fs-over-sub">—</div></div>
+
+        <div class="lx-section">
+          <div class="lx-sechead"><h3>By buyer</h3></div>
+          <p class="lx-lede">What each buyer owes, and what is still waiting on your approval. Held and pending are not counted as owed.</p>
+          <div class="lx-mini" id="fs-buyers"></div>
         </div>
-        <div class="fs-h">By buyer</div>
-        <div id="fs-buyers"></div>
-        <div class="fs-h">Open invoices</div>
-        <div id="fs-invoices"></div>
-        <div class="fs-two">
-          <div><div class="fs-h">Margin by lane</div><div class="fs-box" id="fs-margins"></div></div>
-          <div><div class="fs-h">Conversion</div><div class="fs-box" id="fs-conversion"></div></div>
+
+        <div class="lx-section">
+          <div class="lx-sechead"><h3>Open invoices</h3></div>
+          <p class="lx-lede">Sent and not yet paid. Anything past its due date is marked late.</p>
+          <div class="lx-mini" id="fs-invoices"></div>
+        </div>
+
+        <div class="lx-section">
+          <div class="lx-sechead">
+            <h3>Profit and loss</h3>
+            <div class="lx-seg" id="fs-pnl-seg">
+              <button data-p="weekly" aria-pressed="true" onclick="fsSetPnl('weekly')">Weekly</button>
+              <button data-p="monthly" onclick="fsSetPnl('monthly')">Monthly</button>
+            </div>
+          </div>
+          <p class="lx-lede">Revenue is what buyers pay on cases signed in the period. Cost is the publisher payout on those same cases.</p>
+          <div class="lx-mini" id="fs-pnl"></div>
+          <p class="fs-note" id="fs-pnl-basis"></p>
+          <div class="fs-grid2" style="margin-top:22px">
+            <div><div class="lx-sechead"><h3 style="font-size:17px">By buyer</h3></div><div class="lx-mini" id="fs-pnl-buyer"></div></div>
+            <div><div class="lx-sechead"><h3 style="font-size:17px">By publisher</h3></div><div class="lx-mini" id="fs-pnl-pub"></div></div>
+          </div>
+        </div>
+
+        <div class="lx-section">
+          <div class="lx-sechead"><h3>Lane performance</h3></div>
+          <p class="lx-lede">Margin per signed case on each publisher to buyer route, and how many leads each publisher turns into signed cases.</p>
+          <div class="fs-grid2">
+            <div class="lx-mini" id="fs-margins"></div>
+            <div class="lx-mini" id="fs-conversion"></div>
+          </div>
         </div>
       </div>
 
-      <div class="fs-mask" id="fs-mask">
-        <div class="fs-modal">
-          <h3 id="fs-modal-title">Create invoice</h3>
+      <div id="fs-mask">
+        <div class="box">
+          <h3>Create invoice</h3>
+          <p>This marks the cases as invoiced on your side. Nothing is emailed to the buyer.</p>
           <dl id="fs-modal-fields"></dl>
-          <div class="fs-acts">
-            <button class="btn" onclick="fsCloseConfirm()">Cancel</button>
-            <button class="btn btn-green" id="fs-modal-go">Create invoice</button>
+          <div class="acts">
+            <button class="lx-btn quiet" onclick="fsCloseConfirm()">Cancel</button>
+            <button class="lx-btn" id="fs-modal-go">Create invoice</button>
           </div>
         </div>
       </div>
 
       <script>
-      /* patch 337 — MVA money section. Reads GET /funding-summary (patch 336). */
-      var fsData = null;
+      /* patch 339 — MVA money, Leads design language. Reads GET /funding-summary. */
+      var fsData = null, fsPnlMode = 'weekly';
 
-      function fsMoney(n){ return '$' + Math.round(Number(n)||0).toLocaleString(); }
+      function fsMoney(n){ var v = Math.round(Number(n)||0); return (v<0?'-$':'$') + Math.abs(v).toLocaleString(); }
       function fsEsc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){
         return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
       function fsDate(d){ if(!d) return '—'; var x=new Date(d);
         return isNaN(x) ? '—' : (x.getUTCMonth()+1)+'/'+x.getUTCDate(); }
       function fsPlural(n,w){ return n+' '+w+(n===1?'':'s'); }
+      function fsWeekLabel(k){ var p=String(k).split('-');
+        return p.length===3 ? (Number(p[1])+'/'+Number(p[2])) : k; }
+      function fsMonthLabel(k){
+        var m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        var p=String(k).split('-'); return p.length===2 ? (m[Number(p[1])-1]+' '+p[0]) : k; }
 
       async function fetchFundingSummary(){
         var line = document.getElementById('fs-line');
@@ -2637,124 +2681,191 @@ SELECT required_fields FROM campaigns WHERE slug = 'SLUG';</pre>
           var res = await fetch(REV_API_URL+'/funding-summary', { headers:{'x-api-key':REV_API_KEY} });
           var d = await res.json();
           if(!d || !d.ok) throw new Error((d&&d.error)||'Bad response');
-          fsData = d;
-          renderFundingSection(d);
+          fsData = d; renderFundingSection(d);
         }catch(err){
-          if(line) line.textContent = 'Could not load: '+err.message+(String(err.message).indexOf('404')>-1?' (is patch 336 deployed?)':'');
+          if(line) line.textContent = 'Could not load: '+err.message;
         }
       }
 
       function renderFundingSection(d){
         var ready = d.ready_to_invoice||{total:0,by_buyer:[]};
         var wait  = d.awaiting_payment||{total:0,overdue_total:0,by_invoice:[]};
-
-        document.getElementById('fs-ready').textContent = fsMoney(ready.total);
+        var unc   = d.unconfirmed||{total:0,held:{total:0,count:0},pending:{total:0,count:0}};
         var rc = (ready.by_buyer||[]).reduce(function(s,b){return s+b.count;},0);
-        document.getElementById('fs-ready-sub').textContent =
-          rc ? fsPlural(rc,'case')+' across '+fsPlural((ready.by_buyer||[]).length,'buyer') : 'nothing waiting';
 
-        document.getElementById('fs-wait').textContent = fsMoney(wait.total);
-        document.getElementById('fs-wait-sub').textContent = fsPlural((wait.by_invoice||[]).length,'invoice')+' out';
+        document.getElementById('fs-cards').innerHTML =
+          fsCard('Ready to invoice', ready.total, rc?fsPlural(rc,'case')+' signed and not billed':'nothing waiting', 'warn') +
+          fsCard('Waiting on payment', wait.total, fsPlural((wait.by_invoice||[]).length,'invoice')+' out', '') +
+          fsCard('Overdue', wait.overdue_total,
+                 wait.overdue_total>0 ? ('oldest '+fsPlural(wait.oldest_overdue_days||0,'day')) : 'nothing late',
+                 wait.overdue_total>0?'bad':'muted') +
+          fsCard('Not confirmed yet', unc.total,
+                 fsMoney(unc.held.total)+' held · '+fsMoney(unc.pending.total)+' awaiting you', 'muted');
 
-        document.getElementById('fs-over').textContent = fsMoney(wait.overdue_total);
-        document.getElementById('fs-over-sub').textContent =
-          wait.overdue_total>0 ? ('oldest '+fsPlural(wait.oldest_overdue_days||0,'day')) : 'nothing late';
-        document.getElementById('fs-over-card').className = 'fs-card over'+(wait.overdue_total>0?' hot':'');
-
-        /* Plain English line, built from the biggest single thing owed. */
         var top = (d.by_buyer||[])[0];
         if(!top){ document.getElementById('fs-line').textContent = 'No MVA cases signed yet.'; }
         else {
-          var bits = fsEsc(top.buyer)+' owes you <b>'+fsMoney(top.total_owed)+'</b>';
-          if(top.ready_count) bits += ', and <b>'+fsPlural(top.ready_count,'case')+'</b> of that '+
-            (top.ready_count===1?'is':'are')+' not invoiced yet';
-          if(top.overdue>0)   bits += '. <b>'+fsMoney(top.overdue)+'</b> is past due';
-          document.getElementById('fs-line').innerHTML = bits+'.';
+          var s = fsEsc(top.buyer)+' owes you <b>'+fsMoney(top.total_owed)+'</b>';
+          if(top.ready_count) s += ', and <b>'+fsPlural(top.ready_count,'case')+'</b> of that '+
+            (top.ready_count===1?'has':'have')+' not been invoiced';
+          if(top.overdue>0) s += '. <b>'+fsMoney(top.overdue)+'</b> is past due';
+          document.getElementById('fs-line').innerHTML = s+'.';
         }
 
         fsRenderBuyers(d.by_buyer||[], ready.by_buyer||[]);
         fsRenderInvoices(wait.by_invoice||[]);
+        fsRenderPnl(d.pnl||null);
         fsRenderMargins(d.margins||[]);
         fsRenderConversion(d.conversion||[]);
       }
 
+      function fsCard(label, amount, sub, cls){
+        return '<div class="lx-stat '+cls+'"><div class="top"><span>'+fsEsc(label)+'</span></div>'+
+               '<div class="mid"><div class="n">'+fsMoney(amount)+'</div></div>'+
+               '<div class="sub">'+fsEsc(sub)+'</div></div>';
+      }
+      function fsWrap(head, body, foot){
+        return '<table class="fs-t"><thead><tr>'+head+'</tr></thead><tbody>'+body+'</tbody>'+
+               (foot?'<tfoot><tr>'+foot+'</tr></tfoot>':'')+'</table>';
+      }
+      function fsNone(el, msg){ document.getElementById(el).innerHTML='<div class="fs-none">'+msg+'</div>'; }
+
       function fsRenderBuyers(buyers, readyBuyers){
-        var el = document.getElementById('fs-buyers');
-        if(!buyers.length){ el.innerHTML = '<div class="fs-empty">No MVA money outstanding.</div>'; return; }
-        var readyBy = {}; readyBuyers.forEach(function(b){ readyBy[b.buyer]=b; });
-        var h = '<table class="fs-tbl"><thead><tr><th>Buyer</th><th class="num">Ready</th>'+
-                '<th class="num">Invoiced</th><th class="num">Overdue</th><th class="num">Owed</th><th></th></tr></thead><tbody>';
+        if(!buyers.length) return fsNone('fs-buyers','No MVA money outstanding.');
+        var readyBy={}; readyBuyers.forEach(function(b){ readyBy[b.buyer]=b; });
+        var body='', tot={ready:0,inv:0,over:0,unc:0,owed:0};
         buyers.forEach(function(b){
-          var r = readyBy[b.buyer];
-          h += '<tr class="'+(b.overdue>0?'fs-row-over':'')+'">'+
+          var r=readyBy[b.buyer];
+          tot.ready+=b.ready; tot.inv+=b.invoiced_unpaid; tot.over+=b.overdue;
+          tot.unc+=(b.unconfirmed||0); tot.owed+=b.total_owed;
+          body += '<tr class="'+(b.overdue>0?'late':'')+'">'+
             '<td data-l="Buyer">'+fsEsc(b.buyer)+'</td>'+
-            '<td class="num" data-l="Ready">'+(b.ready?fsMoney(b.ready):'—')+'</td>'+
-            '<td class="num" data-l="Invoiced">'+(b.invoiced_unpaid?fsMoney(b.invoiced_unpaid):'—')+'</td>'+
-            '<td class="num" data-l="Overdue">'+(b.overdue?'<span class="fs-pill over">'+fsMoney(b.overdue)+'</span>':'—')+'</td>'+
-            '<td class="num" data-l="Owed"><b>'+fsMoney(b.total_owed)+'</b></td>'+
-            '<td class="num" data-l="">'+(r&&r.count
-              ? '<button class="btn btn-green" style="font-size:11px;padding:3px 9px" onclick="fsConfirmInvoice('+fsEsc(JSON.stringify(r.buyer))+')">Invoice '+r.count+'</button>'
+            '<td class="n" data-l="Ready">'+(b.ready?fsMoney(b.ready):'—')+'</td>'+
+            '<td class="n" data-l="Invoiced">'+(b.invoiced_unpaid?fsMoney(b.invoiced_unpaid):'—')+'</td>'+
+            '<td class="n" data-l="Overdue">'+(b.overdue?'<span class="fs-tag late">'+fsMoney(b.overdue)+'</span>':'—')+'</td>'+
+            '<td class="n" data-l="Not confirmed">'+(b.unconfirmed?'<span class="fs-tag hold">'+fsMoney(b.unconfirmed)+'</span>':'—')+'</td>'+
+            '<td class="n big" data-l="Owed">'+fsMoney(b.total_owed)+'</td>'+
+            '<td class="n" data-l="">'+(r&&r.count
+              ? '<button class="lx-btn sm" onclick="fsConfirmInvoice('+fsEsc(JSON.stringify(r.buyer))+')">Invoice '+r.count+'</button>'
               : '')+'</td></tr>';
         });
-        el.innerHTML = h+'</tbody></table>';
+        document.getElementById('fs-buyers').innerHTML = fsWrap(
+          '<th>Buyer</th><th class="n">Ready</th><th class="n">Invoiced</th><th class="n">Overdue</th>'+
+          '<th class="n">Not confirmed</th><th class="n">Owed</th><th></th>',
+          body,
+          '<td data-l="">Total</td><td class="n" data-l="Ready">'+fsMoney(tot.ready)+'</td>'+
+          '<td class="n" data-l="Invoiced">'+fsMoney(tot.inv)+'</td>'+
+          '<td class="n" data-l="Overdue">'+fsMoney(tot.over)+'</td>'+
+          '<td class="n" data-l="Not confirmed">'+fsMoney(tot.unc)+'</td>'+
+          '<td class="n" data-l="Owed">'+fsMoney(tot.owed)+'</td><td></td>');
       }
 
       function fsRenderInvoices(list){
-        var el = document.getElementById('fs-invoices');
-        if(!list.length){ el.innerHTML = '<div class="fs-empty">Nothing invoiced and waiting.</div>'; return; }
-        var h = '<table class="fs-tbl"><thead><tr><th>Invoice</th><th>Buyer</th><th class="num">Amount</th>'+
-                '<th class="num">Sent</th><th class="num">Due</th><th class="num">Age</th><th></th></tr></thead><tbody>';
+        if(!list.length) return fsNone('fs-invoices','Nothing invoiced and waiting.');
+        var body='';
         list.forEach(function(v){
-          h += '<tr class="'+(v.overdue?'fs-row-over':'')+'">'+
-            '<td data-l="Invoice" style="font-size:11px">'+fsEsc(v.invoice_id||'—')+'</td>'+
+          body += '<tr class="'+(v.overdue?'late':'')+'">'+
+            '<td data-l="Invoice">'+fsEsc(v.invoice_id||'—')+'</td>'+
             '<td data-l="Buyer">'+fsEsc(v.buyer)+'</td>'+
-            '<td class="num" data-l="Amount">'+fsMoney(v.amount)+'</td>'+
-            '<td class="num" data-l="Sent">'+fsDate(v.invoiced_at)+'</td>'+
-            '<td class="num" data-l="Due">'+fsDate(v.due_date)+'</td>'+
-            '<td class="num" data-l="Age">'+(v.overdue
-              ? '<span class="fs-pill over">'+v.days_overdue+'d late</span>'
-              : '<span class="fs-pill ok">'+v.days_outstanding+'d</span>')+'</td>'+
-            '<td class="num" data-l="">'+(v.invoice_id
-              ? '<button class="btn" style="font-size:11px;padding:3px 9px" onclick="fsMarkPaid('+fsEsc(JSON.stringify(v.buyer))+')">Mark paid</button>'
+            '<td class="n" data-l="Cases">'+v.count+'</td>'+
+            '<td class="n big" data-l="Amount">'+fsMoney(v.amount)+'</td>'+
+            '<td class="n" data-l="Sent">'+fsDate(v.invoiced_at)+'</td>'+
+            '<td class="n" data-l="Due">'+fsDate(v.due_date)+'</td>'+
+            '<td class="n" data-l="Age">'+(v.overdue
+              ? '<span class="fs-tag late">'+v.days_overdue+'d late</span>'
+              : '<span class="fs-tag ok">'+v.days_outstanding+'d</span>')+'</td>'+
+            '<td class="n" data-l="">'+(v.invoice_id
+              ? '<button class="lx-btn quiet sm" onclick="fsMarkPaid('+fsEsc(JSON.stringify(v.buyer))+')">Mark paid</button>'
               : '')+'</td></tr>';
         });
-        el.innerHTML = h+'</tbody></table>';
+        document.getElementById('fs-invoices').innerHTML = fsWrap(
+          '<th>Invoice</th><th>Buyer</th><th class="n">Cases</th><th class="n">Amount</th>'+
+          '<th class="n">Sent</th><th class="n">Due</th><th class="n">Age</th><th></th>', body);
+      }
+
+      function fsSetPnl(mode){
+        fsPnlMode = mode;
+        var seg = document.getElementById('fs-pnl-seg');
+        Array.prototype.forEach.call(seg.querySelectorAll('button'), function(b){
+          b.setAttribute('aria-pressed', b.getAttribute('data-p')===mode ? 'true' : 'false');
+        });
+        if(fsData) fsRenderPnl(fsData.pnl);
+      }
+
+      function fsRenderPnl(p){
+        document.getElementById('fs-pnl-basis').textContent = p && p.basis ? p.basis : '';
+        if(!p || !(p[fsPnlMode]||[]).length) return fsNone('fs-pnl','No signed cases to report on yet.');
+        var rows = p[fsPnlMode], label = fsPnlMode==='weekly' ? fsWeekLabel : fsMonthLabel;
+        var body='';
+        rows.forEach(function(r){
+          body += '<tr>'+
+            '<td data-l="'+(fsPnlMode==='weekly'?'Week of':'Month')+'">'+fsEsc(label(r.key))+'</td>'+
+            '<td class="n" data-l="Cases">'+r.cases+'</td>'+
+            '<td class="n" data-l="Revenue">'+fsMoney(r.revenue)+'</td>'+
+            '<td class="n" data-l="Publisher cost">'+fsMoney(r.cost)+'</td>'+
+            '<td class="n big '+(r.profit>=0?'fs-pos':'fs-neg')+'" data-l="Profit">'+fsMoney(r.profit)+'</td>'+
+            '<td class="n" data-l="Margin">'+r.margin_pct+'%</td></tr>';
+        });
+        var t = p.totals||{};
+        document.getElementById('fs-pnl').innerHTML = fsWrap(
+          '<th>'+(fsPnlMode==='weekly'?'Week of':'Month')+'</th><th class="n">Cases</th><th class="n">Revenue</th>'+
+          '<th class="n">Publisher cost</th><th class="n">Profit</th><th class="n">Margin</th>',
+          body,
+          '<td data-l="">All time</td><td class="n" data-l="Cases">'+(t.cases||0)+'</td>'+
+          '<td class="n" data-l="Revenue">'+fsMoney(t.revenue)+'</td>'+
+          '<td class="n" data-l="Publisher cost">'+fsMoney(t.cost)+'</td>'+
+          '<td class="n '+((t.profit||0)>=0?'fs-pos':'fs-neg')+'" data-l="Profit">'+fsMoney(t.profit)+'</td>'+
+          '<td class="n" data-l="Margin">'+(t.margin_pct||0)+'%</td>');
+
+        var split = function(list, el, head){
+          if(!list || !list.length) return fsNone(el,'Nothing yet.');
+          var b='';
+          list.forEach(function(r){
+            b += '<tr><td data-l="'+head+'">'+fsEsc(r.key)+'</td>'+
+                 '<td class="n" data-l="Cases">'+r.cases+'</td>'+
+                 '<td class="n" data-l="Revenue">'+fsMoney(r.revenue)+'</td>'+
+                 '<td class="n big '+(r.profit>=0?'fs-pos':'fs-neg')+'" data-l="Profit">'+fsMoney(r.profit)+'</td></tr>';
+          });
+          document.getElementById(el).innerHTML = fsWrap(
+            '<th>'+head+'</th><th class="n">Cases</th><th class="n">Revenue</th><th class="n">Profit</th>', b);
+        };
+        split(p.by_buyer, 'fs-pnl-buyer', 'Buyer');
+        split(p.by_publisher, 'fs-pnl-pub', 'Publisher');
       }
 
       function fsRenderMargins(rows){
-        var el = document.getElementById('fs-margins');
-        if(!rows.length){ el.innerHTML = '<div class="fs-empty">No signed cases yet.</div>'; return; }
-        var h = '<table class="fs-tbl"><thead><tr><th>Lane</th><th class="num">Cases</th><th class="num">Avg</th><th class="num">Total</th></tr></thead><tbody>';
+        if(!rows.length) return fsNone('fs-margins','No signed cases yet.');
+        var body='';
         rows.slice(0,8).forEach(function(m){
-          h += '<tr><td data-l="Lane" style="font-size:11px">'+fsEsc(m.lane)+'</td>'+
-               '<td class="num" data-l="Cases">'+m.count+'</td>'+
-               '<td class="num" data-l="Avg">'+fsMoney(m.margin_avg)+'</td>'+
-               '<td class="num" data-l="Total"><b>'+fsMoney(m.margin_total)+'</b></td></tr>';
+          body += '<tr><td data-l="Lane">'+fsEsc(m.lane)+'</td>'+
+                  '<td class="n" data-l="Cases">'+m.count+'</td>'+
+                  '<td class="n" data-l="Per case">'+fsMoney(m.margin_avg)+'</td>'+
+                  '<td class="n big" data-l="Total">'+fsMoney(m.margin_total)+'</td></tr>';
         });
-        el.innerHTML = h+'</tbody></table>';
+        document.getElementById('fs-margins').innerHTML = fsWrap(
+          '<th>Lane</th><th class="n">Cases</th><th class="n">Per case</th><th class="n">Total</th>', body);
       }
 
       function fsRenderConversion(rows){
-        var el = document.getElementById('fs-conversion');
-        if(!rows.length){ el.innerHTML = '<div class="fs-empty">No leads in this window.</div>'; return; }
-        var h = '<table class="fs-tbl"><thead><tr><th>Publisher</th><th class="num">Sent</th><th class="num">Signed</th><th class="num">Rate</th></tr></thead><tbody>';
+        if(!rows.length) return fsNone('fs-conversion','No leads in this window.');
+        var body='';
         rows.slice(0,8).forEach(function(c){
-          h += '<tr><td data-l="Publisher" style="font-size:11px">'+fsEsc(c.publisher)+'</td>'+
-               '<td class="num" data-l="Sent">'+c.leads_sent+'</td>'+
-               '<td class="num" data-l="Signed">'+c.signed+'</td>'+
-               '<td class="num" data-l="Rate"><b>'+c.rate+'%</b></td></tr>';
+          body += '<tr><td data-l="Publisher">'+fsEsc(c.publisher)+'</td>'+
+                  '<td class="n" data-l="Sent">'+c.leads_sent+'</td>'+
+                  '<td class="n" data-l="Signed">'+c.signed+'</td>'+
+                  '<td class="n big" data-l="Rate">'+c.rate+'%</td></tr>';
         });
-        el.innerHTML = h+'</tbody></table>';
+        document.getElementById('fs-conversion').innerHTML = fsWrap(
+          '<th>Publisher</th><th class="n">Sent</th><th class="n">Signed</th><th class="n">Rate</th>', body);
       }
 
-      /* Confirmation is built field by field from the data object, never from
-         a sentence generated elsewhere, so what you approve is what is sent. */
+      /* Rendered field by field from the data object, never from a sentence
+         built elsewhere, so what is approved is what gets sent. */
       function fsConfirmInvoice(buyer){
         if(!fsData) return;
         var b = (fsData.ready_to_invoice.by_buyer||[]).filter(function(x){ return x.buyer===buyer; })[0];
         if(!b) return;
         var due = new Date(); due.setDate(due.getDate()+3);
-        document.getElementById('fs-modal-title').textContent = 'Create invoice';
         document.getElementById('fs-modal-fields').innerHTML =
           '<dt>Buyer</dt><dd>'+fsEsc(b.buyer)+'</dd>'+
           '<dt>Cases</dt><dd>'+b.count+'</dd>'+
@@ -2775,14 +2886,9 @@ SELECT required_fields FROM campaigns WHERE slug = 'SLUG';</pre>
             body: JSON.stringify({ buyer: buyer, terms_days: 3 }) });
           var d = await res.json();
           if(!d || !d.ok) throw new Error((d&&d.error)||'Failed');
-          fsCloseConfirm();
-          await fetchFundingSummary();
-        }catch(err){
-          go.textContent = 'Failed: '+err.message;
-        }finally{
-          go.disabled = false;
-          setTimeout(function(){ go.textContent='Create invoice'; }, 2500);
-        }
+          fsCloseConfirm(); await fetchFundingSummary();
+        }catch(err){ go.textContent = 'Failed: '+err.message; }
+        finally{ go.disabled=false; setTimeout(function(){ go.textContent='Create invoice'; },2500); }
       }
 
       async function fsMarkPaid(buyer){
@@ -2791,25 +2897,23 @@ SELECT required_fields FROM campaigns WHERE slug = 'SLUG';</pre>
           await fetch(REV_API_URL+'/billable-queue/mark-paid', {
             method:'POST', headers:{'x-api-key':REV_API_KEY,'Content-Type':'application/json'},
             body: JSON.stringify({ buyer: buyer }) });
-          await fetchFundingSummary();
-        }catch(err){ /* summary refresh below shows the real state */ }
+        }catch(err){ /* the refresh below shows the real state either way */ }
+        await fetchFundingSummary();
       }
 
-      /* Refresh when the Invoicing tab opens. Wraps showPage additively: the
-         original runs first and its return value is passed through. */
       window.addEventListener('DOMContentLoaded', function(){
         if(typeof window.showPage === 'function' && !window.__fsWrapped){
           var prev = window.showPage;
           window.showPage = function(p){
             var r = prev.apply(this, arguments);
-            if(p === 'invoice') { try{ fetchFundingSummary(); }catch(e){} }
+            if(p === 'invoice'){ try{ fetchFundingSummary(); }catch(e){} }
             return r;
           };
           window.__fsWrapped = true;
         }
       });
       </script>
-      <!-- ═══ end patch 337 ═══ -->
+      <!-- ═══ end patch 339 ═══ -->
 
       <!-- SUMMARY STRIP -->
       <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:.75rem 1.25rem;border-bottom:1px solid var(--border);flex-shrink:0">
