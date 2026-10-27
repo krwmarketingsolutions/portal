@@ -149,5 +149,9 @@ if problems:
     sys.exit(1)
 shutil.copyfile(FILE, FILE + ".pre-353.bak")
 for label,old,new in edits: src=src.replace(old,new,1)
+import re, time
+stamp=time.strftime('%Y%m%d-%H%M%S')
+src=re.sub(r"var KRW_BUILD = '[^']*';", "var KRW_BUILD = '"+stamp+"';", src, 1)
+open(os.path.join(ROOT,'version.txt'),'w').write(stamp+'\n')
 open(FILE,"w",encoding="utf-8").write(src)
 print("Patched OK: %s"%FILE)
