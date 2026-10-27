@@ -1360,6 +1360,24 @@
   #page-outreach .header-bar-left p{font-family:inherit;font-size:15px;color:var(--lx-ink-2);margin-top:6px;max-width:64ch}
   #page-outreach .header-bar-right{gap:14px}
   #page-outreach button:focus-visible, #page-outreach input:focus-visible, #page-outreach select:focus-visible, #page-outreach textarea:focus-visible{outline:2px solid var(--lx-green);outline-offset:2px}
+  /* patch 353: onboarding tracker */
+  .ob-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}
+  .ob-card{background:var(--lx-white);border:1px solid var(--lx-line);border-left:4px solid var(--lx-green);padding:12px 14px 11px;cursor:pointer;transition:border-color .15s,transform .1s}
+  .ob-card:hover{border-color:var(--lx-green);transform:translateY(-1px)}
+  .ob-card .top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+  .ob-card .nm{font-weight:600;font-size:16px;color:var(--lx-ink)}
+  .ob-card .sum{font-size:14px;color:var(--lx-ink-2);margin-top:4px;line-height:1.4}
+  .ob-card .em{font-size:13px;color:var(--lx-green);margin-top:6px;word-break:break-all}
+  .ob-card .em.none{color:var(--lx-ink-3,#8a8578);font-style:italic}
+  .ob-pill{display:inline-block;font-size:12px;padding:1px 8px;border-radius:2px;white-space:nowrap;border:1px solid transparent;background:var(--lx-brown-soft);color:var(--lx-brown);text-transform:capitalize}
+  .ob-pill.live,.ob-pill.scaling{background:var(--lx-green-soft);color:var(--lx-green);border-color:#C4D3C8}
+  .ob-pill.setup,.ob-pill.testing,.ob-pill.signed{background:#E4E9C7;color:#3E5A2A}
+  .ob-notes{white-space:pre-wrap;font-size:14.5px;line-height:1.5;color:var(--lx-ink);background:var(--lx-white);border:1px solid var(--lx-line);padding:12px 14px;border-radius:3px}
+  .ob-notes p{margin:0 0 8px}
+  .ob-row{display:flex;gap:10px;align-items:center;margin:10px 0 14px;flex-wrap:wrap}
+  .ob-row select,.ob-row input{font:inherit;font-size:14px;padding:6px 8px;border:1px solid var(--lx-line-2);border-radius:3px;background:var(--lx-white)}
+  .ob-row input{flex:1;min-width:160px}
+  .ob-add textarea{width:100%;box-sizing:border-box;font:inherit;font-size:14px;min-height:72px;padding:8px 10px;border:1px solid var(--lx-line-2);border-radius:3px;background:var(--lx-white)}
 
   /* work queue */
   .oz-queue{list-style:none;margin:0;padding:0;border:1px solid var(--lx-line);background:var(--lx-white)}
@@ -1793,6 +1811,13 @@
           <div class="lx-sechead"><h3>Summary</h3><span class="lx-latest" id="or-sum-note"></span></div>
           <div class="lx-stats" id="or-stats"></div>
           <div class="lx-stathint">Click a card to filter the pipeline below to just those contacts. Click it again to clear.</div>
+        </div>
+
+        <!-- ONBOARDING TRACKER (patch 353) -->
+        <div class="lx-section" id="ob-section">
+          <div class="lx-sechead"><h3>Onboarding tracker</h3><span id="ob-sub" style="font-size:14px;color:var(--lx-ink-2)"></span></div>
+          <p class="lx-lede">Buyers and partners being brought on right now. Click a name for the full notes, to move the stage, or to add a note.</p>
+          <div class="ob-grid" id="ob-cards"><div style="color:var(--lx-ink-2);font-size:14px">Loading…</div></div>
         </div>
 
         <!-- WORK QUEUE -->
@@ -4531,6 +4556,68 @@ function orPush(){
   .catch(function(e){ console.warn('[Outreach] server save failed:', e.message); });
 }
 orFetch();
+// ── patch 353: onboarding tracker ─────────────────────────────────────────
+var obData=[], obStages=[], obLoaded=false, obOpenId=null;
+function obFetch(){
+  fetch(OR_API+'/onboarding',{headers:{'x-api-key':OR_API_KEY_}})
+  .then(function(r){return r.json();})
+  .then(function(d){ if(!d.ok)throw new Error(d.error||'load failed'); obData=d.clients||[]; obStages=d.stages||[]; obLoaded=true; renderOb(); if(obOpenId!=null)obOpen(obOpenId,true); })
+  .catch(function(e){ console.warn('[Onboarding] load failed:',e.message); var el=document.getElementById('ob-cards'); if(el)el.innerHTML='<div style="color:var(--lx-brown);font-size:14px">Could not load the onboarding list ('+lxEsc(e.message)+')</div>'; });
+}
+function obStageLabel(s){ return String(s||'').replace(/-/g,' '); }
+function renderOb(){
+  var el=document.getElementById('ob-cards'); if(!el)return;
+  if(!obLoaded){ return; }
+  if(!obData.length){ el.innerHTML='<div style="color:var(--lx-ink-2);font-size:14px">Nobody onboarding right now.</div>'; }
+  else el.innerHTML=obData.map(function(c){
+    return '<div class="ob-card" onclick="obOpen('+c.id+')">'+
+      '<div class="top"><span class="nm">'+lxEsc(c.name)+(c.code?' <span style="font-weight:400;color:var(--lx-ink-2);font-size:13px">· '+lxEsc(c.code)+'</span>':'')+'</span><span class="ob-pill '+lxEsc(c.stage)+'">'+lxEsc(obStageLabel(c.stage))+'</span></div>'+
+      '<div class="sum">'+lxEsc(c.summary||'')+'</div>'+
+      (c.email?'<div class="em">'+lxEsc(c.email)+'</div>':'<div class="em none">no email on file</div>')+
+    '</div>';
+  }).join('');
+  var sub=document.getElementById('ob-sub');
+  if(sub){ var live=obData.filter(function(c){return c.stage==='live'||c.stage==='scaling';}).length; sub.textContent=obData.length+' onboarding · '+live+' live'; }
+}
+function obOpen(id,keep){
+  var c=obData.find(function(x){return x.id===id;}); if(!c)return;
+  obOpenId=id;
+  document.getElementById('lx-d-name').textContent=c.name+(c.code?' · '+c.code:'');
+  document.getElementById('lx-d-id').textContent='Onboarding';
+  document.getElementById('lx-d-when').textContent='Updated '+new Date(c.updated_at).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+  var notes=String(c.notes||'').split('\n').filter(function(l){return l.trim();}).map(function(l){return '<p>'+lxEsc(l)+'</p>';}).join('')||'<p style="color:var(--lx-ink-2)">No notes yet.</p>';
+  var html='<div class="lx-dsec"><h4>Status</h4>'+
+    '<div class="ob-row"><select id="ob-stage" onchange="obSetStage('+c.id+',this.value)">'+obStages.map(function(s){return '<option value="'+s+'"'+(s===c.stage?' selected':'')+'>'+lxEsc(obStageLabel(s))+'</option>';}).join('')+'</select>'+
+    '<input id="ob-email" placeholder="email" value="'+lxEsc(c.email||'')+'" onchange="obSetField('+c.id+',\'email\',this.value)">'+
+    '</div>'+
+    '<div style="font-size:14.5px;color:var(--lx-ink-2);margin-bottom:14px">'+lxEsc(c.summary||'')+'</div></div>'+
+    '<div class="lx-dsec"><h4>Notes</h4><div class="ob-notes">'+notes+'</div></div>'+
+    '<div class="lx-dsec ob-add"><h4>Add a note</h4><textarea id="ob-note" placeholder="What happened, what is next"></textarea>'+
+    '<div class="ob-row" style="margin-top:8px"><button class="lx-btn" onclick="obAddNote('+c.id+')">Save note</button><button class="lx-btn quiet" onclick="obArchive('+c.id+')">Done onboarding (archive)</button></div></div>';
+  document.getElementById('lx-dbody').innerHTML=html;
+  if(!keep){ document.getElementById('lx-shade').classList.add('open'); var dr=document.getElementById('lx-drawer'); dr.classList.add('open'); dr.setAttribute('aria-hidden','false'); }
+}
+function obSetStage(id,stage){ obSetField(id,'stage',stage); }
+function obSetField(id,k,v){
+  var body={}; body[k]=v;
+  fetch(OR_API+'/onboarding/'+id,{method:'PUT',headers:{'Content-Type':'application/json','x-api-key':OR_API_KEY_},body:JSON.stringify(body)})
+  .then(function(r){return r.json();}).then(function(d){ if(!d.ok)throw new Error(d.error||'save failed'); showToast('Saved'); obFetch(); })
+  .catch(function(e){ showToast('Save failed: '+e.message); });
+}
+function obAddNote(id){
+  var t=document.getElementById('ob-note'); var note=t?t.value.trim():''; if(!note){showToast('Write the note first');return;}
+  fetch(OR_API+'/onboarding/'+id+'/note',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':OR_API_KEY_},body:JSON.stringify({note:note})})
+  .then(function(r){return r.json();}).then(function(d){ if(!d.ok)throw new Error(d.error||'save failed'); showToast('Note added'); obFetch(); })
+  .catch(function(e){ showToast('Save failed: '+e.message); });
+}
+function obArchive(id){
+  if(!confirm('Mark this one as done onboarding? It comes off the list (not deleted).'))return;
+  fetch(OR_API+'/onboarding/'+id,{method:'DELETE',headers:{'x-api-key':OR_API_KEY_}})
+  .then(function(r){return r.json();}).then(function(d){ if(!d.ok)throw new Error(d.error||'failed'); showToast('Archived'); obOpenId=null; lxCloseProfile(); obFetch(); })
+  .catch(function(e){ showToast('Failed: '+e.message); });
+}
+obFetch();
+// ── end patch 353 ──────────────────────────────────────────────────────────
 var orView='board';
 var editingId=null;
 
@@ -10734,6 +10821,7 @@ function setOrView(v){
 }
 function renderOutreach(){
   if(typeof orData==='undefined')return;
+  if(typeof renderOb==='function')renderOb();   // patch 353
   renderOrStats(); renderOrToday(); renderLinkedIn(); if(typeof ozRenderAb==='function')ozRenderAb();   // patch 313/316
   var list=getFiltered();
   var cnt=document.getElementById('or-count');
@@ -11369,7 +11457,7 @@ function lxOpenProfile(id){
   var dr=document.getElementById('lx-drawer'); dr.classList.add('open'); dr.setAttribute('aria-hidden','false');
 }
 function lxCloseProfile(){
-  LX.openId=null;
+  LX.openId=null; if(typeof obOpenId!=='undefined')obOpenId=null;   // patch 353
   document.getElementById('lx-shade').classList.remove('open');
   var dr=document.getElementById('lx-drawer'); dr.classList.remove('open'); dr.setAttribute('aria-hidden','true');
   document.querySelectorAll('.lx-tbl tr.sel').forEach(function(tr){tr.classList.remove('sel');});
