@@ -1371,7 +1371,7 @@
   .ob-card .em.none{color:var(--lx-ink-3,#8a8578);font-style:italic}
   .ob-pill{display:inline-block;font-size:12px;padding:1px 8px;border-radius:2px;white-space:nowrap;border:1px solid transparent;background:var(--lx-brown-soft);color:var(--lx-brown);text-transform:capitalize}
   .ob-pill.live,.ob-pill.scaling{background:var(--lx-green-soft);color:var(--lx-green);border-color:#C4D3C8}
-  .ob-pill.setup,.ob-pill.testing,.ob-pill.signed{background:#E4E9C7;color:#3E5A2A}
+  .ob-pill.setup,.ob-pill.testing,.ob-pill.signed,.ob-pill.pending-setup{background:#E4E9C7;color:#3E5A2A}   /* patch 365 */
   .ob-notes{white-space:pre-wrap;font-size:14.5px;line-height:1.5;color:var(--lx-ink);background:var(--lx-white);border:1px solid var(--lx-line);padding:12px 14px;border-radius:3px}
   .ob-notes p{margin:0 0 8px}
   .ob-row{display:flex;gap:10px;align-items:center;margin:10px 0 14px;flex-wrap:wrap}
@@ -3625,7 +3625,7 @@ SELECT required_fields FROM campaigns WHERE slug = 'SLUG';</pre>
    A home-screen app on iOS can sit on a cached copy of this file for a long
    time. version.txt is fetched with no-store so it is always the real one;
    if it does not match the build running here, reload once. */
-var KRW_BUILD = '20261026-205228';
+var KRW_BUILD = '20261029-150734';
 (function () {
   var reloaded = false;
   function checkBuild() {
