@@ -8757,13 +8757,13 @@ function renderLeadsFeed(leads){
     }
     var tr = document.createElement('tr');
     tr.innerHTML =
-      '<td style="font-size:11px;color:var(--muted);white-space:nowrap">KRW-'+lead.campaign.toUpperCase()+'-'+lead.id+'</td>'+
+      '<td style="font-size:11px;color:var(--muted);white-space:nowrap">KRW-'+campDisp(lead.campaign).replace(/ /g,'-')+'-'+lead.id+'</td>'+
       '<td style="font-size:11px;white-space:nowrap"><div>'+time+'</div><div style="font-size:10px;color:var(--muted)">'+date+'</div></td>'+
       '<td style="font-weight:500">'+name+'</td>'+
       '<td style="font-size:11px;color:var(--muted)">'+( lead.email||'—')+'</td>'+
       '<td style="font-size:12px">'+( lead.phone||'—')+'</td>'+
       '<td style="color:var(--muted)">'+( lead.state||'—')+'</td>'+
-      '<td><span style="font-size:10px;padding:2px 7px;border-radius:20px;background:var(--subtle);color:var(--muted)">'+lead.campaign.toUpperCase()+'</span>'+
+      '<td><span style="font-size:10px;padding:2px 7px;border-radius:20px;background:var(--subtle);color:var(--muted)">'+campDisp(lead.campaign)+'</span>'+
         (lead.campaign==='mva-funnel' ? ' <span style="font-size:10px;padding:2px 7px;border-radius:20px;background:#dcfce7;color:#15803d;font-weight:600">CPA</span>' :
          lead.campaign==='mva-cpl'    ? ' <span style="font-size:10px;padding:2px 7px;border-radius:20px;background:#dbeafe;color:#1d4ed8;font-weight:600">CPL</span>' : '')+
         '</td>'+
@@ -11099,7 +11099,8 @@ var LX_DEFAULT_WINDOWS = ['24h','wk','14d','all'];
 // ---------- helpers
 function lxEsc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
 function lxName(l){ return [l.first_name,l.last_name].filter(Boolean).join(' ') || l.name || l.full_name || '—'; }
-function lxId(l){ return 'KRW-'+String(l.campaign||'').toUpperCase()+'-'+l.id; }
+function campDisp(c){ c=String(c||''); return c.toLowerCase()==='mva-nyc-split' ? 'MVA FUNNEL' : c.toUpperCase(); }
+function lxId(l){ return 'KRW-'+campDisp(l.campaign).replace(/ /g,'-')+'-'+l.id; }
 function lxTime(l){ var t = l.received_at||l.created_at; return t ? new Date(t).getTime() : 0; }
 function lxPubName(sub){
   if(!sub) return '';
@@ -11305,7 +11306,7 @@ function lxRenderRows(rows){
       '<td><span class="big">'+lxEsc(lxName(l))+'</span><span class="sm">'+lxEsc(lxId(l))+'</span></td>'+
       '<td>'+(l.phone?'<span>'+lxEsc(l.phone)+'</span>':'')+(l.email?'<span class="sm">'+lxEsc(l.email)+'</span>':'')+(!l.phone&&!l.email?'—':'')+'</td>'+
       '<td>'+lxEsc(l.state||'—')+'</td>'+
-      '<td><span class="lx-pill camp">'+lxEsc(String(l.campaign||'').toUpperCase())+'</span></td>'+
+      '<td><span class="lx-pill camp">'+lxEsc(campDisp(l.campaign))+'</span></td>'+
       '<td>'+lxEsc(l.publisher_sub||'—')+(pubName?'<span class="sm">'+lxEsc(pubName)+'</span>':'')+'</td>'+
       '<td><span class="lx-pill '+lxEsc(st)+'">'+lxStatusLabel(st)+'</span></td>'+
       '<td>'+buyer+'</td></tr>';
@@ -12022,7 +12023,7 @@ function hmRenderVerticals(){
     var f=function(a){ var n=a.length, x=a.filter(function(l){return l.status==='forwarded';}).length; return n?Math.round(x/n*100)+'%':'—'; };
     var rejW=Lwk.filter(function(l){return l.status==='buyer_rejected'||l.status==='forward_failed';}).length;
     var d=hmDaily(HM.leads,14), latest=HM.leads.slice().sort(function(a,b){return hmT(b)-hmT(a);})[0];
-    var camps={}; Lwk.forEach(function(l){ camps[String(l.campaign||'').toUpperCase()]=(camps[String(l.campaign||'').toUpperCase()]||0)+1; });
+    var camps={}; Lwk.forEach(function(l){ camps[campDisp(l.campaign)]=(camps[campDisp(l.campaign)]||0)+1; });
     m.innerHTML=hmSpark(d.b,560,90,null,d.labels)+'<div style="font-size:13px;color:var(--lx-ink-3);margin-top:4px">Leads per day, last 14 days</div>'+
       '<div class="hm-vrows">'+
       '<div><span>Last 24 hours</span><b>'+L24.length+'</b></div><div><span>This week, Mon\u2013Fri</span><b>'+Lwk.length+'</b></div>'+
