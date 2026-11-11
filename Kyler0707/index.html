@@ -105,6 +105,22 @@
   .err{background:var(--red-soft);color:var(--red);border:1px solid var(--red);padding:10px 14px;margin-bottom:14px;
     font-family:var(--sans);font-size:13px;display:none}
 
+  .resent{font-family:var(--sans);font-size:11.5px;color:var(--brown);margin-top:3px}
+  .pb{background:var(--white);border:1px solid var(--line);margin-top:22px}
+  .pb > summary{cursor:pointer;padding:12px 14px;font-family:var(--sans);font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+  .pb > summary:hover{color:var(--green)}
+  .pb-body{padding:4px 14px 16px;border-top:1px solid var(--paper-2)}
+  .pb-buyer{padding:14px 0;border-bottom:1px solid var(--paper-2)}
+  .pb-buyer:last-child{border-bottom:0;padding-bottom:0}
+  .pb-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+  .pb-head h3{font-size:17px;font-weight:600;margin:0}
+  .pb-head span{font-family:var(--sans);font-size:12px;color:var(--ink-3)}
+  .pb pre{background:var(--paper);border:1px solid var(--line);padding:12px 14px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;line-height:1.55;
+    white-space:pre-wrap;overflow-wrap:anywhere;margin:8px 0;max-height:420px;overflow:auto}
+  .pb-warn{font-family:var(--sans);font-size:12px;color:var(--ink-2);margin:6px 0 0}
+  .pb table{min-width:0;margin-top:8px}
+  .pb td,.pb th{font-size:12.5px}
+
   /* login */
   #login{position:fixed;inset:0;z-index:99;background:var(--paper);display:none;align-items:center;justify-content:center}
   #login form{background:var(--white);border:1px solid var(--line);border-top:3px solid var(--green);padding:34px 38px;width:380px;max-width:92vw}
@@ -178,6 +194,11 @@
     <div class="more" id="more" style="display:none"><button class="btn" id="morebtn" type="button">Show more</button></div>
   </div>
 
+  <details class="pb" id="pb" style="display:none">
+    <summary>Buyer postbacks · posting instructions</summary>
+    <div class="pb-body" id="pb-body"></div>
+  </details>
+
   <p class="legend">
     Dispositions come from each buyer's own reporting and refresh when you load or hit Refresh.
     <b>Awaiting update</b> means the buyer accepted the lead but hasn't reported back yet.
@@ -238,7 +259,7 @@
     l._t = new Date(l.received_at).getTime() || 0;
     l._changed = l.disp_changed_at || '';
     l._note = l.disp_note || (l._bucket === 'declined' || l._bucket === 'notsent' ? (l.buyer_error || '') : '');
-    l._hay = [l._name, l.phone, String(l.phone||'').replace(/\D/g,''), l.email, l.id, 'krw-'+l.id, l._note, l._buyer, l.state, l.publisher_sub].join(' ').toLowerCase();
+    l._hay = [l._name, l.phone, String(l.phone||'').replace(/\D/g,''), l.email, l.id, 'krw-'+l.id, l._note, l._buyer, l.state, l.publisher_sub, l.prev_buyer, l.prev_note].join(' ').toLowerCase();
     return l;
   }
 
@@ -282,7 +303,7 @@
     }).then(function(j){
       S.leads = (j.leads || []).map(prep);
       S.loadedAt = new Date();
-      fillSelects(); render();
+      fillSelects(); render(); loadPostbacks();
     }).catch(function(e){
       if(e.message !== 'auth'){ $('err').textContent = 'Could not load dispositions: ' + e.message + '. Try Refresh.'; $('err').style.display = 'block'; $('stamp').textContent = 'Not loaded'; }
     }).then(function(){ $('refresh').disabled = false; });
@@ -354,7 +375,8 @@
       case 'buyer':  return '<td class="nowrap">'+(l._buyer?'<span class="buyer">'+esc(l._buyer)+'</span>':'<span class="buyer none">Not sent</span>')+'</td>';
       case 'bucket': return '<td><span class="pill p-'+l._bucket+'">'+esc(BLABEL[l._bucket])+'</span>'+
                         (l.disp_status && l.disp_status.toLowerCase() !== BLABEL[l._bucket].toLowerCase() && l._bucket !== 'aged' ? '<div class="dim" style="margin-top:3px">'+esc(l.disp_status)+'</div>' : '')+'</td>';
-      case 'note':   return '<td><div class="note">'+esc(l._note||'')+'</div></td>';
+      case 'note':   return '<td><div class="note">'+esc(l._note||'')+'</div>'+
+                        (l.resent_at && l._buyer ? '<div class="resent">Resent as aged lead '+esc(fmtDate(l.resent_at))+(l.prev_buyer?' · was with '+esc(l.prev_buyer):'')+(l.prev_note?': '+esc(l.prev_note):'')+'</div>' : '')+'</td>';
       case 'changed':return '<td class="nowrap num dim" title="'+esc(l.disp_checked_at?'Last checked '+fmtDate(l.disp_checked_at,true):'')+'">'+esc(fmtDate(l._changed)||'—')+'</td>';
     }
     return '<td></td>';
@@ -416,6 +438,74 @@
     if(S.loadedAt) $('stamp').textContent = 'Updated ' + S.loadedAt.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'}) + ' · ' + S.leads.length.toLocaleString() + ' leads on file';
   }
 
+  /* ---------- buyer postbacks ---------- */
+  function instructions(b){
+    var ex = 'KRW-1234';
+    for(var i=0;i<S.leads.length;i++){ if(S.leads[i]._buyer === b.label && !/DONOTCONTACT/i.test(S.leads[i]._name)){ ex = 'KRW-' + S.leads[i].id; break; } }
+    return [
+      'KRW Marketing Solutions - Lead Status Postback (' + b.label + ')',
+      '',
+      'Send us a postback every time a lead\'s status changes.',
+      '',
+      'URL:     ' + b.url,
+      'Method:  POST (JSON or form encoded) or GET',
+      'Key:     ' + b.secret,
+      '         Send it as the "key" parameter, or as the header x-postback-key.',
+      '',
+      'FIELDS',
+      '  lead_id   required   The VendorLeadId we sent you with the lead, for example ' + ex,
+      '  status    required   Your status for the lead (see below)',
+      '  note      optional   Reason or comment, for example the rejection reason',
+      '  phone     optional   Lead phone number. Can be sent instead of lead_id.',
+      '  test      optional   Send test=1 to check a call without changing anything',
+      '',
+      'STATUSES WE UNDERSTAND',
+      '  Signed, Retained                                    signed case',
+      '  Rejected, Not Qualified, Duplicate, Unresponsive    rejected (put the reason in note)',
+      '  Contacted, In Progress, Pending, Callback           still being worked',
+      '',
+      'EXAMPLE (GET)',
+      '  ' + b.url + '?key=' + b.secret + '&lead_id=' + ex + '&status=Rejected&note=No+insurance',
+      '',
+      'EXAMPLE (POST, JSON)',
+      '  { "key": "' + b.secret + '", "lead_id": "' + ex + '", "status": "Signed" }',
+      '',
+      'RESPONSES',
+      '  200  {"ok":true,"lead_id":"' + ex + '","recorded":"Rejected"}',
+      '  400  a required field is missing',
+      '  401  the key is wrong or missing',
+      '  404  we did not send you a lead with that lead_id',
+      '',
+      'To test: send any real lead_id with test=1. You get back what we would record, and nothing changes.'
+    ].join('\n');
+  }
+  function loadPostbacks(){
+    api('/buyer-postbacks').then(function(j){
+      var list = (j && j.buyers) || []; if(!list.length) return;
+      $('pb-body').innerHTML = list.map(function(b, i){
+        var log = (b.log || []).map(function(r){
+          return '<tr><td class="nowrap num dim">'+esc(fmtDate(r.received_at,true))+'</td><td class="num">'+(r.lead_id?'#'+esc(r.lead_id):'—')+'</td><td>'+esc(r.reported_status||'')+'</td><td>'+esc(r.reported_note||'')+'</td><td class="dim">'+esc(r.result||'')+(r.detail?' · '+esc(r.detail):'')+'</td></tr>';
+        }).join('');
+        return '<div class="pb-buyer">'+
+          '<div class="pb-head"><h3>'+esc(b.label)+'</h3><span>'+(b.received ? b.received+' update'+(b.received===1?'':'s')+' received · last '+esc(fmtDate(b.last_received,true)) : 'No updates received yet')+'</span></div>'+
+          '<button type="button" class="btn primary" data-copy="'+i+'">Copy instructions for '+esc(b.label)+'</button>'+
+          '<p class="pb-warn">These include '+esc(b.label)+'\'s private key. Send them only to '+esc(b.label)+'.</p>'+
+          '<pre id="pb-pre-'+i+'">'+esc(instructions(b))+'</pre>'+
+          (log ? '<div class="tablebox" style="border:0"><table><thead><tr><th style="padding:7px 12px">Received</th><th style="padding:7px 12px">Lead</th><th style="padding:7px 12px">Status sent</th><th style="padding:7px 12px">Note</th><th style="padding:7px 12px">Result</th></tr></thead><tbody>'+log+'</tbody></table></div>' : '')+
+        '</div>';
+      }).join('');
+      Array.prototype.forEach.call($('pb-body').querySelectorAll('[data-copy]'), function(btn){
+        btn.addEventListener('click', function(){
+          var txt = $('pb-pre-'+btn.getAttribute('data-copy')).textContent, label = btn.textContent;
+          function done(ok){ btn.textContent = ok ? 'Copied' : 'Select the text below and copy it'; setTimeout(function(){ btn.textContent = label; }, 2200); }
+          if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(function(){ done(true); }, function(){ done(false); }); }
+          else done(false);
+        });
+      });
+      $('pb').style.display = 'block';
+    }).catch(function(){ /* older server or no access: leave the section hidden */ });
+  }
+
   /* ---------- controls ---------- */
   var qT; $('q').addEventListener('input', function(){ clearTimeout(qT); var v = this.value; qT = setTimeout(function(){ S.q = v.trim(); S.limit = 200; render(); }, 140); });
   $('f-state').addEventListener('change', function(){ S.state = this.value; S.limit = 200; render(); });
@@ -424,10 +514,10 @@
   $('refresh').addEventListener('click', load);
   $('csv').addEventListener('click', function(){
     if(!view.length) return;
-    var head = ['Lead ID','Received','First name','Last name','Phone','Email','State','Source','Campaign','Buyer','Disposition','Buyer status','Buyer note','Disposition updated'];
+    var head = ['Lead ID','Received','First name','Last name','Phone','Email','State','Source','Campaign','Buyer','Disposition','Buyer status','Buyer note','Disposition updated','Resent as aged lead','Previous buyer','Previous disposition'];
     function q(v){ v = String(v == null ? '' : v); if(/^[=+\-@]/.test(v)) v = "'" + v; return '"' + v.replace(/"/g,'""') + '"'; }
     var rows = view.map(function(l){
-      return [l.id, l.received_at, l.first_name, l.last_name, l.phone, l.email, l.state, l.publisher_sub, l.campaign, l._buyer, BLABEL[l._bucket], l.disp_status, l._note, l._changed].map(q).join(',');
+      return [l.id, l.received_at, l.first_name, l.last_name, l.phone, l.email, l.state, l.publisher_sub, l.campaign, l._buyer, BLABEL[l._bucket], l.disp_status, l._note, l._changed, l.resent_at, l.prev_buyer, l.prev_note].map(q).join(',');
     });
     var blob = new Blob(['﻿' + head.map(q).join(',') + '\n' + rows.join('\n')], {type:'text/csv'});
     var a = document.createElement('a'); a.href = URL.createObjectURL(blob);
