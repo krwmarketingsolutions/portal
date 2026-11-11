@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Kyler0707 · Buyer Dispositions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F3EEE3; --paper-2:#EAE3D3; --white:#FBF8F1;
+    --ink:#1E2A22; --ink-2:#4E5A52; --ink-3:#8A9089;
+    --green:#1F4D36; --green-2:#2E6B4B; --green-soft:#D9E4DB;
+    --brown:#8C6A44; --brown-soft:#E7D9C5;
+    --red:#8E3B2F; --red-soft:#EDD3CC;
+    --blue:#2F5573; --blue-soft:#D6E1EA;
+    --line:#CFC5B0; --line-2:#B9AE95;
+    --sans:'Helvetica Neue',Arial,sans-serif;
+    --serif:'Source Serif 4',Georgia,serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--paper);color:var(--ink);font-family:var(--serif);font-size:15px;line-height:1.45}
+  button,input,select{font:inherit;color:inherit}
+  .wrap{max-width:1320px;margin:0 auto;padding:22px 24px 60px}
+
+  header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;
+    border-bottom:2px solid var(--green);padding-bottom:14px;margin-bottom:20px}
+  .brand{font-family:var(--sans);font-size:12px;font-weight:700;letter-spacing:.12em;color:var(--green)}
+  h1{font-size:28px;font-weight:600;margin:2px 0 0;letter-spacing:-.01em}
+  .sub{font-family:var(--sans);font-size:12px;color:var(--ink-3);margin-top:4px}
+  .top-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .btn{font-family:var(--sans);font-size:12.5px;background:var(--white);border:1px solid var(--line-2);
+    border-radius:3px;padding:7px 12px;cursor:pointer;text-decoration:none;color:var(--ink)}
+  .btn:hover{border-color:var(--green);color:var(--green)}
+  .btn.primary{background:var(--green);color:var(--paper);border-color:var(--green)}
+  .btn.primary:hover{background:var(--green-2);color:var(--paper)}
+  .btn:focus-visible,.chip:focus-visible,.card:focus-visible,input:focus-visible,select:focus-visible,th button:focus-visible{
+    outline:2px solid var(--green);outline-offset:2px}
+
+  /* buyer cards */
+  .cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:18px}
+  .card{background:var(--white);border:1px solid var(--line);border-top:3px solid var(--line-2);
+    padding:14px 16px 12px;text-align:left;cursor:pointer;border-radius:0;width:100%}
+  .card:hover{border-color:var(--line-2);border-top-color:var(--green-2)}
+  .card.on{border-top-color:var(--green);box-shadow:inset 0 0 0 1px var(--green)}
+  .card h3{font-family:var(--sans);font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+    margin:0 0 8px;color:var(--ink-2)}
+  .card .big{display:flex;align-items:baseline;gap:8px}
+  .card .big b{font-size:30px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums}
+  .card .big span{font-family:var(--sans);font-size:12px;color:var(--ink-3)}
+  .bar{display:flex;height:6px;background:var(--paper-2);margin:10px 0 8px;overflow:hidden}
+  .bar i{display:block;height:100%}
+  .mini{display:grid;grid-template-columns:repeat(3,1fr);gap:4px 10px;font-family:var(--sans);font-size:11.5px;color:var(--ink-2)}
+  .mini b{font-variant-numeric:tabular-nums;color:var(--ink);font-weight:700}
+  .mini .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;vertical-align:1px}
+
+  /* filters */
+  .filters{background:var(--white);border:1px solid var(--line);padding:12px 14px;margin-bottom:14px;
+    display:flex;flex-direction:column;gap:10px}
+  .frow{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+  .flabel{font-family:var(--sans);font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--ink-3);width:92px;flex:none}
+  .chip{font-family:var(--sans);font-size:12.5px;background:transparent;border:1px solid var(--line);
+    border-radius:20px;padding:4px 11px;cursor:pointer;color:var(--ink-2);white-space:nowrap}
+  .chip:hover{border-color:var(--green-2);color:var(--green)}
+  .chip.on{background:var(--green);border-color:var(--green);color:var(--paper)}
+  .chip small{font-size:11px;opacity:.75;margin-left:4px;font-variant-numeric:tabular-nums}
+  .search{flex:1;min-width:200px;background:#fff;border:1px solid var(--line-2);border-radius:3px;padding:7px 10px;font-size:14px}
+  select.sel{background:#fff;border:1px solid var(--line-2);border-radius:3px;padding:7px 8px;font-family:var(--sans);font-size:12.5px}
+
+  /* table */
+  .meta{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+    font-family:var(--sans);font-size:12px;color:var(--ink-3);margin:0 2px 8px}
+  .tablebox{background:var(--white);border:1px solid var(--line);overflow-x:auto}
+  table{border-collapse:collapse;width:100%;min-width:980px}
+  th{font-family:var(--sans);font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;
+    color:var(--ink-3);text-align:left;padding:0;border-bottom:1px solid var(--line-2);background:var(--paper-2);
+    position:sticky;top:0;white-space:nowrap}
+  th button{all:unset;display:block;padding:9px 12px;cursor:pointer;width:100%;box-sizing:border-box}
+  th button:hover{color:var(--green)}
+  th .arr{margin-left:4px;color:var(--green)}
+  td{padding:9px 12px;border-bottom:1px solid var(--paper-2);vertical-align:top;font-size:14px}
+  tr:last-child td{border-bottom:0}
+  tbody tr:hover td{background:#F7F2E7}
+  .nowrap{white-space:nowrap}
+  .num{font-variant-numeric:tabular-nums}
+  .dim{color:var(--ink-3);font-family:var(--sans);font-size:11.5px}
+  .name{font-weight:600}
+  .note{color:var(--ink-2);font-size:13.5px;max-width:360px;overflow-wrap:anywhere}
+  .pill{font-family:var(--sans);font-size:11.5px;font-weight:700;border-radius:3px;padding:3px 8px;white-space:nowrap;display:inline-block}
+  .p-signed{background:var(--green);color:var(--paper)}
+  .p-pending{background:var(--brown-soft);color:#5E4322}
+  .p-open{background:var(--blue-soft);color:var(--blue)}
+  .p-awaiting{background:var(--paper-2);color:var(--ink-2)}
+  .p-rejected{background:var(--red-soft);color:var(--red)}
+  .p-aged{background:transparent;color:var(--red);box-shadow:inset 0 0 0 1px var(--red-soft)}
+  .p-declined,.p-notsent{background:transparent;color:var(--ink-3);box-shadow:inset 0 0 0 1px var(--line)}
+  .buyer{font-family:var(--sans);font-size:12.5px;font-weight:700;color:var(--green)}
+  .buyer.none{color:var(--ink-3);font-weight:400}
+  .empty{padding:40px 16px;text-align:center;color:var(--ink-2)}
+  .more{display:flex;justify-content:center;padding:14px}
+  .legend{font-family:var(--sans);font-size:11.5px;color:var(--ink-3);margin-top:14px;line-height:1.6}
+  .err{background:var(--red-soft);color:var(--red);border:1px solid var(--red);padding:10px 14px;margin-bottom:14px;
+    font-family:var(--sans);font-size:13px;display:none}
+
+  /* login */
+  #login{position:fixed;inset:0;z-index:99;background:var(--paper);display:none;align-items:center;justify-content:center}
+  #login form{background:var(--white);border:1px solid var(--line);border-top:3px solid var(--green);padding:34px 38px;width:380px;max-width:92vw}
+  #login h2{font-size:24px;font-weight:600;margin:10px 0 6px}
+  #login p{font-size:14px;color:var(--ink-2);margin:0 0 18px}
+  #login input{width:100%;padding:9px 11px;border:1px solid var(--line-2);border-radius:3px;background:#fff;margin-bottom:12px}
+  #login button{width:100%;background:var(--green);color:var(--paper);border:0;border-radius:3px;padding:9px 16px;cursor:pointer}
+  #login-msg{font-size:13.5px;color:var(--red);margin-top:12px;min-height:18px}
+
+  @media (max-width:980px){ .cards{grid-template-columns:repeat(2,minmax(0,1fr))} }
+  @media (max-width:560px){
+    .wrap{padding:16px 16px 48px}
+    h1{font-size:23px}
+    .cards{grid-template-columns:1fr}
+    .flabel{width:100%}
+    .card .big b{font-size:26px}
+  }
+</style>
+</head>
+<body>
+
+<div id="login">
+  <form id="login-form">
+    <div class="brand">KRW</div>
+    <h2>Kyler0707</h2>
+    <p>Sign in with your dashboard password to load dispositions.</p>
+    <input id="pw" type="password" autocomplete="current-password" placeholder="Password" aria-label="Password">
+    <button type="submit">Sign in</button>
+    <div id="login-msg" role="status"></div>
+  </form>
+</div>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="brand">KRW · KYLER0707</div>
+      <h1>Buyer dispositions</h1>
+      <div class="sub" id="stamp">Loading…</div>
+    </div>
+    <div class="top-actions">
+      <button class="btn primary" id="refresh" type="button">Refresh</button>
+      <button class="btn" id="csv" type="button">Download CSV</button>
+      <a class="btn" href="../">Deal Dashboard</a>
+      <button class="btn" id="signout" type="button">Sign out</button>
+    </div>
+  </header>
+
+  <div class="err" id="err" role="alert"></div>
+
+  <section class="cards" id="cards" aria-label="Current buyers"></section>
+
+  <section class="filters" aria-label="Filters">
+    <div class="frow"><span class="flabel">Received</span><span id="f-range" class="frow"></span></div>
+    <div class="frow"><span class="flabel">Buyer</span><span id="f-buyer" class="frow"></span></div>
+    <div class="frow"><span class="flabel">Disposition</span><span id="f-bucket" class="frow"></span></div>
+    <div class="frow">
+      <span class="flabel">Find</span>
+      <input class="search" id="q" type="search" placeholder="Name, phone, email, lead #, or buyer note" aria-label="Search leads">
+      <select class="sel" id="f-state" aria-label="State"><option value="">All states</option></select>
+      <select class="sel" id="f-pub" aria-label="Source"><option value="">All sources</option></select>
+    </div>
+  </section>
+
+  <div class="meta"><span id="count"></span><span id="sortnote"></span></div>
+  <div class="tablebox">
+    <table>
+      <thead><tr id="thead"></tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div class="empty" id="empty" style="display:none"></div>
+    <div class="more" id="more" style="display:none"><button class="btn" id="morebtn" type="button">Show more</button></div>
+  </div>
+
+  <p class="legend">
+    Dispositions come from each buyer's own reporting and refresh when you load or hit Refresh.
+    <b>Awaiting update</b> means the buyer accepted the lead but hasn't reported back yet.
+    <b>Aged out</b> means no buyer update for 30+ days, so the system closed it; the buyer did not reject it.
+    <b>Declined at post</b> means the buyer's system refused the lead when it was sent.
+  </p>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var API = 'https://krw-backend-production.up.railway.app';
+  var CURRENT = ['NLD CPA','CAG','Legal Advocate Group','Eilers Law'];
+  var BUCKETS = [
+    ['signed','Signed','#1F4D36'], ['pending','Pending','#8C6A44'], ['open','Open','#2F5573'],
+    ['awaiting','Awaiting update','#B9AE95'], ['rejected','Rejected','#8E3B2F'], ['aged','Aged out','#D9A99F'],
+    ['declined','Declined at post','#CFC5B0'], ['notsent','Not sent','#CFC5B0']
+  ];
+  var BLABEL = {}; BUCKETS.forEach(function(b){ BLABEL[b[0]] = b[1]; });
+  var SENT = {signed:1,pending:1,open:1,awaiting:1,rejected:1,aged:1};
+  var RANGES = [['7','7 days'],['30','30 days'],['90','90 days'],['all','All time']];
+  var COLS = [
+    ['received_at','Received'], ['name','Lead'], ['phone','Phone'], ['state','State'], ['pub','Source'],
+    ['buyer','Buyer'], ['bucket','Disposition'], ['note','Buyer note'], ['changed','Updated']
+  ];
+
+  var token = ''; try { token = localStorage.getItem('krw_token') || ''; } catch(e){}
+  var S = { leads:[], range:'30', buyer:'current', bucket:'all', q:'', state:'', pub:'', sortK:'received_at', sortD:-1, limit:200, loadedAt:null };
+
+  function $(id){ return document.getElementById(id); }
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function fmtPhone(p){ var d = String(p||'').replace(/\D/g,'').slice(-10); return d.length===10 ? '('+d.slice(0,3)+') '+d.slice(3,6)+'-'+d.slice(6) : (p||''); }
+  function fmtDate(v, withTime){
+    if(!v) return ''; var d = new Date(v); if(isNaN(d)) return '';
+    var o = {month:'short', day:'numeric'}; if(d.getFullYear() !== new Date().getFullYear()) o.year = 'numeric';
+    var s = d.toLocaleDateString(undefined, o);
+    return withTime ? s + ', ' + d.toLocaleTimeString(undefined, {hour:'numeric', minute:'2-digit'}) : s;
+  }
+
+  function bucketOf(l){
+    var d = String(l.disp_status||'').toLowerCase(), n = String(l.disp_note||'').toLowerCase();
+    if(d){
+      if(/pending/.test(d)) return 'pending';
+      if(/signed|retained/.test(d)) return 'signed';
+      if(/open/.test(d)) return 'open';
+      if(/reject/.test(d)) return (l.disp_source === 'aged_out' || /no buyer update/.test(n)) ? 'aged' : 'rejected';
+      return 'open';
+    }
+    if(!l.buyer_name) return 'notsent';
+    if(l.status === 'forwarded') return 'awaiting';
+    if(l.status === 'buyer_rejected') return 'declined';
+    return 'notsent';
+  }
+  function prep(l){
+    l._name = ((l.first_name||'')+' '+(l.last_name||'')).trim() || '(no name)';
+    l._buyer = l.buyer_name || '';
+    l._bucket = bucketOf(l);
+    l._t = new Date(l.received_at).getTime() || 0;
+    l._changed = l.disp_changed_at || '';
+    l._note = l.disp_note || (l._bucket === 'declined' || l._bucket === 'notsent' ? (l.buyer_error || '') : '');
+    l._hay = [l._name, l.phone, String(l.phone||'').replace(/\D/g,''), l.email, l.id, 'krw-'+l.id, l._note, l._buyer, l.state, l.publisher_sub].join(' ').toLowerCase();
+    return l;
+  }
+
+  /* ---------- auth ---------- */
+  function showLogin(msg){
+    $('login').style.display = 'flex'; $('login-msg').textContent = msg || '';
+    setTimeout(function(){ $('pw').focus(); }, 50);
+  }
+  function api(path){
+    return fetch(API + path, { headers: { 'Authorization': 'Bearer ' + token }, cache: 'no-store' }).then(function(r){
+      if(r.status === 401 || r.status === 403){
+        try { localStorage.removeItem('krw_token'); } catch(e){}
+        token = ''; showLogin('Your session expired. Sign in again.');
+        throw new Error('auth');
+      }
+      if(!r.ok) throw new Error('Server returned ' + r.status);
+      return r.json();
+    });
+  }
+  $('login-form').addEventListener('submit', function(ev){
+    ev.preventDefault();
+    var m = $('login-msg'); m.style.color = 'var(--ink-2)'; m.textContent = 'Checking…';
+    fetch(API + '/auth/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ password: $('pw').value }) })
+      .then(function(r){ return r.json(); })
+      .then(function(j){
+        if(!j.ok || !j.token) throw new Error(j.error || 'Sign in failed');
+        token = j.token; try { localStorage.setItem('krw_token', token); } catch(e){}
+        $('pw').value = ''; $('login').style.display = 'none'; load();
+      })
+      .catch(function(e){ m.style.color = 'var(--red)'; m.textContent = e.message === 'Failed to fetch' ? 'Could not reach the server.' : e.message; });
+  });
+  $('signout').addEventListener('click', function(){ try { localStorage.removeItem('krw_token'); } catch(e){} token = ''; S.leads = []; render(); showLogin('Signed out.'); });
+
+  /* ---------- data ---------- */
+  function load(){
+    if(!token){ showLogin(''); return; }
+    $('stamp').textContent = 'Loading…'; $('err').style.display = 'none'; $('refresh').disabled = true;
+    api('/auth/check').then(function(j){
+      if(!j.ok || j.role !== 'admin'){ try { localStorage.removeItem('krw_token'); } catch(e){} token=''; showLogin('Sign in with the dashboard password.'); throw new Error('auth'); }
+      return api('/leads/feed?limit=20000');
+    }).then(function(j){
+      S.leads = (j.leads || []).map(prep);
+      S.loadedAt = new Date();
+      fillSelects(); render();
+    }).catch(function(e){
+      if(e.message !== 'auth'){ $('err').textContent = 'Could not load dispositions: ' + e.message + '. Try Refresh.'; $('err').style.display = 'block'; $('stamp').textContent = 'Not loaded'; }
+    }).then(function(){ $('refresh').disabled = false; });
+  }
+
+  function inRange(l){
+    if(S.range === 'all') return true;
+    return l._t >= Date.now() - parseInt(S.range,10) * 86400000;
+  }
+  function inBuyer(l){
+    if(S.buyer === 'current') return CURRENT.indexOf(l._buyer) > -1;
+    if(S.buyer === 'past')    return !!l._buyer && CURRENT.indexOf(l._buyer) < 0;
+    if(S.buyer === 'none')    return !l._buyer;
+    if(S.buyer === 'all')     return true;
+    return l._buyer === S.buyer;
+  }
+  function inRest(l){
+    if(S.state && l.state !== S.state) return false;
+    if(S.pub && l.publisher_sub !== S.pub) return false;
+    if(S.q){ var parts = S.q.toLowerCase().split(/\s+/); for(var i=0;i<parts.length;i++){ if(parts[i] && l._hay.indexOf(parts[i]) < 0) return false; } }
+    return true;
+  }
+
+  function fillSelects(){
+    var st = {}, pb = {};
+    S.leads.forEach(function(l){ if(l.state) st[l.state]=1; if(l.publisher_sub) pb[l.publisher_sub]=1; });
+    function fill(el, first, keys, cur){
+      el.innerHTML = '<option value="">'+first+'</option>' + keys.sort().map(function(k){ return '<option'+(k===cur?' selected':'')+'>'+esc(k)+'</option>'; }).join('');
+    }
+    fill($('f-state'), 'All states', Object.keys(st), S.state);
+    fill($('f-pub'), 'All sources', Object.keys(pb), S.pub);
+  }
+
+  /* ---------- render ---------- */
+  function chips(el, items, cur, on){
+    el.innerHTML = items.map(function(it){
+      return '<button type="button" class="chip'+(it[0]===cur?' on':'')+'" aria-pressed="'+(it[0]===cur)+'" data-v="'+esc(it[0])+'">'+esc(it[1])+(it[2]!=null?'<small>'+it[2]+'</small>':'')+'</button>';
+    }).join('');
+    Array.prototype.forEach.call(el.querySelectorAll('.chip'), function(b){ b.addEventListener('click', function(){ on(b.getAttribute('data-v')); }); });
+  }
+
+  function renderCards(base){
+    var html = CURRENT.map(function(name){
+      var c = {signed:0,pending:0,open:0,awaiting:0,rejected:0,aged:0}, sent = 0;
+      base.forEach(function(l){ if(l._buyer === name && SENT[l._bucket]){ c[l._bucket]++; sent++; } });
+      var bar = BUCKETS.filter(function(b){ return SENT[b[0]] && c[b[0]]; }).map(function(b){
+        return '<i style="width:'+(c[b[0]]/sent*100)+'%;background:'+b[2]+'" title="'+b[1]+': '+c[b[0]]+'"></i>'; }).join('');
+      function m(k){ var b = BUCKETS.filter(function(x){return x[0]===k;})[0]; return '<span><span class="dot" style="background:'+b[2]+'"></span>'+b[1].replace(' update','')+' <b>'+c[k]+'</b></span>'; }
+      return '<button type="button" class="card'+(S.buyer===name?' on':'')+'" data-b="'+esc(name)+'" aria-pressed="'+(S.buyer===name)+'">'+
+        '<h3>'+esc(name)+'</h3>'+
+        '<div class="big"><b>'+c.signed+'</b><span>signed of '+sent+' sent'+(sent? ' · '+(c.signed/sent*100).toFixed(c.signed/sent<0.1&&c.signed?1:0)+'%':'')+'</span></div>'+
+        '<div class="bar">'+bar+'</div>'+
+        '<div class="mini">'+m('pending')+m('open')+m('awaiting')+m('rejected')+m('aged')+'</div>'+
+      '</button>';
+    }).join('');
+    $('cards').innerHTML = html;
+    Array.prototype.forEach.call($('cards').querySelectorAll('.card'), function(b){
+      b.addEventListener('click', function(){ var n = b.getAttribute('data-b'); S.buyer = (S.buyer === n ? 'current' : n); S.bucket = 'all'; S.limit = 200; render(); });
+    });
+  }
+
+  function cell(l, k){
+    switch(k){
+      case 'received_at': return '<td class="nowrap num" title="'+esc(fmtDate(l.received_at,true))+'">'+esc(fmtDate(l.received_at))+'</td>';
+      case 'name':   return '<td><div class="name">'+esc(l._name)+'</div><div class="dim">#'+esc(l.id)+(l.email?' · '+esc(l.email):'')+'</div></td>';
+      case 'phone':  return '<td class="nowrap num">'+esc(fmtPhone(l.phone))+'</td>';
+      case 'state':  return '<td>'+esc(l.state||'')+'</td>';
+      case 'pub':    return '<td><span class="dim">'+esc(l.publisher_sub||'—')+'</span></td>';
+      case 'buyer':  return '<td class="nowrap">'+(l._buyer?'<span class="buyer">'+esc(l._buyer)+'</span>':'<span class="buyer none">Not sent</span>')+'</td>';
+      case 'bucket': return '<td><span class="pill p-'+l._bucket+'">'+esc(BLABEL[l._bucket])+'</span>'+
+                        (l.disp_status && l.disp_status.toLowerCase() !== BLABEL[l._bucket].toLowerCase() && l._bucket !== 'aged' ? '<div class="dim" style="margin-top:3px">'+esc(l.disp_status)+'</div>' : '')+'</td>';
+      case 'note':   return '<td><div class="note">'+esc(l._note||'')+'</div></td>';
+      case 'changed':return '<td class="nowrap num dim" title="'+esc(l.disp_checked_at?'Last checked '+fmtDate(l.disp_checked_at,true):'')+'">'+esc(fmtDate(l._changed)||'—')+'</td>';
+    }
+    return '<td></td>';
+  }
+  function sortVal(l, k){
+    switch(k){
+      case 'received_at': return l._t;
+      case 'name': return l._name.toLowerCase();
+      case 'phone': return String(l.phone||'');
+      case 'state': return l.state||'';
+      case 'pub': return l.publisher_sub||'';
+      case 'buyer': return l._buyer.toLowerCase();
+      case 'bucket': for(var i=0;i<BUCKETS.length;i++) if(BUCKETS[i][0]===l._bucket) return i; return 99;
+      case 'note': return (l._note||'').toLowerCase();
+      case 'changed': return l._changed ? new Date(l._changed).getTime() : 0;
+    }
+    return 0;
+  }
+
+  var view = [];
+  function render(){
+    var base = S.leads.filter(inRange);
+    renderCards(base);
+
+    chips($('f-range'), RANGES, S.range, function(v){ S.range = v; S.limit = 200; render(); });
+
+    var scoped = base.filter(inRest);
+    var bc = { current:0, past:0, none:0 }; var per = {}; CURRENT.forEach(function(n){ per[n]=0; });
+    scoped.forEach(function(l){
+      if(!l._buyer) bc.none++; else if(CURRENT.indexOf(l._buyer) > -1){ bc.current++; per[l._buyer]++; } else bc.past++;
+    });
+    var buyerItems = [['current','All 4 buyers',bc.current]].concat(CURRENT.map(function(n){ return [n,n,per[n]]; }))
+      .concat([['past','Past buyers',bc.past],['none','Not sent',bc.none]]);
+    chips($('f-buyer'), buyerItems, S.buyer, function(v){ S.buyer = v; S.bucket = 'all'; S.limit = 200; render(); });
+
+    var inB = scoped.filter(inBuyer);
+    var cnt = {}; inB.forEach(function(l){ cnt[l._bucket] = (cnt[l._bucket]||0)+1; });
+    var bItems = [['all','All',inB.length]].concat(BUCKETS.filter(function(b){ return cnt[b[0]] || S.bucket === b[0]; }).map(function(b){ return [b[0], b[1], cnt[b[0]]||0]; }));
+    chips($('f-bucket'), bItems, S.bucket, function(v){ S.bucket = v; S.limit = 200; render(); });
+
+    view = inB.filter(function(l){ return S.bucket === 'all' || l._bucket === S.bucket; });
+    view.sort(function(a,b){ var x = sortVal(a,S.sortK), y = sortVal(b,S.sortK); return (x<y?-1:x>y?1:(b._t-a._t)*S.sortD) * S.sortD; });
+
+    $('thead').innerHTML = COLS.map(function(c){
+      var on = S.sortK === c[0];
+      return '<th aria-sort="'+(on?(S.sortD>0?'ascending':'descending'):'none')+'"><button type="button" data-k="'+c[0]+'">'+c[1]+(on?'<span class="arr">'+(S.sortD>0?'▲':'▼')+'</span>':'')+'</button></th>';
+    }).join('');
+    Array.prototype.forEach.call($('thead').querySelectorAll('button'), function(b){
+      b.addEventListener('click', function(){ var k = b.getAttribute('data-k'); if(S.sortK === k) S.sortD = -S.sortD; else { S.sortK = k; S.sortD = (k==='received_at'||k==='changed') ? -1 : 1; } render(); });
+    });
+
+    var shown = view.slice(0, S.limit);
+    $('tbody').innerHTML = shown.map(function(l){ return '<tr>'+COLS.map(function(c){ return cell(l,c[0]); }).join('')+'</tr>'; }).join('');
+    $('empty').style.display = view.length ? 'none' : 'block';
+    $('empty').textContent = S.leads.length ? 'No leads match these filters. Widen the date range or clear the search.' : (token ? 'No leads loaded yet.' : 'Sign in to load dispositions.');
+    $('more').style.display = view.length > shown.length ? 'flex' : 'none';
+    $('morebtn').textContent = 'Show ' + Math.min(200, view.length - shown.length) + ' more';
+    $('count').textContent = view.length ? ('Showing ' + shown.length.toLocaleString() + ' of ' + view.length.toLocaleString() + ' leads') : '';
+    if(S.loadedAt) $('stamp').textContent = 'Updated ' + S.loadedAt.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'}) + ' · ' + S.leads.length.toLocaleString() + ' leads on file';
+  }
+
+  /* ---------- controls ---------- */
+  var qT; $('q').addEventListener('input', function(){ clearTimeout(qT); var v = this.value; qT = setTimeout(function(){ S.q = v.trim(); S.limit = 200; render(); }, 140); });
+  $('f-state').addEventListener('change', function(){ S.state = this.value; S.limit = 200; render(); });
+  $('f-pub').addEventListener('change', function(){ S.pub = this.value; S.limit = 200; render(); });
+  $('morebtn').addEventListener('click', function(){ S.limit += 200; render(); });
+  $('refresh').addEventListener('click', load);
+  $('csv').addEventListener('click', function(){
+    if(!view.length) return;
+    var head = ['Lead ID','Received','First name','Last name','Phone','Email','State','Source','Campaign','Buyer','Disposition','Buyer status','Buyer note','Disposition updated'];
+    function q(v){ v = String(v == null ? '' : v); if(/^[=+\-@]/.test(v)) v = "'" + v; return '"' + v.replace(/"/g,'""') + '"'; }
+    var rows = view.map(function(l){
+      return [l.id, l.received_at, l.first_name, l.last_name, l.phone, l.email, l.state, l.publisher_sub, l.campaign, l._buyer, BLABEL[l._bucket], l.disp_status, l._note, l._changed].map(q).join(',');
+    });
+    var blob = new Blob(['﻿' + head.map(q).join(',') + '\n' + rows.join('\n')], {type:'text/csv'});
+    var a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = 'krw-dispositions-' + new Date().toISOString().slice(0,10) + '.csv';
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
+  });
+
+  render();
+  load();
+})();
+</script>
+</body>
+</html>
