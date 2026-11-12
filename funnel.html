@@ -305,7 +305,7 @@ async function fetchFunnelData() {
     var routing = d.routing || {};
     var html = '';
     html += renderSection('mva', 'MVA', d.mva, routing);
-    html += renderSection('ssdi', 'SSDI', d.ssdi, routing);
+    if (d.ssdi) html += renderSection('ssdi', 'SSDI', d.ssdi, routing);   // absent for a partner login
     html += renderSection('mass_tort', 'MASS TORT', d.mass_tort, routing);
     content.innerHTML = html;
 
@@ -375,7 +375,7 @@ function drawAllLines() {
   if (!LAST_DATA) return;
   var routing = LAST_DATA.routing || {};
   drawSectionLines('mva', LAST_DATA.mva, routing);
-  drawSectionLines('ssdi', LAST_DATA.ssdi, routing);
+  if (LAST_DATA.ssdi) drawSectionLines('ssdi', LAST_DATA.ssdi, routing);
 }
 
 function drawSectionLines(key, data, routing) {

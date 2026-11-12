@@ -1470,6 +1470,17 @@
   .oz-warn{font-size:13.5px;color:var(--lx-red)}
 
 </style>
+<style>
+  /* partner login: only Home, Leads and Funnel; no SSDI, no billable approvals */
+  .role-partner #nav-deals,.role-partner #nav-outreach,.role-partner #nav-revenue,.role-partner #nav-calendar,
+  .role-partner #nav-invoice,.role-partner #nav-ssdi,.role-partner #nav-settings,
+  .role-partner #hm-vert-ssdi,.role-partner .partner-hide,.role-partner .hm-bs .pend,.role-partner .hm-bs thead th:last-child,
+  .role-partner .sidebar .legend{display:none !important}
+  .role-partner .hm-two{grid-template-columns:1fr}
+  .partner-who{display:none}
+  .role-partner .partner-who{display:block;margin-bottom:8px}
+  .role-partner .partner-who a{color:inherit;text-decoration:underline;cursor:pointer}
+</style>
 </head>
 <body>
 
@@ -1520,7 +1531,7 @@
       <div class="legend-item"><span class="legend-dot pending"></span>Pending</div>
       <div class="legend-item"><span class="legend-dot negotiating"></span>Negotiating</div>
     </div>
-    <div class="sidebar-footer">Auto-saves to browser ✓<br>Profit = Sell − Buy (auto)</div>
+    <div class="sidebar-footer"><div class="partner-who">Signed in as <b id="partner-name"></b> · <a onclick="krwLogout()">Sign out</a></div>Auto-saves to browser ✓<br>Profit = Sell − Buy (auto)</div>
   </div><!-- /sidebar -->
 
   <!-- PAGE AREA -->
@@ -2129,7 +2140,7 @@
         </div>
         <div class="header-bar-right">
           <span class="lx-live" id="lx-live"><i></i><span id="lx-live-txt">Not connected</span></span>
-          <button class="lx-btn quiet" onclick="openPubModal(null)">+ Publisher</button>
+          <button class="lx-btn quiet partner-hide" onclick="openPubModal(null)">+ Publisher</button>
         </div>
       </div>
 
@@ -3658,6 +3669,16 @@ var KRW_BUILD = '20261029-150734';
 var KRW_API_HOST = 'krw-backend-production.up.railway.app';
 var KRW_TOKEN = '';
 try { KRW_TOKEN = localStorage.getItem('krw_token') || ''; } catch (e) {}
+/* Partner logins: the role is read from the token only to shape the page.
+   The server decides what a partner token can actually load. */
+var KRW_ROLE = 'admin', KRW_USER_NAME = '';
+(function () {
+  try {
+    var b = KRW_TOKEN.split('.')[0].replace(/-/g, '+').replace(/_/g, '/');
+    var p = JSON.parse(decodeURIComponent(escape(atob(b))));
+    if (p && p.role === 'partner') { KRW_ROLE = 'partner'; KRW_USER_NAME = String(p.name || ''); document.documentElement.classList.add('role-partner'); }
+  } catch (e) {}
+})();
 
 // patch 294: drop a dead session and ask for a sign-in, rather than
 // letting every call fail quietly behind a dashboard full of zeros.
@@ -3767,8 +3788,8 @@ function krwShowLogin(msg) {
     fetch('https://' + KRW_API_HOST + '/auth/check')
       .then(function (r) { return r.json(); })
       .then(function (j) {
-        if (!j.ok || j.role !== 'admin') { krwDropToken('That session expired. Sign in again.'); }
-        else krwLoadConfig();
+        if (!j.ok || (j.role !== 'admin' && j.role !== 'partner')) { krwDropToken('That session expired. Sign in again.'); }
+        else if (j.role === 'admin') krwLoadConfig();
       })
       // patch 294: this used to be an empty catch, which left the page sitting
       // on a token the server rejects - no login, no error, just zeros.
@@ -11547,6 +11568,7 @@ function lxBqSetRange(r){ LX_BQ_RANGE=r; var box=document.getElementById('lx-bq-
 function lxBqToggleBuyers(){ LX_BQ_VIEW=(LX_BQ_VIEW==='buyers')?'approvals':'buyers'; var t=document.getElementById('lx-bq-viewtoggle'); if(t) t.textContent=(LX_BQ_VIEW==='buyers')?'← Back to approvals':'Buyers owed →'; lxRenderQueue(); }
 function lxBqMarkPaid(buyer,amt,n){ if(!confirm('Mark '+n+' case'+(n===1?'':'s')+' from '+buyer+' as paid ($'+Math.round(amt).toLocaleString()+')? This clears them from what '+buyer+' owes you.')) return; fetch(REV_API_URL+'/billable-queue/mark-paid',{method:'POST',headers:{'x-api-key':REV_API_KEY,'Content-Type':'application/json'},body:JSON.stringify({buyer:buyer})}).then(function(r){return r.json();}).then(function(d){ if(d&&d.ok){ showToast('Marked paid · '+buyer+' · $'+Math.round(d.amount).toLocaleString()); lxFetchQueue(); } else { showToast('Could not mark paid: '+((d&&d.error)||'error')); } }).catch(function(e){ showToast('Could not mark paid: '+e.message); }); }
 async function lxFetchQueue(){
+  if(window.KRW_ROLE==='partner') return;
   if(!window.REV_API_URL||!window.REV_API_KEY) return;
   try{ var r=await fetch(REV_API_URL+'/billable-queue',{headers:{'x-api-key':REV_API_KEY}}); var d=await r.json(); if(d.ok){ LX.queue=(d.items||[]).filter(lxIsMvaItem); lxRenderQueue(); } }catch(e){}
 }
@@ -11965,7 +11987,7 @@ var HM_PHRASES = [
 function hmDailyPhrase(){ var d=new Date(), start=new Date(d.getFullYear(),0,0), doy=Math.floor((d-start)/86400000); return HM_PHRASES[(doy+d.getFullYear())%HM_PHRASES.length]; }
 function hmGreeting(){
   var now=new Date(), h=now.getHours();
-  var g=document.getElementById('hm-greet'); if(g) g.textContent=(h<5?'Still up, Kyler?':h<12?'Good morning, Kyler':h<17?'Good afternoon, Kyler':'Good evening, Kyler');
+  var g=document.getElementById('hm-greet'); var who=(window.KRW_ROLE==='partner'&&KRW_USER_NAME)?KRW_USER_NAME:'Kyler'; if(g) g.textContent=(h<5?'Still up, '+who+'?':h<12?'Good morning, '+who:h<17?'Good afternoon, '+who:'Good evening, '+who);
   var p=document.getElementById('hm-phrase'); if(p) p.textContent=hmDailyPhrase();
   var dl=document.getElementById('hm-dateline'); if(dl) dl.textContent=now.toLocaleDateString([],{weekday:'long',month:'long',day:'numeric'});
 }
@@ -11998,6 +12020,10 @@ function hmOpenLead(id){ var l=HM.leads.find(function(x){return String(x.id)===S
 async function hmFetchAll(){
   if(!window.REV_API_URL||!window.REV_API_KEY){ hmSetLive('','Not connected'); hmRenderAll(); return; }
   var H={headers:{'x-api-key':REV_API_KEY}};
+  if(window.KRW_ROLE==='partner'){   // no SSDI calls, no billable queue for a partner login
+    try{ var pr=await fetch(REV_API_URL+'/leads/feed?limit=5000',H).then(function(r){return r.json();}); if(pr.ok){ HM.leads=pr.leads||[]; hmSetLive('on','Live'); } else hmSetLive('err','Feed error'); }catch(e){ hmSetLive('err','Feed error'); }
+    HM.calls=[]; HM.queue=[]; HM.at=Date.now(); hmRenderAll(); return;
+  }
   var results=await Promise.allSettled([
     fetch(REV_API_URL+'/leads/feed?limit=5000',H).then(function(r){return r.json();}),
     fetch(REV_API_URL+'/calls/feed?days=30',H).then(function(r){return r.json();}),
@@ -12071,6 +12097,7 @@ function hmRenderCards(){
     {title:'Revenue yesterday', money:true, n:rev.total, small:rev.count?rev.count+' postback'+(rev.count!==1?'s':'')+(rev.sheetCount?', '+rev.sheetCount+' sheet row'+(rev.sheetCount!==1?'s':''):''):'no postbacks recorded yesterday', chip:chip(rev.total,revYp.total,'day before:',true), spark:hmSpark(hmDailyRevenue(14).b,128,40,null,hmDailyRevenue(14).labels), legend:'<span><i style="background:var(--lx-green)"></i><b>'+hmMoney(rev.backend)+'</b> backend postbacks</span><span><i style="background:var(--lx-brown)"></i><b>'+hmMoney(rev.sheet)+'</b> from the sheet</span>', go:function(){ var el=document.getElementById('hm-revtbl'); if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); }},
     {title:'This week, Mon\u2013Fri', n:Lwk.length+Cwkb, small:Lwk.length+' leads, '+Cwkb+' billable calls', chip:chip(Lwk.length,Lwkp,'last week:'), spark:hmSpark(dwk.b,128,40,null,dwk.labels), legend:'<span><i style="background:var(--lx-green)"></i><b>'+hmMoney(revWk.total)+'</b> posted back so far</span>', go:function(){ showPage('leads'); }}
   ];
+  if(window.KRW_ROLE==='partner'){ cards=[cards[0],cards[3]]; cards[1].n=Lwk.length; cards[1].small=Lwk.length+' lead'+(Lwk.length!==1?'s':'')+' so far'; cards[1].legend=''; }
   host.innerHTML='';
   cards.forEach(function(c,i){
     var el=document.createElement('div'); el.className='lx-stat'; el.style.cursor='pointer';
@@ -12447,6 +12474,23 @@ function renderCallsPubList(){
       '<td class="acts"><button class="lx-btn quiet sm" onclick="copyToClipboard('+JSON.stringify(p.pub_id).replace(/"/g,'&quot;')+');showToast(\'ID copied\')">Copy ID</button> <button class="lx-btn quiet sm" onclick="openCallsPubModal('+JSON.stringify(p.pub_id).replace(/"/g,'&quot;')+')">Edit</button></td></tr>'; }).join('')+'</tbody></table>';
   ssRenderPubSeg();
 }
+</script>
+<script>
+/* Partner login shell: lands on Leads, keeps to Home / Leads / Funnel. */
+(function(){
+  if(window.KRW_ROLE!=='partner') return;
+  var ALLOWED={home:1,leads:1};
+  var _show=window.showPage;
+  window.showPage=function(pg){ return _show(ALLOWED[pg]?pg:'leads'); };
+  function setup(){
+    ['hm-revtbl','lx-ap-pending'].forEach(function(id){ var e=document.getElementById(id), sec=e&&e.closest('.lx-section'); if(sec) sec.classList.add('partner-hide'); });
+    var scan=document.getElementById('hm-bs-scan'); if(scan) scan.classList.add('partner-hide');
+    var n=document.getElementById('partner-name'); if(n) n.textContent=KRW_USER_NAME||'partner';
+    document.title='KRW Dashboard'+(KRW_USER_NAME?' · '+KRW_USER_NAME:'');
+    window.showPage('leads');
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',setup); else setup();
+})();
 </script>
 </body>
 </html>

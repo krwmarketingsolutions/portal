@@ -199,6 +199,21 @@
     <div class="pb-body" id="pb-body"></div>
   </details>
 
+  <details class="pb" id="tl" style="display:none">
+    <summary>Team logins · dashboard access</summary>
+    <div class="pb-body">
+      <p class="pb-warn" style="margin:12px 0 10px">A partner login opens the Deal Dashboard in view-only mode: Home, Leads and Funnel. It cannot see SSDI or the billable approval list, and it cannot change anything.</p>
+      <div id="tl-list"></div>
+      <form id="tl-form" style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-top:14px">
+        <label style="font-family:var(--sans);font-size:11.5px;color:var(--ink-2)">Name<br><input class="search" id="tl-name" style="min-width:150px;flex:none;width:170px" maxlength="40" autocomplete="off" required></label>
+        <label style="font-family:var(--sans);font-size:11.5px;color:var(--ink-2)">Password (10+ characters)<br><input class="search" id="tl-pass" type="password" style="min-width:200px;flex:none;width:240px" minlength="10" autocomplete="new-password" required></label>
+        <button class="btn primary" type="submit">Save login</button>
+      </form>
+      <p class="pb-warn" id="tl-msg" role="status" style="min-height:18px"></p>
+      <p class="pb-warn">To reset a password, save the same name with a new password. That signs the person out everywhere. They sign in at the normal dashboard link with their own password.</p>
+    </div>
+  </details>
+
   <p class="legend">
     Dispositions come from each buyer's own reporting and refresh when you load or hit Refresh.
     <b>Awaiting update</b> means the buyer accepted the lead but hasn't reported back yet.
@@ -303,7 +318,7 @@
     }).then(function(j){
       S.leads = (j.leads || []).map(prep);
       S.loadedAt = new Date();
-      fillSelects(); render(); loadPostbacks();
+      fillSelects(); render(); loadPostbacks(); loadLogins();
     }).catch(function(e){
       if(e.message !== 'auth'){ $('err').textContent = 'Could not load dispositions: ' + e.message + '. Try Refresh.'; $('err').style.display = 'block'; $('stamp').textContent = 'Not loaded'; }
     }).then(function(){ $('refresh').disabled = false; });
@@ -505,6 +520,37 @@
       $('pb').style.display = 'block';
     }).catch(function(){ /* older server or no access: leave the section hidden */ });
   }
+
+  /* ---------- team logins ---------- */
+  function post(path, body){
+    return fetch(API + path, { method:'POST', headers:{ 'Authorization':'Bearer '+token, 'Content-Type':'application/json' }, body: JSON.stringify(body) })
+      .then(function(r){ return r.json().then(function(j){ if(!r.ok || !j.ok) throw new Error(j.error || ('Server returned '+r.status)); return j; }); });
+  }
+  function loadLogins(){
+    api('/auth/users').then(function(j){
+      if(!j || !j.ok) return;
+      var u = j.users || [];
+      $('tl-list').innerHTML = u.length ? '<div class="tablebox" style="border:0"><table><thead><tr><th style="padding:7px 12px">Name</th><th style="padding:7px 12px">Access</th><th style="padding:7px 12px">Status</th><th style="padding:7px 12px">Last sign in</th><th style="padding:7px 12px"></th></tr></thead><tbody>' +
+        u.map(function(x){ return '<tr><td class="name">'+esc(x.name)+'</td><td>Partner, view only</td><td>'+(x.active?'<span class="pill p-signed">On</span>':'<span class="pill p-notsent">Off</span>')+'</td><td class="dim">'+esc(fmtDate(x.last_login_at,true)||'Never')+'</td><td><button type="button" class="btn" data-id="'+esc(x.id)+'" data-on="'+(x.active?'0':'1')+'">'+(x.active?'Turn off':'Turn on')+'</button></td></tr>'; }).join('') +
+        '</tbody></table></div>' : '<p class="pb-warn">No partner logins yet.</p>';
+      Array.prototype.forEach.call($('tl-list').querySelectorAll('button[data-id]'), function(b){
+        b.addEventListener('click', function(){
+          b.disabled = true;
+          post('/auth/users/'+b.getAttribute('data-id')+'/active', { active: b.getAttribute('data-on') === '1' }).then(loadLogins)
+            .catch(function(e){ $('tl-msg').style.color='var(--red)'; $('tl-msg').textContent = e.message; b.disabled = false; });
+        });
+      });
+      $('tl').style.display = 'block';
+    }).catch(function(){});
+  }
+  $('tl-form').addEventListener('submit', function(ev){
+    ev.preventDefault();
+    var m = $('tl-msg'); m.style.color = 'var(--ink-2)'; m.textContent = 'Saving…';
+    post('/auth/users', { name: $('tl-name').value.trim(), password: $('tl-pass').value }).then(function(j){
+      m.style.color = 'var(--green)'; m.textContent = (j.reset ? 'Password reset for ' : 'Login created for ') + j.user.name + '.';
+      $('tl-pass').value = ''; loadLogins();
+    }).catch(function(e){ m.style.color = 'var(--red)'; m.textContent = e.message; });
+  });
 
   /* ---------- controls ---------- */
   var qT; $('q').addEventListener('input', function(){ clearTimeout(qT); var v = this.value; qT = setTimeout(function(){ S.q = v.trim(); S.limit = 200; render(); }, 140); });
