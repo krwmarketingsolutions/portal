@@ -1473,7 +1473,7 @@
 <style>
   /* partner login: only Home, Leads and Funnel; no SSDI, no billable approvals */
   .role-partner #nav-deals,.role-partner #nav-outreach,.role-partner #nav-revenue,.role-partner #nav-calendar,
-  .role-partner #nav-invoice,.role-partner #nav-ssdi,.role-partner #nav-settings,
+  .role-partner #nav-invoice,.role-partner #nav-ssdi,.role-partner #nav-settings,.role-partner #nav-dispositions,
   .role-partner #hm-vert-ssdi,.role-partner .partner-hide,.role-partner .hm-bs .pend,.role-partner .hm-bs thead th:last-child,
   .role-partner .sidebar .legend{display:none !important}
   .role-partner .hm-two{grid-template-columns:1fr}
@@ -1511,6 +1511,9 @@
       </div>
 <div class="nav-item" id="nav-leads" onclick="showPage('leads')">
         <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="4" r="2.5"/><path d="M1 14c0-3 2-4 5-4s5 1 5 4"/><path d="M11 7h4M13 5v4"/></svg>Leads
+      </div>
+      <div class="nav-item" id="nav-dispositions" onclick="showPage('dispositions')">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="1.5"/><path d="M5 6h6M5 8.5h6M5 11h3.5"/></svg>Dispositions
       </div>
       <div class="nav-item" id="nav-invoice" onclick="showPage('invoice')">
         <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="1" width="12" height="14" rx="1"/><path d="M5 5h6M5 8h4M5 11h3"/><polyline points="10,10 11.5,11.5 14,9"/></svg>Invoicing
@@ -2374,12 +2377,30 @@
 
       </div>
     </div>
+    <div class="page" id="page-dispositions" style="display:none">
+      <iframe id="dispo-frame" title="Dispositions" data-src="Kyler0707/?embed=1" style="flex:1;width:100%;border:0;background:#F3EEE3"></iframe>
+    </div>
+
     <div class="page" id="page-settings" style="display:none">
       <div class="header-bar">
         <div class="header-bar-left"><h2>Settings</h2><p>Campaign setup guide · System reference · Quick SQL</p></div>
         <div class="header-bar-right"><div class="krw-badge">KRW</div></div>
       </div>
       <div class="leads-scroll" style="padding:1.5rem 2.5rem">
+
+        <!-- TEAM LOGINS -->
+        <div id="tl-card" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;margin-bottom:1.5rem">
+          <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">Team logins</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:1rem;line-height:1.6">A partner login opens this dashboard in view-only mode: Home, Leads and Funnel. It cannot see SSDI, Dispositions or the billable approval list, and it cannot change anything. They sign in at the normal dashboard link with their own password.</div>
+          <div id="tl-list" style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:13px"></div>
+          <form id="tl-form" onsubmit="return tlSave(event)" style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-top:14px;font-family:'Helvetica Neue',Arial,sans-serif">
+            <label style="font-size:11px;color:var(--muted)">Name<br><input id="tl-name" maxlength="40" autocomplete="off" required style="font:inherit;font-size:13px;padding:7px 9px;border:1px solid var(--border);border-radius:6px;width:170px;background:#fff;color:var(--text)"></label>
+            <label style="font-size:11px;color:var(--muted)">Password (10+ characters)<br><input id="tl-pass" type="password" minlength="10" autocomplete="new-password" required style="font:inherit;font-size:13px;padding:7px 9px;border:1px solid var(--border);border-radius:6px;width:240px;background:#fff;color:var(--text)"></label>
+            <button type="submit" style="font:inherit;font-size:13px;background:#1F4D36;color:#F3EEE3;border:0;border-radius:6px;padding:8px 16px;cursor:pointer">Save login</button>
+          </form>
+          <div id="tl-msg" role="status" style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;min-height:18px;margin-top:8px;color:var(--muted)"></div>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px">To reset a password, save the same name with a new one. That signs the person out everywhere.</div>
+        </div>
 
         <!-- QUICK REFERENCE CARDS -->
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem;margin-bottom:1.5rem">
@@ -3636,7 +3657,7 @@ SELECT required_fields FROM campaigns WHERE slug = 'SLUG';</pre>
    A home-screen app on iOS can sit on a cached copy of this file for a long
    time. version.txt is fetched with no-store so it is always the real one;
    if it does not match the build running here, reload once. */
-var KRW_BUILD = '20261029-150734';
+var KRW_BUILD = '20261112-122800';
 (function () {
   var reloaded = false;
   function checkBuild() {
@@ -4259,6 +4280,8 @@ function showPage(pg) {
   var navEl = document.getElementById('nav-' + pg);
   if (navEl) navEl.classList.add('active');
 
+  if (pg === 'dispositions') { var df = document.getElementById('dispo-frame'); if (df && !df.getAttribute('src')) df.setAttribute('src', df.getAttribute('data-src')); }
+  if (pg === 'settings' && typeof tlLoad === 'function') tlLoad();
   if (pg === 'outreach') renderOutreach();
   if (pg === 'home') { renderTasks(); renderHomeKPIs(); }
   if (pg === 'calendar') initCalendar();
@@ -12473,6 +12496,35 @@ function renderCallsPubList(){
     return '<tr><td><b style="font-weight:600">'+lxEsc(p.name)+'</b></td><td class="id">'+lxEsc(p.pub_id)+'</td><td>'+lxEsc(p.did||'—')+'</td><td class="rate">'+(p.payout_rate?'$'+parseFloat(p.payout_rate).toFixed(2)+' per billable':'—')+'</td><td style="color:var(--lx-ink-2)">'+lxEsc(p.email||'—')+'</td>'+
       '<td class="acts"><button class="lx-btn quiet sm" onclick="copyToClipboard('+JSON.stringify(p.pub_id).replace(/"/g,'&quot;')+');showToast(\'ID copied\')">Copy ID</button> <button class="lx-btn quiet sm" onclick="openCallsPubModal('+JSON.stringify(p.pub_id).replace(/"/g,'&quot;')+')">Edit</button></td></tr>'; }).join('')+'</tbody></table>';
   ssRenderPubSeg();
+}
+</script>
+<script>
+/* Team logins (Settings): create, reset and turn off partner logins. */
+function tlEsc(v){ return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+function tlMsg(t,color){ var m=document.getElementById('tl-msg'); if(m){ m.style.color=color||'var(--muted)'; m.textContent=t; } }
+function tlPost(path,body){
+  return fetch(REV_API_URL+path,{method:'POST',headers:{'x-api-key':REV_API_KEY,'Content-Type':'application/json'},body:JSON.stringify(body)})
+    .then(function(r){ return r.json().then(function(j){ if(!r.ok||!j.ok) throw new Error(j.error||('Server returned '+r.status)); return j; }); });
+}
+function tlLoad(){
+  var host=document.getElementById('tl-list'); if(!host||window.KRW_ROLE==='partner') return;
+  fetch(REV_API_URL+'/auth/users',{headers:{'x-api-key':REV_API_KEY}}).then(function(r){return r.json();}).then(function(j){
+    if(!j||!j.ok) return;
+    var u=j.users||[];
+    host.innerHTML=u.length?'<table style="border-collapse:collapse;width:100%;max-width:760px"><thead><tr>'+['Name','Access','Status','Last sign in',''].map(function(h){return '<th style="text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding:6px 10px;border-bottom:1px solid var(--border)">'+h+'</th>';}).join('')+'</tr></thead><tbody>'+
+      u.map(function(x){ var last=x.last_login_at?new Date(x.last_login_at).toLocaleString([], {month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'Never';
+        return '<tr><td style="padding:8px 10px;border-bottom:1px solid var(--border);font-weight:600">'+tlEsc(x.name)+'</td><td style="padding:8px 10px;border-bottom:1px solid var(--border)">Partner, view only</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);color:'+(x.active?'#1F4D36':'var(--muted)')+';font-weight:600">'+(x.active?'On':'Off')+'</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);color:var(--muted)">'+tlEsc(last)+'</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);text-align:right"><button type="button" onclick="tlToggle('+parseInt(x.id,10)+','+(x.active?'false':'true')+',this)" style="font:inherit;font-size:12px;background:transparent;border:1px solid var(--border);border-radius:6px;padding:5px 10px;cursor:pointer;color:var(--text)">'+(x.active?'Turn off':'Turn on')+'</button></td></tr>'; }).join('')+
+      '</tbody></table>':'<div style="color:var(--muted);font-size:12px">No partner logins yet.</div>';
+  }).catch(function(){});
+}
+function tlToggle(id,on,btn){ if(btn) btn.disabled=true; tlPost('/auth/users/'+id+'/active',{active:on}).then(function(){ tlMsg(''); tlLoad(); }).catch(function(e){ tlMsg(e.message,'#8E3B2F'); if(btn) btn.disabled=false; }); }
+function tlSave(ev){
+  if(ev) ev.preventDefault();
+  var n=document.getElementById('tl-name'), p=document.getElementById('tl-pass');
+  tlMsg('Saving…');
+  tlPost('/auth/users',{name:n.value.trim(),password:p.value}).then(function(j){ tlMsg((j.reset?'Password reset for ':'Login created for ')+j.user.name+'.','#1F4D36'); p.value=''; tlLoad(); })
+    .catch(function(e){ tlMsg(e.message,'#8E3B2F'); });
+  return false;
 }
 </script>
 <script>
