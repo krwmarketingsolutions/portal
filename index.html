@@ -3657,7 +3657,12 @@ SELECT required_fields FROM campaigns WHERE slug = 'SLUG';</pre>
    A home-screen app on iOS can sit on a cached copy of this file for a long
    time. version.txt is fetched with no-store so it is always the real one;
    if it does not match the build running here, reload once. */
-var KRW_BUILD = '20261112-124500';
+var KRW_BUILD = '20261112-134800';
+/* The Funnel tab always opens a fresh copy of the page (it has no auto-update of its own). */
+(function(){ try{ var f=document.getElementById('nav-funnel'); if(!f) return;
+  var fresh=function(){ f.href='https://krwmarketingsolutions.github.io/portal/funnel.html?t='+Date.now(); };
+  fresh(); f.addEventListener('mousedown',fresh); f.addEventListener('touchstart',fresh,{passive:true}); f.addEventListener('focus',fresh);
+}catch(e){} })();
 (function () {
   var reloaded = false;
   function checkBuild() {
