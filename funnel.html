@@ -306,7 +306,7 @@ async function fetchFunnelData() {
     var html = '';
     html += renderSection('mva', 'MVA', d.mva, routing);
     if (d.ssdi) html += renderSection('ssdi', 'SSDI', d.ssdi, routing);   // absent for a partner login
-    html += renderSection('mass_tort', 'MASS TORT', d.mass_tort, routing);
+    if (d.mass_tort) html += renderSection('mass_tort', 'MASS TORT', d.mass_tort, routing);   // absent for a partner login
     content.innerHTML = html;
 
     requestAnimationFrame(function(){

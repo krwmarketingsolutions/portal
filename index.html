@@ -1564,7 +1564,7 @@
         <!-- TWO VERTICALS -->
         <div class="hm-two">
           <div class="lx-section hm-vert" id="hm-vert-mva">
-            <div class="lx-sechead"><h3>MVA and mass tort</h3><button class="lx-btn quiet sm" onclick="showPage('leads')">Open Leads</button></div>
+            <div class="lx-sechead"><h3 id="hm-mva-title">MVA and mass tort</h3><button class="lx-btn quiet sm" onclick="showPage('leads')">Open Leads</button></div>
             <div class="hm-vbody" id="hm-vbody-mva"></div>
           </div>
           <div class="lx-section hm-vert" id="hm-vert-ssdi">
@@ -3657,7 +3657,7 @@ SELECT required_fields FROM campaigns WHERE slug = 'SLUG';</pre>
    A home-screen app on iOS can sit on a cached copy of this file for a long
    time. version.txt is fetched with no-store so it is always the real one;
    if it does not match the build running here, reload once. */
-var KRW_BUILD = '20261112-122800';
+var KRW_BUILD = '20261112-124500';
 (function () {
   var reloaded = false;
   function checkBuild() {
@@ -11918,7 +11918,7 @@ function lxRenderStats(){
     var prev = k==='all' ? null : LX.leads.filter(function(l){return lxInRange(l,lxRange(k,1));}).length;
     var chip='';
     if(prev!=null){ if(prev===0&&total===0) chip='<span class="chip">no change</span>'; else if(prev===0) chip='<span class="chip up">new</span>'; else { var pct=Math.round((total-prev)/prev*100); chip='<span class="chip '+(pct>0?'up':pct<0?'down':'')+'" title="'+prev+' in the prior period">'+(pct>0?'\u25B2 ':pct<0?'\u25BC ':'')+Math.abs(pct)+'% vs prior</span>'; } }
-    else chip='<span class="chip" title="The feed holds the most recent '+inFeed.toLocaleString()+'">since day one</span>';
+    else chip='<span class="chip" title="The feed holds the most recent '+inFeed.toLocaleString()+'">'+(window.KRW_ROLE==='partner'?'since Oct 21':'since day one')+'</span>';
     var pubs=Object.keys(byPub).sort(function(a,b){return byPub[b]-byPub[a];}).slice(0,3), pmax=pubs.length?byPub[pubs[0]]:1;
     var opts=LX_WINDOWS.map(function(w){ return '<option value="'+w.k+'"'+(w.k===k?' selected':'')+'>'+w.label+'</option>'; }).join('');
     var pc=function(x){ return inFeed?(x/inFeed*100):0; };
@@ -12538,6 +12538,7 @@ function tlSave(ev){
     ['hm-revtbl','lx-ap-pending'].forEach(function(id){ var e=document.getElementById(id), sec=e&&e.closest('.lx-section'); if(sec) sec.classList.add('partner-hide'); });
     var scan=document.getElementById('hm-bs-scan'); if(scan) scan.classList.add('partner-hide');
     var n=document.getElementById('partner-name'); if(n) n.textContent=KRW_USER_NAME||'partner';
+    var mt=document.getElementById('hm-mva-title'); if(mt) mt.textContent='MVA';
     document.title='KRW Dashboard'+(KRW_USER_NAME?' · '+KRW_USER_NAME:'');
     window.showPage('leads');
   }
