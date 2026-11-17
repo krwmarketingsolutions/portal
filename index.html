@@ -2522,7 +2522,7 @@ SELECT required_fields FROM campaigns WHERE slug = 'SLUG';</pre>
 'SLUG': { id: 'LP_CAMPAIGN_ID', sup: 'LP_SUPPLIER_ID', key: 'LP_KEY' },
 
 // Example for a new campaign:
-'uber': { id: '31036', sup: '99237', key: 'jz2gawz23t17g5' },</pre>
+'uber': { id: '31036', sup: '99237', key: 'KEY_FROM_LEADPROSPER' },</pre>
           </div>
         </div>
 
@@ -2539,10 +2539,10 @@ SELECT required_fields FROM campaigns WHERE slug = 'SLUG';</pre>
               </tr>
             </thead>
             <tbody>
-              <tr style="border-bottom:1px solid var(--border)"><td style="padding:7px 8px;font-weight:500">MVA</td><td style="padding:7px 8px"><code style="background:var(--subtle);padding:1px 5px;border-radius:3px">31080</code></td><td style="padding:7px 8px"><code style="background:var(--subtle);padding:1px 5px;border-radius:3px">110928</code></td><td style="padding:7px 8px"><code style="background:var(--subtle);padding:1px 5px;border-radius:3px">ke21sx0koi7dld</code></td></tr>
-              <tr style="border-bottom:1px solid var(--border)"><td style="padding:7px 8px;font-weight:500">Lyft / Rideshare</td><td style="padding:7px 8px"><code style="background:var(--subtle);padding:1px 5px;border-radius:3px">31036</code></td><td style="padding:7px 8px"><code style="background:var(--subtle);padding:1px 5px;border-radius:3px">99237</code></td><td style="padding:7px 8px"><code style="background:var(--subtle);padding:1px 5px;border-radius:3px">jz2gawz23t17g5</code></td></tr>
-              <tr style="border-bottom:1px solid var(--border)"><td style="padding:7px 8px;font-weight:500">Roundup</td><td style="padding:7px 8px"><code style="background:var(--subtle);padding:1px 5px;border-radius:3px">30976</code></td><td style="padding:7px 8px"><code style="background:var(--subtle);padding:1px 5px;border-radius:3px">96279</code></td><td style="padding:7px 8px"><code style="background:var(--subtle);padding:1px 5px;border-radius:3px">6l5rtdz61ay1n2</code></td></tr>
-              <tr><td style="padding:7px 8px;font-weight:500">Uber (pending)</td><td style="padding:7px 8px"><code style="background:var(--subtle);padding:1px 5px;border-radius:3px">31036</code></td><td style="padding:7px 8px"><code style="background:var(--subtle);padding:1px 5px;border-radius:3px">99237</code></td><td style="padding:7px 8px"><code style="background:var(--subtle);padding:1px 5px;border-radius:3px">jz2gawz23t17g5</code></td></tr>
+              <tr style="border-bottom:1px solid var(--border)"><td style="padding:7px 8px;font-weight:500">MVA</td><td style="padding:7px 8px"><code style="background:var(--subtle);padding:1px 5px;border-radius:3px">31080</code></td><td style="padding:7px 8px"><code style="background:var(--subtle);padding:1px 5px;border-radius:3px">110928</code></td><td style="padding:7px 8px"><span style="color:var(--muted)">kept on the server</span></td></tr>
+              <tr style="border-bottom:1px solid var(--border)"><td style="padding:7px 8px;font-weight:500">Lyft / Rideshare</td><td style="padding:7px 8px"><code style="background:var(--subtle);padding:1px 5px;border-radius:3px">31036</code></td><td style="padding:7px 8px"><code style="background:var(--subtle);padding:1px 5px;border-radius:3px">99237</code></td><td style="padding:7px 8px"><span style="color:var(--muted)">kept on the server</span></td></tr>
+              <tr style="border-bottom:1px solid var(--border)"><td style="padding:7px 8px;font-weight:500">Roundup</td><td style="padding:7px 8px"><code style="background:var(--subtle);padding:1px 5px;border-radius:3px">30976</code></td><td style="padding:7px 8px"><code style="background:var(--subtle);padding:1px 5px;border-radius:3px">96279</code></td><td style="padding:7px 8px"><span style="color:var(--muted)">kept on the server</span></td></tr>
+              <tr><td style="padding:7px 8px;font-weight:500">Uber (pending)</td><td style="padding:7px 8px"><code style="background:var(--subtle);padding:1px 5px;border-radius:3px">31036</code></td><td style="padding:7px 8px"><code style="background:var(--subtle);padding:1px 5px;border-radius:3px">99237</code></td><td style="padding:7px 8px"><span style="color:var(--muted)">kept on the server</span></td></tr>
             </tbody>
           </table>
         </div>
@@ -3657,7 +3657,7 @@ SELECT required_fields FROM campaigns WHERE slug = 'SLUG';</pre>
    A home-screen app on iOS can sit on a cached copy of this file for a long
    time. version.txt is fetched with no-store so it is always the real one;
    if it does not match the build running here, reload once. */
-var KRW_BUILD = '20261112-134800';
+var KRW_BUILD = '20261117-113136';
 /* The Funnel tab always opens a fresh copy of the page (it has no auto-update of its own). */
 (function(){ try{ var f=document.getElementById('nav-funnel'); if(!f) return;
   var fresh=function(){ f.href='https://krwmarketingsolutions.github.io/portal/funnel.html?t='+Date.now(); };
