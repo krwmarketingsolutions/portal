@@ -1,0 +1,591 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>KRW · Spend</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F3EEE3; --paper-2:#EAE3D3; --white:#FBF8F1;
+    --ink:#1E2A22; --ink-2:#4E5A52; --ink-3:#7C837C;
+    --green:#1F4D36; --green-2:#2E6B4B; --green-soft:#D9E4DB;
+    --red:#8E3B2F; --red-soft:#EDD3CC; --brown:#8C6A44; --brown-soft:#E7D9C5;
+    --line:#CFC5B0; --line-2:#B9AE95; --grid:#E4DCCA;
+    /* chart series: validated pair on the card surface (CVD and contrast pass) */
+    --google:#2F6FA8; --meta:#C2702A; --other:#B9AE95;
+    --sans:'Helvetica Neue',Arial,sans-serif; --serif:'Source Serif 4',Georgia,serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--paper);color:var(--ink);font-family:var(--serif);font-size:15px;line-height:1.45}
+  button,input,select{font:inherit;color:inherit}
+  .wrap{max-width:1320px;margin:0 auto;padding:22px 24px 70px}
+  header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;border-bottom:2px solid var(--green);padding-bottom:14px;margin-bottom:16px}
+  .brand{font-family:var(--sans);font-size:12px;font-weight:700;letter-spacing:.12em;color:var(--green)}
+  h1{font-size:28px;font-weight:600;margin:2px 0 0;letter-spacing:-.01em}
+  h2{font-family:var(--sans);font-size:11.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2);margin:0}
+  .sub{font-family:var(--sans);font-size:12px;color:var(--ink-3);margin-top:4px}
+  .top-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .btn{font-family:var(--sans);font-size:12.5px;background:var(--white);border:1px solid var(--line-2);border-radius:3px;padding:7px 12px;cursor:pointer;text-decoration:none;color:var(--ink)}
+  .btn:hover{border-color:var(--green);color:var(--green)}
+  .btn.primary{background:var(--green);color:var(--paper);border-color:var(--green)}
+  .btn.primary:hover{background:var(--green-2);color:var(--paper)}
+  .btn:focus-visible,.chip:focus-visible,input:focus-visible,select:focus-visible,th button:focus-visible,summary:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+  .banner{font-family:var(--sans);font-size:13px;padding:10px 14px;margin-bottom:14px;border:1px solid var(--brown);background:var(--brown-soft);color:#5E4322;display:none;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .banner b{letter-spacing:.06em}
+  .banner.err{border-color:var(--red);background:var(--red-soft);color:var(--red)}
+
+  .filters{background:var(--white);border:1px solid var(--line);padding:11px 14px;margin-bottom:14px;display:flex;gap:8px 18px;align-items:center;flex-wrap:wrap}
+  .fgrp{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+  .flabel{font-family:var(--sans);font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+  .chip{font-family:var(--sans);font-size:12.5px;background:transparent;border:1px solid var(--line);border-radius:20px;padding:4px 11px;cursor:pointer;color:var(--ink-2);white-space:nowrap}
+  .chip:hover{border-color:var(--green-2);color:var(--green)}
+  .chip.on{background:var(--green);border-color:var(--green);color:var(--paper)}
+  .chip .dot,.lg .dot{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px;vertical-align:0}
+  select.sel,input.date{background:#fff;border:1px solid var(--line-2);border-radius:3px;padding:5px 8px;font-family:var(--sans);font-size:12.5px}
+
+  .kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;margin-bottom:14px}
+  .kpi{background:var(--white);border:1px solid var(--line);border-top:3px solid var(--line-2);padding:13px 15px 12px;min-width:0}
+  .kpi.hero{border-top-color:var(--green)}
+  .kpi .v{font-size:27px;font-weight:600;line-height:1.1;margin-top:7px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .kpi .d{font-family:var(--sans);font-size:11.5px;color:var(--ink-3);margin-top:5px;min-height:16px}
+  .kpi .d b{font-weight:700;color:var(--ink-2)}
+  .kpi .d .up{color:var(--green)} .kpi .d .down{color:var(--red)}
+
+  .grid{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(0,1fr);gap:14px;margin-bottom:14px}
+  .card{background:var(--white);border:1px solid var(--line);padding:14px 16px 14px;min-width:0}
+  .card-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+  .lg{font-family:var(--sans);font-size:12px;color:var(--ink-2);display:flex;gap:14px;flex-wrap:wrap}
+  .plot{position:relative}
+  .plot h3{font-family:var(--sans);font-size:12px;font-weight:700;color:var(--ink);margin:10px 0 2px}
+  .plot h3 span{font-weight:400;color:var(--ink-3)}
+  svg{display:block;width:100%;height:auto;overflow:visible}
+  .ax{font-family:var(--sans);font-size:10.5px;fill:var(--ink-3)}
+  .tip{position:absolute;z-index:5;pointer-events:none;background:var(--ink);color:var(--paper);font-family:var(--sans);font-size:12px;line-height:1.5;padding:8px 10px;border-radius:3px;min-width:170px;display:none;box-shadow:0 4px 14px rgba(0,0,0,.18)}
+  .tip b{font-weight:700} .tip .r{display:flex;justify-content:space-between;gap:14px} .tip .dot{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px}
+  .tip .h{font-weight:700;margin-bottom:3px;border-bottom:1px solid rgba(255,255,255,.2);padding-bottom:3px}
+
+  .funnel{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0;margin-top:4px}
+  .fstep{padding:10px 12px 10px 14px;border-left:1px solid var(--grid);min-width:0}
+  .fstep:first-child{border-left:0;padding-left:0}
+  .fstep .n{font-size:22px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .fstep .l{font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+  .fstep .c{font-family:var(--sans);font-size:11.5px;color:var(--ink-2);margin-top:3px}
+
+  .what label{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--sans);font-size:12.5px;color:var(--ink-2);margin-top:11px}
+  .what label b{font-family:var(--serif);font-size:16px;color:var(--ink);font-variant-numeric:tabular-nums}
+  .what input[type=range]{width:100%;accent-color:var(--green);margin:4px 0 0}
+  .what .chk{display:flex;gap:8px;align-items:center;justify-content:flex-start;margin-top:12px}
+  .out{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;margin-top:14px;padding-top:12px;border-top:1px solid var(--grid)}
+  .out div{font-family:var(--sans);font-size:11.5px;color:var(--ink-3)}
+  .out b{display:block;font-family:var(--serif);font-size:19px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+  .note{font-family:var(--sans);font-size:11.5px;color:var(--ink-3);margin-top:10px;line-height:1.5}
+
+  .tablebox{overflow-x:auto;margin:0 -16px -14px;border-top:1px solid var(--grid)}
+  table{border-collapse:collapse;width:100%;min-width:880px}
+  th{font-family:var(--sans);font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);text-align:right;padding:0;border-bottom:1px solid var(--line-2);background:var(--paper-2);white-space:nowrap}
+  th:first-child,td:first-child{text-align:left}
+  th button{all:unset;display:block;padding:8px 12px;cursor:pointer;width:100%;box-sizing:border-box}
+  th button:hover{color:var(--green)}
+  td{padding:8px 12px;border-bottom:1px solid var(--paper-2);font-size:14px;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  td:first-child{white-space:normal;min-width:230px}
+  tr.click{cursor:pointer} tbody tr.click:hover td{background:#F7F2E7} tr.sel td{background:var(--green-soft) !important}
+  tr.total td{font-weight:700;border-top:1px solid var(--line-2);border-bottom:0}
+  .cname{font-weight:600} .cdim{font-family:var(--sans);font-size:11.5px;color:var(--ink-3)}
+  .share{display:block;height:4px;background:var(--paper-2);margin-top:5px;border-radius:2px;overflow:hidden} .share i{display:block;height:100%;border-radius:2px}
+  .muted{color:var(--ink-3)}
+  .seg{display:inline-flex;border:1px solid var(--line-2);border-radius:3px;overflow:hidden}
+  .seg button{all:unset;font-family:var(--sans);font-size:12px;padding:5px 10px;cursor:pointer;color:var(--ink-2);border-left:1px solid var(--line-2)}
+  .seg button:first-child{border-left:0} .seg button.on{background:var(--green);color:var(--paper)}
+
+  details.conn{background:var(--white);border:1px solid var(--line);margin-top:14px}
+  details.conn>summary{cursor:pointer;padding:12px 16px;font-family:var(--sans);font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+  .conn-body{padding:4px 16px 16px;border-top:1px solid var(--paper-2);display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .conn-body h3{font-size:17px;font-weight:600;margin:12px 0 4px}
+  .pill{font-family:var(--sans);font-size:11.5px;font-weight:700;border-radius:3px;padding:3px 8px;display:inline-block}
+  .pill.ok{background:var(--green);color:var(--paper)} .pill.no{background:var(--paper-2);color:var(--ink-2)} .pill.bad{background:var(--red-soft);color:var(--red)}
+  .conn-body ol{margin:8px 0 0;padding-left:20px;font-size:14px} .conn-body li{margin-bottom:5px}
+  .conn-body code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;background:var(--paper);padding:1px 5px;border:1px solid var(--grid)}
+  pre{background:var(--paper);border:1px solid var(--line);padding:10px 12px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere;max-height:260px;overflow:auto;margin:8px 0}
+
+  #login{position:fixed;inset:0;z-index:99;background:var(--paper);display:none;align-items:center;justify-content:center}
+  #login form{background:var(--white);border:1px solid var(--line);border-top:3px solid var(--green);padding:34px 38px;width:380px;max-width:92vw}
+  #login h2{font-family:var(--serif);font-size:24px;font-weight:600;margin:10px 0 6px;letter-spacing:0;text-transform:none;color:var(--ink)}
+  #login p{font-size:14px;color:var(--ink-2);margin:0 0 18px}
+  #login input{width:100%;padding:9px 11px;border:1px solid var(--line-2);border-radius:3px;background:#fff;margin-bottom:12px}
+  #login button[type=submit]{width:100%;background:var(--green);color:var(--paper);border:0;border-radius:3px;padding:9px 16px;cursor:pointer}
+  #login-msg{font-size:13.5px;color:var(--red);margin-top:12px;min-height:18px}
+  #login .alt{all:unset;cursor:pointer;font-family:var(--sans);font-size:12.5px;color:var(--green);text-decoration:underline;margin-top:6px;display:inline-block}
+
+  .embed .brand-line,.embed .standalone{display:none}
+  @media (max-width:1100px){ .kpis{grid-template-columns:repeat(3,minmax(0,1fr))} .grid{grid-template-columns:1fr} }
+  @media (max-width:640px){
+    .wrap{padding:16px 16px 50px} h1{font-size:23px}
+    .kpis{grid-template-columns:repeat(2,minmax(0,1fr))} .kpi .v{font-size:22px}
+    .funnel{grid-template-columns:repeat(2,minmax(0,1fr))} .fstep{border-left:0;padding-left:0}
+    .conn-body{grid-template-columns:1fr} .out{grid-template-columns:1fr 1fr}
+  }
+</style>
+</head>
+<body>
+
+<div id="login">
+  <form id="login-form">
+    <div class="brand">KRW</div>
+    <h2>Spend</h2>
+    <p>Sign in with your dashboard password to load ad spend.</p>
+    <input id="pw" type="password" autocomplete="current-password" placeholder="Password" aria-label="Password">
+    <button type="submit">Sign in</button>
+    <div id="login-msg" role="status"></div>
+    <button type="button" class="alt" id="login-sample">Look at the page with sample numbers instead</button>
+  </form>
+</div>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="brand brand-line">KRW · SPEND</div>
+      <h1>Ad spend against leads and signed cases</h1>
+      <div class="sub" id="stamp">Loading…</div>
+    </div>
+    <div class="top-actions">
+      <button class="btn primary" id="refresh" type="button">Refresh</button>
+      <button class="btn" id="csv" type="button">Download CSV</button>
+      <a class="btn standalone" href="../">Deal Dashboard</a>
+    </div>
+  </header>
+
+  <div class="banner" id="banner" role="status"><span id="banner-text"></span><button class="btn" id="banner-btn" type="button"></button></div>
+
+  <section class="filters" aria-label="Filters">
+    <div class="fgrp"><span class="flabel">Period</span><span id="f-range" class="fgrp"></span>
+      <input class="date" id="f-from" type="date" aria-label="From"><span class="muted">to</span><input class="date" id="f-to" type="date" aria-label="To"></div>
+    <div class="fgrp"><span class="flabel">Platform</span><span id="f-plat" class="fgrp"></span></div>
+    <div class="fgrp"><span class="flabel">Lead source</span><select class="sel" id="f-pub" aria-label="Lead source"><option value="">All sources</option></select>
+      <select class="sel" id="f-state" aria-label="State"><option value="">All states</option></select></div>
+    <div class="fgrp" id="f-camp-wrap" style="display:none"><span class="flabel">Campaign</span><button class="chip on" id="f-camp" type="button"></button></div>
+  </section>
+
+  <section class="kpis" id="kpis" aria-label="Totals"></section>
+
+  <div class="grid">
+    <section class="card" aria-label="Spend and leads over time">
+      <div class="card-head">
+        <h2>Spend, leads and cost per lead</h2>
+        <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+          <div class="lg" id="legend"></div>
+          <div class="seg" id="gran" role="group" aria-label="Group by"><button type="button" data-g="day">Daily</button><button type="button" data-g="week">Weekly</button></div>
+        </div>
+      </div>
+      <div class="plot" id="plot">
+        <h3>Spend <span id="t-spend"></span></h3><div id="c-spend"></div>
+        <h3>Leads <span id="t-leads"></span></h3><div id="c-leads"></div>
+        <h3>Cost per lead <span id="t-cpl"></span></h3><div id="c-cpl"></div>
+        <div class="tip" id="tip"></div>
+      </div>
+    </section>
+
+    <div style="display:flex;flex-direction:column;gap:14px;min-width:0">
+      <section class="card" aria-label="From spend to signed case">
+        <div class="card-head"><h2>From spend to signed case</h2></div>
+        <div class="funnel" id="funnel"></div>
+      </section>
+      <section class="card what" aria-label="What if">
+        <div class="card-head"><h2>What if</h2><span class="cdim">Projection, not booked</span></div>
+        <label for="w-rate">Open leads that end up signing <b id="w-rate-v"></b></label>
+        <input id="w-rate" type="range" min="0" max="40" step="1">
+        <label for="w-pay">Payout per signed case <b id="w-pay-v"></b></label>
+        <input id="w-pay" type="range" min="1000" max="3500" step="50">
+        <label for="w-fix">Other costs for this period (media buyer, tools) <b id="w-fix-v"></b></label>
+        <input id="w-fix" type="range" min="0" max="20000" step="250">
+        <label class="chk"><input id="w-pend" type="checkbox"> Count signings waiting on your approval as signed</label>
+        <div class="out" id="w-out"></div>
+        <div class="note" id="w-note"></div>
+      </section>
+    </div>
+  </div>
+
+  <section class="card" aria-label="Campaigns" style="margin-bottom:14px">
+    <div class="card-head"><h2>Campaigns</h2><span class="cdim">Click a campaign to filter the whole page to it</span></div>
+    <div class="tablebox"><table><thead><tr id="c-head"></tr></thead><tbody id="c-body"></tbody></table></div>
+  </section>
+
+  <section class="card" aria-label="Where leads come from">
+    <div class="card-head"><h2>Where the leads come from</h2>
+      <div class="seg" id="dim" role="group" aria-label="Break down by"><button type="button" data-d="state">State</button><button type="button" data-d="keyword">Keyword</button><button type="button" data-d="device">Device</button><button type="button" data-d="buyer">Buyer</button><button type="button" data-d="pub">Source</button></div>
+    </div>
+    <div class="tablebox"><table style="min-width:640px"><thead><tr id="d-head"></tr></thead><tbody id="d-body"></tbody></table></div>
+  </section>
+
+  <details class="conn" id="conn">
+    <summary>Connections · Meta and Google</summary>
+    <div class="conn-body" id="conn-body"></div>
+  </details>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var EMBED = false; try { EMBED = window.self !== window.top; } catch (e) { EMBED = true; }
+  if (EMBED || /[?&]embed=1/.test(location.search)) document.documentElement.classList.add('embed');
+  var API = 'https://krw-backend-production.up.railway.app';
+  var PLAT = { google:['Google','#2F6FA8'], meta:['Meta','#C2702A'], other:['Other','#B9AE95'] }, PKEYS = ['google','meta','other'];
+  /* Nothing before the start date is ever shown. The server enforces the same date; this is its default. */
+  var FLOOR = '2026-11-03';
+  function ranges(){ return [['7','7 days'],['14','14 days'],['30','30 days'],['mtd','This month'],['all','Since ' + fmtDay(FLOOR)]]; }
+  var token = ''; try { token = localStorage.getItem('krw_token') || ''; } catch (e) {}
+  var PREFS = {}; try { PREFS = JSON.parse(localStorage.getItem('krw_spend_prefs') || '{}') || {}; } catch (e) { PREFS = {}; }
+  var S = { range: (PREFS.range && PREFS.range !== '90' && PREFS.range !== 'custom') ? PREFS.range : 'all', from:'', to:'', plat:'all', pub:'', state:'', camp:null, gran: PREFS.gran || 'day', dim:'state',
+            rate: PREFS.rate == null ? 12 : PREFS.rate, pay: PREFS.pay || 2000, fix: PREFS.fix || 0, pend: !!PREFS.pend,
+            sortK:'spend', sortD:-1, sample:false, sampleWhy:'', data:null, status:null, loadedAt:null };
+  function savePrefs(){ try { localStorage.setItem('krw_spend_prefs', JSON.stringify({ range:S.range, gran:S.gran, rate:S.rate, pay:S.pay, fix:S.fix, pend:S.pend })); } catch (e) {} }
+
+  function $(id){ return document.getElementById(id); }
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function money(n, d){ if (n == null || !isFinite(n)) return '—'; var a = Math.abs(n); return (n < 0 ? '−' : '') + '$' + a.toLocaleString(undefined, { minimumFractionDigits: d == null ? (a < 100 && a % 1 ? 2 : 0) : d, maximumFractionDigits: d == null ? (a < 100 && a % 1 ? 2 : 0) : d }); }
+  function num(n){ return n == null || !isFinite(n) ? '—' : Math.round(n).toLocaleString(); }
+  function pct(n){ return n == null || !isFinite(n) ? '—' : (n * 100).toFixed(n < 0.1 && n > 0 ? 1 : 0) + '%'; }
+  function div(a, b){ return b > 0 ? a / b : null; }
+  function cost(a, b){ return a > 0 && b > 0 ? a / b : null; }   /* a cost per something needs real spend behind it */
+  function iso(d){ return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+  function parse(s){ var p = String(s).split('-'); return new Date(+p[0], +p[1]-1, +p[2], 12); }
+  function addDays(s, n){ var d = parse(s); d.setDate(d.getDate() + n); return iso(d); }
+  function fmtDay(s, long){ var d = parse(s); return d.toLocaleDateString(undefined, long ? { weekday:'short', month:'short', day:'numeric' } : { month:'short', day:'numeric' }); }
+  function today(){ return (S.data && S.data.to) || iso(new Date()); }
+
+  /* ---------- sample numbers (only ever shown under the SAMPLE banner) ---------- */
+  function sampleData(){
+    var seed = 7; function rnd(){ seed = (seed * 16807) % 2147483647; return seed / 2147483647; }
+    var to = iso(new Date()), from = addDays(to, -179), spend = [], leads = [], id = 9000; if (from < FLOOR) from = FLOOR;
+    var camps = [['google','555001','MVA Search · Texas',260,0.9],['google','555002','MVA Search · Arizona and Nevada',170,0.8],['google','555003','MVA Search · Iowa and Nebraska',90,0.7],['meta','900001','MVA Leads · Texas video',120,1.5],['meta','900002','MVA Leads · Retargeting',45,1.1]];
+    var states = { '555001':['TX'], '555002':['AZ','NV'], '555003':['IA','NE'], '900001':['TX','GA','SC'], '900002':['TX','AZ','UT'] };
+    var buyers = { TX:'CAG', AZ:'NLD CPA', NV:'NLD CPA', UT:'NLD CPA', IA:'CAG', NE:'CAG', GA:'Legal Advocate Group', SC:'Legal Advocate Group' };
+    var kws = ['car accident lawyer','truck accident attorney','injury lawyer near me','auto accident claim','rear end collision lawyer'];
+    for (var d = from; d <= to; d = addDays(d, 1)) {
+      var dow = parse(d).getDay(), wk = (dow === 0 || dow === 6) ? 0.7 : 1, age = (parse(to) - parse(d)) / 86400000;
+      camps.forEach(function(c){
+        var sp = Math.round(c[3] * wk * (0.75 + rnd() * 0.5) * 100) / 100, clicks = Math.max(1, Math.round(sp / (c[0] === 'google' ? 9 + rnd() * 5 : 1.6 + rnd())));
+        spend.push({ platform:c[0], campaign_id:c[1], campaign_name:c[2], day:d, spend:sp, impressions:clicks * (c[0] === 'google' ? 14 : 70), clicks:clicks, conversions:0 });
+        var n = Math.round(sp / (150 / c[4]) + rnd() - 0.45);
+        for (var i = 0; i < n; i++) {
+          var st = states[c[1]][Math.floor(rnd() * states[c[1]].length)], r = rnd(), b = 'open';
+          if (age > 12) b = r < 0.13 ? 'signed' : r < 0.17 ? 'pending' : r < 0.78 ? 'rejected' : 'open'; else if (age > 4) b = r < 0.06 ? 'signed' : r < 0.1 ? 'pending' : r < 0.45 ? 'rejected' : 'open';
+          var buyer = buyers[st] || 'Eilers Law', rev = b === 'signed' ? ({ 'CAG': st === 'TX' ? 2100 : 1850, 'NLD CPA': 2250, 'Legal Advocate Group': 2200 }[buyer] || 1700) : 0;
+          leads.push({ id: id++, day:d, pub: c[0] === 'google' ? 'KRW-LEADBLOOM-MVA' : 'LJA-MVA-GOOGLE', campaign:'mva-nyc-split', state:st, buyer:buyer, bucket:b, billable:b === 'signed', revenue:rev,
+            platform:c[0], campaign_id: rnd() < 0.93 ? c[1] : '', campaign_label:c[2], adgroup:'', keyword: c[0] === 'google' ? kws[Math.floor(rnd() * kws.length)] : '', matchtype:'p', device: rnd() < 0.72 ? 'm' : 'c' });
+        }
+      });
+    }
+    return { ok:true, from:from, to:to, since:FLOOR, tz:'America/Los_Angeles', own_pubs:['KRW-LEADBLOOM-MVA','LJA-MVA-GOOGLE'], spend:spend, leads:leads,
+      connections:{ meta:{ configured:false, rows:0 }, google:{ rows:0 } } };
+  }
+
+  /* ---------- auth + data ---------- */
+  function showLogin(msg){ $('login').style.display = 'flex'; $('login-msg').textContent = msg || ''; setTimeout(function(){ $('pw').focus(); }, 50); }
+  function api(path){
+    return fetch(API + path, { headers: { 'Authorization': 'Bearer ' + token }, cache: 'no-store' }).then(function(r){
+      if (r.status === 401 || r.status === 403) { var e = new Error('auth'); throw e; }
+      if (r.status === 404) throw new Error('notinstalled');
+      if (!r.ok) throw new Error('Server returned ' + r.status);
+      return r.json();
+    });
+  }
+  $('login-form').addEventListener('submit', function(ev){
+    ev.preventDefault(); var m = $('login-msg'); m.style.color = 'var(--ink-2)'; m.textContent = 'Checking…';
+    fetch(API + '/auth/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ password: $('pw').value }) })
+      .then(function(r){ return r.json(); })
+      .then(function(j){ if (!j.ok || !j.token) throw new Error(j.error || 'Sign in failed'); token = j.token; try { localStorage.setItem('krw_token', token); } catch (e) {} $('pw').value = ''; $('login').style.display = 'none'; load(); })
+      .catch(function(e){ m.style.color = 'var(--red)'; m.textContent = e.message === 'Failed to fetch' ? 'Could not reach the server.' : e.message; });
+  });
+  $('login-sample').addEventListener('click', function(){ $('login').style.display = 'none'; useSample('You are not signed in.'); });
+  function useSample(why){ S.sample = true; S.sampleWhy = why || ''; S.data = sampleData(); S.loadedAt = new Date(); afterLoad(); }
+  function load(){
+    $('stamp').textContent = 'Loading…'; $('refresh').disabled = true;
+    if (!token) { $('refresh').disabled = false; useSample('You are not signed in, so this is a preview.'); return; }
+    var to = iso(new Date()), from = addDays(to, -179); if (from < FLOOR) from = FLOOR;
+    api('/spend/overview?from=' + from + '&to=' + to).then(function(j){
+      if (!j || j.ok === false) throw new Error(j && j.restricted ? 'restricted' : ((j && j.error) || 'no data'));
+      S.sample = false; S.sampleWhy = ''; S.data = j; S.loadedAt = new Date(); if (/^\d{4}-\d{2}-\d{2}$/.test(j.since || '')) FLOOR = j.since;
+      return api('/spend/status').then(function(s){ S.status = s && s.ok ? s : null; }, function(){ S.status = null; });
+    }).then(afterLoad).catch(function(e){
+      if (e.message === 'auth') { try { localStorage.removeItem('krw_token'); } catch (x) {} token = ''; showLogin('Your session expired. Sign in again.'); return; }
+      if (e.message === 'restricted') { S.data = null; banner('This page is not available for this login.', '', null, true); $('stamp').textContent = 'Not available'; return; }
+      useSample(e.message === 'notinstalled' ? 'The spend service is not installed on the server yet.' : 'The spend service could not be reached (' + e.message + ').');
+    }).then(function(){ $('refresh').disabled = false; });
+  }
+  function afterLoad(){
+    var st = {}, pb = {}; S.data.leads.forEach(function(l){ if (l.state) st[l.state] = 1; if (l.pub) pb[l.pub] = 1; });
+    function fill(el, first, keys, cur){ el.innerHTML = '<option value="">' + first + '</option>' + keys.sort().map(function(k){ return '<option' + (k === cur ? ' selected' : '') + '>' + esc(k) + '</option>'; }).join(''); }
+    fill($('f-state'), 'All states', Object.keys(st), S.state); fill($('f-pub'), 'All sources', Object.keys(pb), S.pub);
+    setRange(S.range, true); render(); renderConn();
+  }
+  function banner(text, btn, fn, err){ var b = $('banner'); if (!text) { b.style.display = 'none'; return; } b.className = 'banner' + (err ? ' err' : ''); b.style.display = 'flex'; $('banner-text').innerHTML = text; var bt = $('banner-btn'); bt.style.display = btn ? '' : 'none'; bt.textContent = btn || ''; bt.onclick = fn || null; }
+
+  /* ---------- period ---------- */
+  function setRange(v, keepCustom){
+    var to = today(); S.range = v;
+    if (v === 'all') { S.from = FLOOR; S.to = to; }
+    else if (v === 'mtd') { S.from = to.slice(0, 8) + '01'; S.to = to; }
+    else if (v === 'custom') { if (!S.from || !S.to) { S.from = addDays(to, -29); S.to = to; } }
+    else { S.from = addDays(to, -(parseInt(v, 10) - 1)); S.to = to; }
+    var lo = S.data && S.data.from > FLOOR ? S.data.from : FLOOR; if (S.from < lo) S.from = lo; if (S.to < S.from) S.to = S.from;
+    $('f-from').min = lo; $('f-to').min = lo; $('f-from').max = to; $('f-to').max = to;
+    $('f-from').value = S.from; $('f-to').value = S.to; savePrefs();
+  }
+  function periods(from, to, gran){
+    var out = [], d = from;
+    if (gran === 'week') { var dt = parse(from), back = (dt.getDay() + 6) % 7; d = addDays(from, -back); }
+    while (d <= to) { var end = gran === 'week' ? addDays(d, 6) : d; out.push({ key:d, from: d < from ? from : d, to: end > to ? to : end }); d = addDays(end, 1); }
+    return out;
+  }
+
+  /* ---------- the numbers ---------- */
+  function leadOk(l){ return (S.plat === 'all' || l.platform === S.plat) && (!S.pub || l.pub === S.pub) && (!S.state || l.state === S.state) && (!S.camp || (l.platform === S.camp.platform && (l.campaign_id || '') === S.camp.id)); }
+  function spendOk(s){ return (S.plat === 'all' || s.platform === S.plat) && (!S.camp || (s.platform === S.camp.platform && s.campaign_id === S.camp.id)); }
+  function isSigned(l){ return l.bucket === 'signed' || (S.pend && l.bucket === 'pending'); }
+  function totals(from, to){
+    var t = { spend:0, clicks:0, impr:0, leads:0, sent:0, signed:0, pending:0, open:0, rejected:0, revenue:0, byPlat:{} };
+    PKEYS.forEach(function(k){ t.byPlat[k] = { spend:0, leads:0, signed:0 }; });
+    S.data.spend.forEach(function(s){ if (s.day < from || s.day > to || !spendOk(s)) return; t.spend += s.spend; t.clicks += s.clicks; t.impr += s.impressions; (t.byPlat[s.platform] || t.byPlat.other).spend += s.spend; });
+    S.data.leads.forEach(function(l){ if (l.day < from || l.day > to || !leadOk(l)) return; t.leads++; var p = t.byPlat[l.platform] || t.byPlat.other; p.leads++;
+      if (l.bucket !== 'notsent') t.sent++; if (isSigned(l)) { t.signed++; p.signed++; } if (l.bucket === 'pending') t.pending++; if (l.bucket === 'open') t.open++; if (l.bucket === 'rejected') t.rejected++; t.revenue += l.revenue || 0; });
+    return t;
+  }
+  /* spend has no state or source split, so those two filters only narrow the lead side */
+  function leadOnlyFilter(){ return !!(S.pub || S.state); }
+
+  /* ---------- charts (SVG, one y scale each, shared x) ---------- */
+  var W = 760, PADL = 46, PADR = 8;
+  function niceMax(v){ if (v <= 0) return 1; var p = Math.pow(10, Math.floor(Math.log10(v))), n = v / p; return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 5 ? 5 : 10) * p; }
+  function axis(max, H, top, fmt){ var g = ''; for (var i = 0; i <= 2; i++) { var v = max * i / 2, y = top + H - H * i / 2; g += '<line x1="' + PADL + '" x2="' + (W - PADR) + '" y1="' + y + '" y2="' + y + '" stroke="' + (i ? '#E4DCCA' : '#B9AE95') + '" stroke-width="1"/><text class="ax" x="' + (PADL - 6) + '" y="' + (y + 3.5) + '" text-anchor="end">' + fmt(v) + '</text>'; } return g; }
+  function xLabels(P, H, top){ var n = P.length, step = Math.max(1, Math.ceil(n / 8)), bw = (W - PADL - PADR) / n, g = ''; for (var i = 0; i < n; i += step) g += '<text class="ax" x="' + (PADL + bw * (i + 0.5)) + '" y="' + (top + H + 14) + '" text-anchor="middle">' + esc(fmtDay(P[i].key)) + '</text>'; return g; }
+  function barPath(x, y, w, h, r){ r = Math.min(r, h, w / 2); return 'M' + x + ',' + (y + h) + 'V' + (y + r) + 'Q' + x + ',' + y + ' ' + (x + r) + ',' + y + 'H' + (x + w - r) + 'Q' + (x + w) + ',' + y + ' ' + (x + w) + ',' + (y + r) + 'V' + (y + h) + 'Z'; }
+  function stacked(el, P, key, fmt, H, whole){
+    var top = 6, n = P.length, bw = (W - PADL - PADR) / n, max = niceMax(Math.max.apply(null, P.map(function(p){ return PKEYS.reduce(function(t, k){ return t + p[key][k]; }, 0); }).concat([0])));
+    if (whole && (max % 2 || max < 2)) max = Math.max(2, Math.ceil(max / 2) * 2);   /* counts get whole-number ticks */
+    var g = axis(max, H, top, fmt);
+    var w = Math.max(2, Math.min(26, bw - 2));
+    P.forEach(function(p, i){
+      var y = top + H, x = PADL + bw * i + (bw - w) / 2, live = PKEYS.filter(function(k){ return p[key][k] > 0; });
+      live.forEach(function(k, j){ var h = H * p[key][k] / max, last = j === live.length - 1; y -= h; var hh = Math.max(0, h - (last ? 0 : 2));
+        g += last ? '<path d="' + barPath(x, y, w, h, 4) + '" fill="' + PLAT[k][1] + '"/>' : '<rect x="' + x + '" y="' + (y + 2) + '" width="' + w + '" height="' + hh + '" fill="' + PLAT[k][1] + '"/>'; });
+    });
+    el.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + (H + top + 2) + '" role="img">' + g + '<line class="cross" x1="0" x2="0" y1="' + top + '" y2="' + (top + H) + '" stroke="#1E2A22" stroke-width="1" opacity="0"/></svg>';
+  }
+  function lineChart(el, P, H){
+    var top = 8, n = P.length, bw = (W - PADL - PADR) / n, vals = P.map(function(p){ return p.cpl; }), max = niceMax(Math.max.apply(null, vals.filter(function(v){ return v != null; }).concat([0]))), g = axis(max, H, top, function(v){ return money(v, 0); });
+    var d = '', pen = false, dots = '';
+    P.forEach(function(p, i){ if (p.cpl == null) { pen = false; return; } var x = PADL + bw * (i + 0.5), y = top + H - H * p.cpl / max; d += (pen ? 'L' : 'M') + x.toFixed(1) + ',' + y.toFixed(1); pen = true; if (n <= 45) dots += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="3" fill="#1F4D36" stroke="#FBF8F1" stroke-width="2"/>'; });
+    el.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + (H + top + 20) + '" role="img">' + g + '<path d="' + d + '" fill="none" stroke="#1F4D36" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>' + dots + xLabels(P, H, top) +
+      '<line class="cross" x1="0" x2="0" y1="' + top + '" y2="' + (top + H) + '" stroke="#1E2A22" stroke-width="1" opacity="0"/><circle class="hot" r="4.5" fill="#1F4D36" stroke="#FBF8F1" stroke-width="2" opacity="0"/></svg>';
+    el._max = max; el._top = top; el._H = H;
+  }
+  var PCACHE = [];
+  function renderCharts(){
+    var P = periods(S.from, S.to, S.gran).map(function(p){ var o = { key:p.key, from:p.from, to:p.to, spend:{google:0,meta:0,other:0}, leads:{google:0,meta:0,other:0}, signed:0 }; return o; });
+    var idx = {}; P.forEach(function(p, i){ for (var d = p.from; d <= p.to; d = addDays(d, 1)) idx[d] = i; });
+    S.data.spend.forEach(function(s){ var i = idx[s.day]; if (i == null || !spendOk(s)) return; P[i].spend[PLAT[s.platform] ? s.platform : 'other'] += s.spend; });
+    S.data.leads.forEach(function(l){ var i = idx[l.day]; if (i == null || !leadOk(l)) return; P[i].leads[PLAT[l.platform] ? l.platform : 'other']++; if (isSigned(l)) P[i].signed++; });
+    P.forEach(function(p){ p.sp = p.spend.google + p.spend.meta + p.spend.other; p.ld = p.leads.google + p.leads.meta + p.leads.other; p.cpl = p.ld > 0 && p.sp > 0 ? p.sp / p.ld : null; });
+    PCACHE = P;
+    stacked($('c-spend'), P, 'spend', function(v){ return money(v, 0); }, 180);
+    stacked($('c-leads'), P, 'leads', function(v){ return String(Math.round(v)); }, 140, true);
+    lineChart($('c-cpl'), P, 124);
+    var per = S.gran === 'week' ? 'per week' : 'per day';
+    $('t-spend').textContent = per + ', by platform'; $('t-leads').textContent = per + ', by the platform that produced them'; $('t-cpl').textContent = per + ', all platforms together' + (leadOnlyFilter() ? ' (lead filters applied to leads only)' : '');
+    var used = PKEYS.filter(function(k){ return P.some(function(p){ return p.spend[k] > 0 || p.leads[k] > 0; }); }); if (!used.length) used = ['google','meta'];
+    $('legend').innerHTML = used.map(function(k){ return '<span><span class="dot" style="background:' + PLAT[k][1] + '"></span>' + PLAT[k][0] + '</span>'; }).join('');
+  }
+  (function hover(){
+    var plot = $('plot'), tip = $('tip');
+    function move(ev){
+      var P = PCACHE; if (!P.length) return; var svg = $('c-spend').querySelector('svg'); if (!svg) return;
+      var r = svg.getBoundingClientRect(), k = r.width / W, x = (ev.clientX - r.left) / k, bw = (W - PADL - PADR) / P.length, i = Math.floor((x - PADL) / bw);
+      if (i < 0 || i >= P.length) return leave(); var p = P[i], cx = PADL + bw * (i + 0.5);
+      Array.prototype.forEach.call(plot.querySelectorAll('.cross'), function(c){ c.setAttribute('x1', cx); c.setAttribute('x2', cx); c.setAttribute('opacity', '.35'); });
+      var hot = plot.querySelector('.hot'), cplEl = $('c-cpl'); if (hot) { if (p.cpl != null) { hot.setAttribute('cx', cx); hot.setAttribute('cy', cplEl._top + cplEl._H - cplEl._H * p.cpl / cplEl._max); hot.setAttribute('opacity', '1'); } else hot.setAttribute('opacity', '0'); }
+      var row = function(k2, label, v){ return '<div class="r"><span>' + (k2 ? '<span class="dot" style="background:' + PLAT[k2][1] + '"></span>' : '') + label + '</span><b>' + v + '</b></div>'; };
+      var h = '<div class="h">' + esc(S.gran === 'week' ? fmtDay(p.from) + ' to ' + fmtDay(p.to) : fmtDay(p.key, true)) + '</div>' + row('', 'Spend', money(p.sp, 0));
+      PKEYS.forEach(function(k2){ if (p.spend[k2] > 0) h += row(k2, PLAT[k2][0], money(p.spend[k2], 0)); });
+      h += row('', 'Leads', num(p.ld)); PKEYS.forEach(function(k2){ if (p.leads[k2] > 0) h += row(k2, PLAT[k2][0], num(p.leads[k2])); });
+      h += row('', 'Cost per lead', p.cpl == null ? '—' : money(p.cpl, 0)) + row('', 'Signed', num(p.signed));
+      tip.innerHTML = h; tip.style.display = 'block';
+      var pr = plot.getBoundingClientRect(), left = ev.clientX - pr.left + 14; if (left + tip.offsetWidth > pr.width) left = ev.clientX - pr.left - tip.offsetWidth - 14;
+      tip.style.left = Math.max(0, left) + 'px'; tip.style.top = Math.max(0, Math.min(pr.height - tip.offsetHeight, ev.clientY - pr.top - 20)) + 'px';
+    }
+    function leave(){ tip.style.display = 'none'; Array.prototype.forEach.call(plot.querySelectorAll('.cross,.hot'), function(c){ c.setAttribute('opacity', '0'); }); }
+    plot.addEventListener('pointermove', move); plot.addEventListener('pointerleave', leave);
+  })();
+
+  /* ---------- tiles, funnel, what if ---------- */
+  function delta(cur, prev, lowerIsBetter){
+    if (cur == null || prev == null || !isFinite(cur) || !isFinite(prev) || prev === 0) return '';
+    var ch = (cur - prev) / Math.abs(prev); if (Math.abs(ch) < 0.005) return '<b>Level</b> with the period before';
+    var good = lowerIsBetter ? ch < 0 : ch > 0;
+    return '<b class="' + (good ? 'up' : 'down') + '">' + (ch > 0 ? '▲' : '▼') + ' ' + Math.abs(ch * 100).toFixed(0) + '%</b> vs the period before';
+  }
+  function renderKpis(t, p){
+    var cpl = cost(t.spend, t.leads), cps = cost(t.spend, t.signed), pcpl = cost(p.spend, p.leads), pcps = cost(p.spend, p.signed), profit = t.revenue - t.spend;
+    var tiles = [
+      ['Spend', money(t.spend, 0), delta(t.spend, p.spend, true) || (PKEYS.filter(function(k){ return t.byPlat[k].spend > 0; }).map(function(k){ return PLAT[k][0] + ' ' + money(t.byPlat[k].spend, 0); }).join(' · ')), 1],
+      ['Leads', num(t.leads), delta(t.leads, p.leads)],
+      ['Cost per lead', money(cpl, 0), delta(cpl, pcpl, true)],
+      ['Signed cases' + (S.pend ? ' + pending' : ''), num(t.signed), t.leads ? pct(t.signed / t.leads) + ' of leads' + (!S.pend && t.pending ? ' · ' + t.pending + ' waiting on approval' : '') : ''],
+      ['Cost per signed case', money(cps, 0), delta(cps, pcps, true) || (t.signed ? (t.spend > 0 ? '' : 'No spend on file for this period') : 'No signed case in this period yet')],
+      ['Booked revenue', money(t.revenue, 0), t.spend > 0 ? '<b class="' + (profit >= 0 ? 'up' : 'down') + '">' + money(profit, 0) + '</b> after ad spend' + (t.revenue > 0 ? ' · ' + (t.revenue / t.spend).toFixed(2) + '× return' : '') : '']
+    ];
+    $('kpis').innerHTML = tiles.map(function(x){ return '<div class="kpi' + (x[3] ? ' hero' : '') + '"><h2>' + x[0] + '</h2><div class="v">' + x[1] + '</div><div class="d">' + (x[2] || '') + '</div></div>'; }).join('');
+  }
+  function renderFunnel(t){
+    var steps = [
+      ['Spend', money(t.spend, 0), t.impr ? num(t.impr) + ' impressions' : ''],
+      ['Clicks', num(t.clicks), t.clicks ? money(t.spend / t.clicks) + ' a click' : ''],
+      ['Leads', num(t.leads), t.leads ? (t.clicks ? pct(t.leads / t.clicks) + ' of clicks' : '') + (t.spend > 0 ? (t.clicks ? ' · ' : '') + money(cost(t.spend, t.leads), 0) + ' each' : '') : ''],
+      ['Sent to buyer', num(t.sent), t.leads ? pct(t.sent / t.leads) + ' of leads' + (t.sent && t.spend > 0 ? ' · ' + money(cost(t.spend, t.sent), 0) + ' each' : '') : ''],
+      ['Signed', num(t.signed), t.sent ? pct(t.signed / t.sent) + ' of sent' + (t.signed && t.spend > 0 ? ' · ' + money(cost(t.spend, t.signed), 0) + ' each' : '') : '']
+    ];
+    $('funnel').innerHTML = steps.map(function(s){ return '<div class="fstep"><div class="l">' + s[0] + '</div><div class="n">' + s[1] + '</div><div class="c">' + s[2] + '</div></div>'; }).join('');
+  }
+  function renderWhat(t){
+    $('w-rate').value = S.rate; $('w-pay').value = S.pay; $('w-fix').value = S.fix; $('w-pend').checked = S.pend;
+    $('w-rate-v').textContent = S.rate + '%'; $('w-pay-v').textContent = money(S.pay, 0); $('w-fix-v').textContent = money(S.fix, 0);
+    var stillOpen = t.open + (S.pend ? 0 : t.pending), more = stillOpen * S.rate / 100, signed = t.signed + more, rev = t.revenue + more * S.pay, costTotal = t.spend + S.fix, profit = rev - costTotal, cpl = cost(t.spend, t.leads);
+    var out = [['Signed, projected', signed ? signed.toFixed(1) : '0'], ['Revenue, projected', money(rev, 0)], ['Profit, projected', money(profit, 0)], ['Cost per signed, projected', money(costTotal > 0 && signed > 0 ? costTotal / signed : null, 0)],
+               ['Break-even cost per lead', money(S.pay * (t.leads ? signed / t.leads : 0), 0)], ['Sign rate needed to break even', cpl == null ? '—' : pct((costTotal / (t.leads || 1)) / S.pay)]];
+    $('w-out').innerHTML = out.map(function(o){ return '<div>' + o[0] + '<b>' + o[1] + '</b></div>'; }).join('');
+    $('w-note').textContent = num(t.signed) + ' signed so far plus ' + S.rate + '% of the ' + num(stillOpen) + ' leads still being worked. Booked revenue stays as booked; only the projected signings use the payout above.';
+  }
+
+  /* ---------- campaign table ---------- */
+  var CCOLS = [['name','Campaign'],['spend','Spend'],['clicks','Clicks'],['cpc','Cost / click'],['leads','Leads'],['cpl','Cost / lead'],['signed','Signed'],['cps','Cost / signed'],['revenue','Revenue'],['roas','Return']];
+  function campaigns(){
+    var m = {};
+    function get(pl, id, name){ var k = pl + '|' + id; if (!m[k]) m[k] = { platform:pl, id:id, name:name || '', spend:0, clicks:0, leads:0, signed:0, revenue:0 }; else if (name && !m[k].named) m[k].name = name; return m[k]; }
+    S.data.spend.forEach(function(s){ if (s.day < S.from || s.day > S.to || (S.plat !== 'all' && s.platform !== S.plat)) return; var c = get(s.platform, s.campaign_id, s.campaign_name); c.named = true; c.spend += s.spend; c.clicks += s.clicks; });
+    S.data.leads.forEach(function(l){ if (l.day < S.from || l.day > S.to || (S.plat !== 'all' && l.platform !== S.plat) || (S.pub && l.pub !== S.pub) || (S.state && l.state !== S.state)) return;
+      var c = get(l.platform, l.campaign_id || '', l.campaign_id ? l.campaign_label : ''); c.leads++; if (isSigned(l)) c.signed++; c.revenue += l.revenue || 0; });
+    return Object.keys(m).map(function(k){ var c = m[k]; c.cpc = cost(c.spend, c.clicks); c.cpl = cost(c.spend, c.leads); c.cps = cost(c.spend, c.signed); c.roas = c.spend > 0 ? c.revenue / c.spend : null;
+      if (!c.name) c.name = c.id ? 'Campaign ' + c.id : (c.platform === 'other' ? 'No ad click on the lead' : 'Leads with no campaign id'); return c; });
+  }
+  function renderCampaigns(){
+    var rows = campaigns(), maxSpend = Math.max.apply(null, rows.map(function(r){ return r.spend; }).concat([1]));
+    rows.sort(function(a, b){ var x = a[S.sortK], y = b[S.sortK]; if (S.sortK === 'name') { x = a.name.toLowerCase(); y = b.name.toLowerCase(); } if (x == null) return 1; if (y == null) return -1; return (x < y ? -1 : x > y ? 1 : 0) * S.sortD; });
+    $('c-head').innerHTML = CCOLS.map(function(c){ var on = S.sortK === c[0]; return '<th aria-sort="' + (on ? (S.sortD > 0 ? 'ascending' : 'descending') : 'none') + '"><button type="button" data-k="' + c[0] + '">' + c[1] + (on ? ' ' + (S.sortD > 0 ? '▲' : '▼') : '') + '</button></th>'; }).join('');
+    Array.prototype.forEach.call($('c-head').querySelectorAll('button'), function(b){ b.addEventListener('click', function(){ var k = b.getAttribute('data-k'); if (S.sortK === k) S.sortD = -S.sortD; else { S.sortK = k; S.sortD = k === 'name' ? 1 : -1; } renderCampaigns(); }); });
+    var tot = { spend:0, clicks:0, leads:0, signed:0, revenue:0 };
+    $('c-body').innerHTML = rows.map(function(c, i){
+      tot.spend += c.spend; tot.clicks += c.clicks; tot.leads += c.leads; tot.signed += c.signed; tot.revenue += c.revenue;
+      var sel = S.camp && S.camp.platform === c.platform && S.camp.id === c.id;
+      return '<tr class="click' + (sel ? ' sel' : '') + '" data-i="' + i + '" tabindex="0"><td><div class="cname"><span class="dot" style="display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:7px;background:' + (PLAT[c.platform] || PLAT.other)[1] + '"></span>' + esc(c.name) + '</div><div class="cdim">' + (PLAT[c.platform] || PLAT.other)[0] + (c.id ? ' · ' + esc(c.id) : '') + '</div>' +
+        '<span class="share"><i style="width:' + (c.spend / maxSpend * 100).toFixed(1) + '%;background:' + (PLAT[c.platform] || PLAT.other)[1] + '"></i></span></td>' +
+        '<td>' + money(c.spend, 0) + '</td><td>' + num(c.clicks) + '</td><td>' + money(c.cpc) + '</td><td>' + num(c.leads) + '</td><td>' + money(c.cpl, 0) + '</td><td>' + num(c.signed) + '</td><td>' + money(c.cps, 0) + '</td><td>' + money(c.revenue, 0) + '</td><td>' + (c.roas == null ? '—' : c.roas.toFixed(2) + '×') + '</td></tr>';
+    }).join('') + (rows.length ? '<tr class="total"><td>All campaigns</td><td>' + money(tot.spend, 0) + '</td><td>' + num(tot.clicks) + '</td><td>' + money(cost(tot.spend, tot.clicks)) + '</td><td>' + num(tot.leads) + '</td><td>' + money(cost(tot.spend, tot.leads), 0) + '</td><td>' + num(tot.signed) + '</td><td>' + money(cost(tot.spend, tot.signed), 0) + '</td><td>' + money(tot.revenue, 0) + '</td><td>' + (tot.spend > 0 ? (tot.revenue / tot.spend).toFixed(2) + '×' : '—') + '</td></tr>'
+      : '<tr><td colspan="10" class="muted" style="text-align:center;padding:26px">No spend or leads in this period.</td></tr>');
+    Array.prototype.forEach.call($('c-body').querySelectorAll('tr.click'), function(tr){
+      function pick(){ var c = rows[+tr.getAttribute('data-i')]; S.camp = (S.camp && S.camp.platform === c.platform && S.camp.id === c.id) ? null : { platform:c.platform, id:c.id, name:c.name }; render(); }
+      tr.addEventListener('click', pick); tr.addEventListener('keydown', function(e){ if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } });
+    });
+    return rows;
+  }
+
+  /* ---------- breakdown ---------- */
+  var DEV = { m:'Mobile', c:'Computer', t:'Tablet' }, DIMS = { state:'State', keyword:'Keyword', device:'Device', buyer:'Buyer', pub:'Source' };
+  function renderDim(){
+    Array.prototype.forEach.call($('dim').querySelectorAll('button'), function(b){ b.className = b.getAttribute('data-d') === S.dim ? 'on' : ''; });
+    var m = {}, total = 0;
+    S.data.leads.forEach(function(l){ if (l.day < S.from || l.day > S.to || !leadOk(l)) return; var k = S.dim === 'device' ? (DEV[l.device] || (l.device ? l.device : 'Not recorded')) : (l[S.dim] || (S.dim === 'buyer' ? 'Not sent' : 'Not recorded'));
+      if (!m[k]) m[k] = { k:k, leads:0, signed:0, open:0, rejected:0, revenue:0 }; var r = m[k]; r.leads++; total++; if (isSigned(l)) r.signed++; if (l.bucket === 'open' || (!S.pend && l.bucket === 'pending')) r.open++; if (l.bucket === 'rejected') r.rejected++; r.revenue += l.revenue || 0; });
+    var rows = Object.keys(m).map(function(k){ return m[k]; }).sort(function(a, b){ return b.leads - a.leads; }), shown = rows.slice(0, 15), max = shown.length ? shown[0].leads : 1;
+    $('d-head').innerHTML = [DIMS[S.dim], 'Leads', 'Share', 'Signed', 'Sign rate', 'Still open', 'Rejected', 'Revenue'].map(function(h){ return '<th><button type="button" tabindex="-1" style="cursor:default">' + h + '</button></th>'; }).join('');
+    $('d-body').innerHTML = shown.map(function(r){ return '<tr><td><div class="cname">' + esc(r.k) + '</div><span class="share"><i style="width:' + (r.leads / max * 100).toFixed(1) + '%;background:#1F4D36"></i></span></td><td>' + num(r.leads) + '</td><td>' + pct(r.leads / total) + '</td><td>' + num(r.signed) + '</td><td>' + pct(r.leads ? r.signed / r.leads : null) + '</td><td>' + num(r.open) + '</td><td>' + num(r.rejected) + '</td><td>' + money(r.revenue, 0) + '</td></tr>'; }).join('') +
+      (rows.length > 15 ? '<tr><td colspan="8" class="muted">' + (rows.length - 15) + ' more with fewer leads</td></tr>' : '') + (rows.length ? '' : '<tr><td colspan="8" class="muted" style="text-align:center;padding:26px">No leads in this period.</td></tr>');
+  }
+
+  /* ---------- connections ---------- */
+  function adsScript(url, key){
+    return ['function main() {',
+      "  var URL = '" + url + "';", "  var KEY = '" + key + "';", '  var DAYS = 30;',
+      '  var acct = AdsApp.currentAccount(), tz = acct.getTimeZone();',
+      '  var end = new Date(), start = new Date(end.getTime() - (DAYS - 1) * 86400000);',
+      "  var f = function (d) { return Utilities.formatDate(d, tz, 'yyyy-MM-dd'); };",
+      '  var q = "SELECT campaign.id, campaign.name, segments.date, metrics.cost_micros, metrics.impressions, metrics.clicks, metrics.conversions " +',
+      '          "FROM campaign WHERE segments.date BETWEEN \'" + f(start) + "\' AND \'" + f(end) + "\' AND metrics.impressions > 0";',
+      '  var rows = [], it = AdsApp.search(q);',
+      '  while (it.hasNext()) {', '    var r = it.next();',
+      '    rows.push({ day: r.segments.date, campaign_id: String(r.campaign.id), campaign_name: r.campaign.name, cost_micros: Number(r.metrics.costMicros),',
+      '                impressions: Number(r.metrics.impressions), clicks: Number(r.metrics.clicks), conversions: Number(r.metrics.conversions) });', '  }',
+      '  for (var i = 0; i < rows.length; i += 300) {',
+      "    var resp = UrlFetchApp.fetch(URL, { method: 'post', contentType: 'application/json', headers: { 'x-spend-key': KEY }, muteHttpExceptions: true,",
+      "      payload: JSON.stringify({ platform: 'google', account_id: acct.getCustomerId(), currency: acct.getCurrencyCode(), source: 'ads_script', rows: rows.slice(i, i + 300) }) });",
+      "    Logger.log((i + 1) + ' to ' + Math.min(i + 300, rows.length) + ' of ' + rows.length + ': ' + resp.getResponseCode() + ' ' + resp.getContentText());", '  }', '}'].join('\n');
+  }
+  function when(v){ if (!v) return ''; var d = new Date(v); return isNaN(d) ? '' : d.toLocaleDateString(undefined, { month:'short', day:'numeric' }) + ', ' + d.toLocaleTimeString(undefined, { hour:'numeric', minute:'2-digit' }); }
+  function renderConn(){
+    var c = (S.data && S.data.connections) || { meta:{}, google:{} }, st = S.status, live = !S.sample && !!st;
+    function pill(x, okText){ if (x.last_sync && x.last_sync.ok === false) return '<span class="pill bad">Last update failed</span>'; return x.rows > 0 ? '<span class="pill ok">' + okText + '</span>' : '<span class="pill no">Not connected</span>'; }
+    var url = live ? st.ingest_url : 'https://krw-backend-production.up.railway.app/spend/ingest', key = live ? st.ingest_key : 'YOUR-KEY-APPEARS-HERE-ONCE-INSTALLED';
+    $('conn-body').innerHTML =
+      '<div><h3>Meta ' + pill(c.meta, 'Connected') + '</h3><div class="cdim">' + (c.meta.rows ? num(c.meta.rows) + ' campaign days on file, through ' + esc(c.meta.last_day || '') + (c.meta.last_sync ? ' · last update ' + esc(when(c.meta.last_sync.at)) : '') : 'The server pulls Meta spend every hour once the two settings below are on Railway.') +
+        (c.meta.last_sync && c.meta.last_sync.ok === false ? '<br>' + esc(c.meta.last_sync.detail || '') : '') + '</div>' +
+        '<ol><li>In Meta Business Settings, open <b>System users</b>, add one, and give it your ad account with <b>View performance</b>.</li><li>Generate a token for it with the <code>ads_read</code> permission.</li>' +
+        '<li>On Railway, add <code>META_ADS_TOKEN</code> (the token) and <code>META_AD_ACCOUNT_ID</code> (the number after <code>act_</code> in Ads Manager), then Deploy.</li><li>Spend appears here within a minute, 30 days back, and refreshes hourly.</li></ol></div>' +
+      '<div><h3>Google ' + pill(c.google, 'Connected') + '</h3><div class="cdim">' + (c.google.rows ? num(c.google.rows) + ' campaign days on file, through ' + esc(c.google.last_day || '') + (c.google.last_sync ? ' · last update ' + esc(when(c.google.last_sync.at)) : '') : 'A small script inside your Google Ads account sends spend here every hour. No developer token is needed.') + '</div>' +
+        '<ol><li>In Google Ads, open <b>Tools</b>, then <b>Bulk actions</b>, then <b>Scripts</b>, and add a new script.</li><li>Paste the script below, click <b>Authorize</b>, then <b>Run</b> once.</li><li>Set its frequency to <b>Hourly</b>.</li></ol>' +
+        '<button type="button" class="btn primary" id="copy-script">Copy the Google Ads script</button>' + (live ? '<div class="note">It carries this dashboard\'s private key. Paste it only into your own Google Ads account.</div>' : '<div class="note">The real address and key fill in here once the spend service is installed on the server.</div>') +
+        '<pre id="script">' + esc(adsScript(url, key)) + '</pre></div>';
+    $('copy-script').addEventListener('click', function(){ var b = this, t = $('script').textContent, l = b.textContent; function done(ok){ b.textContent = ok ? 'Copied' : 'Select the text below and copy it'; setTimeout(function(){ b.textContent = l; }, 2200); }
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(function(){ done(true); }, function(){ done(false); }); else done(false); });
+    if (!S.sample && !(c.meta.rows > 0) && !(c.google.rows > 0)) $('conn').open = true;
+  }
+
+  /* ---------- render ---------- */
+  function chips(el, items, cur, on){
+    el.innerHTML = items.map(function(it){ return '<button type="button" class="chip' + (it[0] === cur ? ' on' : '') + '" aria-pressed="' + (it[0] === cur) + '" data-v="' + esc(it[0]) + '">' + (it[2] ? '<span class="dot" style="background:' + it[2] + '"></span>' : '') + esc(it[1]) + '</button>'; }).join('');
+    Array.prototype.forEach.call(el.querySelectorAll('.chip'), function(b){ b.addEventListener('click', function(){ on(b.getAttribute('data-v')); }); });
+  }
+  function render(){
+    if (!S.data) return;
+    chips($('f-range'), ranges().concat(S.range === 'custom' ? [['custom','Custom']] : []), S.range, function(v){ setRange(v); render(); });
+    chips($('f-plat'), [['all','All']].concat(['google','meta'].map(function(k){ return [k, PLAT[k][0], PLAT[k][1]]; })), S.plat, function(v){ S.plat = v; S.camp = null; render(); });
+    Array.prototype.forEach.call($('gran').querySelectorAll('button'), function(b){ b.className = b.getAttribute('data-g') === S.gran ? 'on' : ''; });
+    $('f-camp-wrap').style.display = S.camp ? '' : 'none'; if (S.camp) $('f-camp').textContent = S.camp.name + '  ✕';
+    var len = Math.round((parse(S.to) - parse(S.from)) / 86400000) + 1, t = totals(S.from, S.to), pFrom = addDays(S.from, -len), p = pFrom >= S.data.from ? totals(pFrom, addDays(S.from, -1)) : { spend:null, leads:null, signed:null };
+    renderKpis(t, p); renderCharts(); renderFunnel(t); renderWhat(t); renderCampaigns(); renderDim();
+    var c = S.data.connections || {}, none = !(c.meta && c.meta.rows > 0) && !(c.google && c.google.rows > 0);
+    if (S.sample) banner('<b>SAMPLE NUMBERS.</b> Nothing on this page is real. ' + esc(S.sampleWhy), token ? 'Try my real data' : 'Sign in', function(){ if (token) load(); else showLogin(''); });
+    else if (none) banner('No ad account is connected yet, so spend reads $0. The leads and signed cases below are real. Connection steps are at the bottom of the page.', 'Preview with sample numbers', function(){ useSample('Use Refresh to go back to your real data.'); });
+    else if (leadOnlyFilter()) banner('Ad platforms do not split spend by lead source or state, so those two filters narrow the leads only. Spend stays as the full amount for the platforms and campaign selected.', '', null);
+    else banner('');
+    $('stamp').textContent = (S.sample ? 'Sample numbers' : 'Updated ' + S.loadedAt.toLocaleTimeString(undefined, { hour:'numeric', minute:'2-digit' })) + ' · ' + fmtDay(S.from) + ' to ' + fmtDay(S.to) + ' · days are Pacific time · nothing before ' + fmtDay(FLOOR) + ' is included';
+  }
+
+  /* ---------- controls ---------- */
+  function onDate(){ var f = $('f-from').value, t = $('f-to').value; if (!f || !t || f > t) return; S.from = f < S.data.from ? S.data.from : (f < FLOOR ? FLOOR : f); S.to = t > today() ? today() : t; S.range = 'custom'; savePrefs(); render(); }
+  $('f-from').addEventListener('change', onDate); $('f-to').addEventListener('change', onDate);
+  $('f-pub').addEventListener('change', function(){ S.pub = this.value; render(); }); $('f-state').addEventListener('change', function(){ S.state = this.value; render(); });
+  $('f-camp').addEventListener('click', function(){ S.camp = null; render(); });
+  Array.prototype.forEach.call($('gran').querySelectorAll('button'), function(b){ b.addEventListener('click', function(){ S.gran = b.getAttribute('data-g'); savePrefs(); render(); }); });
+  Array.prototype.forEach.call($('dim').querySelectorAll('button'), function(b){ b.addEventListener('click', function(){ S.dim = b.getAttribute('data-d'); renderDim(); }); });
+  $('w-rate').addEventListener('input', function(){ S.rate = +this.value; savePrefs(); renderWhat(totals(S.from, S.to)); });
+  $('w-pay').addEventListener('input', function(){ S.pay = +this.value; savePrefs(); renderWhat(totals(S.from, S.to)); });
+  $('w-fix').addEventListener('input', function(){ S.fix = +this.value; savePrefs(); renderWhat(totals(S.from, S.to)); });
+  $('w-pend').addEventListener('change', function(){ S.pend = this.checked; savePrefs(); render(); });
+  $('refresh').addEventListener('click', load);
+  $('csv').addEventListener('click', function(){
+    if (!S.data) return; var P = periods(S.from, S.to, 'day'), idx = {}, rows = P.map(function(p, i){ idx[p.key] = i; return { day:p.key, g:0, m:0, lg:0, lm:0, lo:0, signed:0, rev:0 }; });
+    S.data.spend.forEach(function(s){ var r = rows[idx[s.day]]; if (!r || !spendOk(s)) return; if (s.platform === 'google') r.g += s.spend; else r.m += s.spend; });
+    S.data.leads.forEach(function(l){ var r = rows[idx[l.day]]; if (!r || !leadOk(l)) return; if (l.platform === 'google') r.lg++; else if (l.platform === 'meta') r.lm++; else r.lo++; if (isSigned(l)) r.signed++; r.rev += l.revenue || 0; });
+    var head = ['Day','Google spend','Meta spend','Total spend','Google leads','Meta leads','Other leads','Total leads','Cost per lead','Signed','Booked revenue'];
+    var body = rows.map(function(r){ var sp = r.g + r.m, ld = r.lg + r.lm + r.lo; return [r.day, r.g.toFixed(2), r.m.toFixed(2), sp.toFixed(2), r.lg, r.lm, r.lo, ld, ld && sp ? (sp / ld).toFixed(2) : '', r.signed, r.rev.toFixed(2)].join(','); });
+    var blob = new Blob(['﻿' + (S.sample ? 'SAMPLE NUMBERS - NOT REAL\n' : '') + head.join(',') + '\n' + body.join('\n')], { type:'text/csv' }), a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = 'krw-spend-' + S.from + '-to-' + S.to + (S.sample ? '-SAMPLE' : '') + '.csv'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
+  });
+
+  if (/[?&]sample=1/.test(location.search)) useSample('Opened in preview mode.'); else load();
+})();
+</script>
+</body>
+</html>
