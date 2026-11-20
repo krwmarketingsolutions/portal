@@ -434,7 +434,7 @@
       ['Spend', money(t.spend, 0), delta(t.spend, p.spend, true) || (PKEYS.filter(function(k){ return t.byPlat[k].spend > 0; }).map(function(k){ return PLAT[k][0] + ' ' + money(t.byPlat[k].spend, 0); }).join(' · ')), 1],
       ['Leads', num(t.leads), delta(t.leads, p.leads)],
       ['Cost per lead', money(cpl, 0), delta(cpl, pcpl, true)],
-      ['Signed cases' + (S.pend ? ' + pending' : ''), num(t.signed), t.leads ? pct(t.signed / t.leads) + ' of leads' + (!S.pend && t.pending ? ' · ' + t.pending + ' waiting on approval' : '') : ''],
+      ['Signed cases' + (S.pend ? ' + pending' : ''), num(t.signed), t.leads ? pct(t.signed / t.leads) + ' of leads' + (!S.pend && t.pending && !(S.data && S.data.partner_view) ? ' · ' + t.pending + ' waiting on approval' : '') : ''],
       ['Cost per signed case', money(cps, 0), delta(cps, pcps, true) || (t.signed ? (t.spend > 0 ? '' : 'No spend on file for this period') : 'No signed case in this period yet')],
       ['Booked revenue', money(t.revenue, 0), t.spend > 0 ? '<b class="' + (profit >= 0 ? 'up' : 'down') + '">' + money(profit, 0) + '</b> after ad spend' + (t.revenue > 0 ? ' · ' + (t.revenue / t.spend).toFixed(2) + '× return' : '') : '']
     ];
@@ -553,6 +553,8 @@
     Array.prototype.forEach.call(el.querySelectorAll('.chip'), function(b){ b.addEventListener('click', function(){ on(b.getAttribute('data-v')); }); });
   }
   function render(){
+    var partner = !!(S.data && S.data.partner_view);
+    if (partner) { S.pend = false; var pl = $('w-pend'); if (pl && pl.parentNode) pl.parentNode.style.display = 'none'; }   /* partner login: no approval toggle (Kyler, Nov 20) */
     if (!S.data) return;
     chips($('f-range'), ranges().concat(S.range === 'custom' ? [['custom','Custom']] : []), S.range, function(v){ setRange(v); render(); });
     chips($('f-plat'), [['all','All']].concat(['google','meta'].map(function(k){ return [k, PLAT[k][0], PLAT[k][1]]; })), S.plat, function(v){ S.plat = v; S.camp = null; render(); });
