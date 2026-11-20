@@ -309,6 +309,7 @@
     api('/spend/overview?from=' + from + '&to=' + to).then(function(j){
       if (!j || j.ok === false) throw new Error(j && j.restricted ? 'restricted' : ((j && j.error) || 'no data'));
       S.sample = false; S.sampleWhy = ''; S.data = j; S.loadedAt = new Date(); if (/^\d{4}-\d{2}-\d{2}$/.test(j.since || '')) FLOOR = j.since;
+      if (j.partner_view) { S.status = null; return; }   /* partner login: no keys, no setup steps */
       return api('/spend/status').then(function(s){ S.status = s && s.ok ? s : null; }, function(){ S.status = null; });
     }).then(afterLoad).catch(function(e){
       if (e.message === 'auth') { try { localStorage.removeItem('krw_token'); } catch (x) {} token = ''; showLogin('Your session expired. Sign in again.'); return; }
@@ -526,6 +527,11 @@
   function renderConn(){
     var c = (S.data && S.data.connections) || { meta:{}, google:{} }, st = S.status, live = !S.sample && !!st;
     function pill(x, okText){ if (x.last_sync && x.last_sync.ok === false) return '<span class="pill bad">Last update failed</span>'; return x.rows > 0 ? '<span class="pill ok">' + okText + '</span>' : '<span class="pill no">Not connected</span>'; }
+    if (S.data && S.data.partner_view) {   /* partner login: whether each account is connected and how current it is, nothing else */
+      var line = function(name, x){ return '<div><h3>' + name + ' ' + pill(x, 'Connected') + '</h3><div class="cdim">' + (x.rows ? num(x.rows) + ' campaign days on file, through ' + esc(x.last_day || '') + (x.last_sync ? ' · last update ' + esc(when(x.last_sync.at)) : '') : 'Not connected yet.') + '</div></div>'; };
+      $('conn-body').innerHTML = line('Google', c.google || {}) + line('Meta', c.meta || {});
+      return;
+    }
     var url = live ? st.ingest_url : 'https://krw-backend-production.up.railway.app/spend/ingest', key = live ? st.ingest_key : 'YOUR-KEY-APPEARS-HERE-ONCE-INSTALLED';
     $('conn-body').innerHTML =
       '<div><h3>Meta ' + pill(c.meta, 'Connected') + '</h3><div class="cdim">' + (c.meta.rows ? num(c.meta.rows) + ' campaign days on file, through ' + esc(c.meta.last_day || '') + (c.meta.last_sync ? ' · last update ' + esc(when(c.meta.last_sync.at)) : '') : 'The server pulls Meta spend every hour once the two settings below are on Railway.') +
@@ -556,7 +562,7 @@
     renderKpis(t, p); renderCharts(); renderFunnel(t); renderWhat(t); renderCampaigns(); renderDim();
     var c = S.data.connections || {}, none = !(c.meta && c.meta.rows > 0) && !(c.google && c.google.rows > 0);
     if (S.sample) banner('<b>SAMPLE NUMBERS.</b> Nothing on this page is real. ' + esc(S.sampleWhy), token ? 'Try my real data' : 'Sign in', function(){ if (token) load(); else showLogin(''); });
-    else if (none) banner('No ad account is connected yet, so spend reads $0. The leads and signed cases below are real. Connection steps are at the bottom of the page.', 'Preview with sample numbers', function(){ useSample('Use Refresh to go back to your real data.'); });
+    else if (none) banner('No ad account is connected yet, so spend reads $0. The leads and signed cases below are real.' + (S.data.partner_view ? '' : ' Connection steps are at the bottom of the page.'), 'Preview with sample numbers', function(){ useSample('Use Refresh to go back to your real data.'); });
     else if (leadOnlyFilter()) banner('Ad platforms do not split spend by lead source or state, so those two filters narrow the leads only. Spend stays as the full amount for the platforms and campaign selected.', '', null);
     else banner('');
     $('stamp').textContent = (S.sample ? 'Sample numbers' : 'Updated ' + S.loadedAt.toLocaleTimeString(undefined, { hour:'numeric', minute:'2-digit' })) + ' · ' + fmtDay(S.from) + ' to ' + fmtDay(S.to) + ' · days are Pacific time · nothing before ' + fmtDay(FLOOR) + ' is included';
